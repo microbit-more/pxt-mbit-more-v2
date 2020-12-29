@@ -7,9 +7,20 @@
         "bluetooth": "*"
     },
     "files": [
+        "README.md",
         "main.blocks",
         "main.ts",
-        "README.md"
+        "shims.d.ts",
+        "enums.d.ts",
+        "MbitMore.cpp",
+        "MbitMore.ts",
+        "MbitMoreCommon.h",
+        "MbitMoreDevice.cpp",
+        "MbitMoreDevice.h",
+        "MbitMoreService.cpp",
+        "MbitMoreService.h",
+        "MbitMoreServiceDAL.cpp",
+        "MbitMoreServiceDAL.h"
     ],
     "testFiles": [
         "test.ts"
@@ -17,5 +28,28 @@
     "supportedTargets": [
         "microbit"
     ],
-    "preferredEditor": "blocksprj"
+    "preferredEditor": "blocksprj",
+    "yotta": {
+        "dependencies": {
+            "microbit": "yokobond/microbit#mbit-more"
+        },
+        "config": {
+            "microbit-dal": {
+                "bluetooth": {
+                    "enabled": 1,
+                    "pairing_mode": 1,
+                    "private_addressing": 0,
+                    "open": 1,
+                    "whitelist": 0,
+                    "advertising_timeout": 0,
+                    "tx_power": 0,
+                    "dfu_service": 0,
+                    "event_service": 0,
+                    "device_info_service": 0,
+                    "security_level": "SECURITY_MODE_ENCRYPTION_NO_MITM"
+                },
+                "gatt_table_size": "0x340"
+            }
+        }
+    }
 }
