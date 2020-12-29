@@ -9,11 +9,27 @@
         "group": "build",
         "problemMatcher": [ "$tsc" ]
     }, {
+        "label": "pxt deploy no-docker",
+        "type": "shell",
+        "command": "export PXT_NODOCKER=1 && pxt deploy --local",
+        "group": "build",
+        "problemMatcher": [
+            "$tsc"
+        ]
+    }, {
         "label": "pxt build",
         "type": "shell",
         "command": "pxt build --local",
         "group": "build",
         "problemMatcher": [ "$tsc" ]
+    }, {
+        "label": "pxt build no-docker",
+        "type": "shell",
+        "command": "export PXT_NODOCKER=1 && pxt build --local",
+        "group": "build",
+        "problemMatcher": [
+            "$tsc"
+        ]
     }, {
         "label": "pxt install",
         "type": "shell",
