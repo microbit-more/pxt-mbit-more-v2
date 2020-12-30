@@ -97,6 +97,8 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
 
   // // Start advertising.
   // uBit.ble->advertise();
+
+  fiber_add_idle_component(this);
 }
 
 /**
@@ -225,6 +227,17 @@ void MbitMoreService::onDataRead(microbit_onDataRead_t *params) {
 }
 
 /**
+ * Periodic callback from MicroBit idle thread.
+ */
+void MbitMoreService::idleCallback()
+{
+  if (getConnected()) {
+  } else {
+    mbitMore->displayFriendlyName();
+  }
+}
+
+/**
  * @brief Notify data of the basic extension.
  *
  * @param data Data to notify.
@@ -276,10 +289,6 @@ void MbitMoreService::notify() {
  * Update sensors.
  */
 void MbitMoreService::update() {
-  if (getConnected()) {
-  } else {
-    mbitMore->displayFriendlyName();
-  }
 }
 
 /**

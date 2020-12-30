@@ -9,8 +9,8 @@
 
 #if CONFIG_ENABLED(DEVICE_BLE)
 
-#include "MbitMoreDevice.h"
 #include "MbitMoreCommon.h"
+#include "MbitMoreDevice.h"
 #include "MicroBit.h"
 #include "MicroBitBLEManager.h"
 #include "MicroBitBLEService.h"
@@ -22,7 +22,7 @@ class MbitMoreDevice;
  * Class definition for the Scratch basic Service.
  * Provides a BLE service for default extension of micro:bit in Scratch3.
  */
-class MbitMoreService : public MicroBitBLEService {
+class MbitMoreService : public MicroBitBLEService, MicroBitComponent {
 public:
   /**
    * Constructor.
@@ -50,6 +50,11 @@ public:
    * Set  params->data and params->length to update the value
    */
   void onDataRead(microbit_onDataRead_t *params);
+
+  /**
+   * Periodic callback from MicroBit idle thread.
+   */
+  virtual void idleCallback();
 
   /**
    * @brief Notify data of the basic extension.
