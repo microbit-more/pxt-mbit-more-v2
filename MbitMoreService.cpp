@@ -28,19 +28,20 @@ const uint8_t MbitMoreService::baseUUID[16] = {
     0x8d, 0xee, 0x41, 0x51, 0xf6, 0x3b, 0x28, 0x65};
 const uint16_t MbitMoreService::serviceUUID = 0x574e;
 const uint16_t MbitMoreService::charUUID[mbitmore_cIdx_COUNT] = {
-    0x0001, // COMMAND
-    0x0002, // DIGITAL_IN
-    0x0003, // PIN_EVENT
-    0x0004, // BUTTON_EVENT
-    0x0005, // LIGHT_LEVEL
-    0x0006, // ACCELERATION
-    0x0007, // MAGNET
-    0x0008, // TEMPERATURE
-    0x0009, // MICROPHONE
-    0x0020, // ANALOG_IN_P0
-    0x0021, // ANALOG_IN_P1
-    0x0022, // ANALOG_IN_P2
-    0x0030  // SHARED_DATA
+    0x0100, // COMMAND
+    0x0101, // DIGITAL_IN
+    0x0102, // LIGHT_LEVEL
+    0x0103, // ACCELERATION
+    0x0104, // MAGNET
+    0x0105, // TEMPERATURE
+    0x0106, // MICROPHONE
+    0x0110, // PIN_EVENT
+    0x0111, // BUTTON_EVENT
+    0x0112, // GESTURE_EVENT
+    0x0120, // ANALOG_IN_P0
+    0x0121, // ANALOG_IN_P1
+    0x0122, // ANALOG_IN_P2
+    0x0130  // SHARED_DATA
 };
 
 /**
@@ -64,7 +65,7 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
   CreateCharacteristic(
       mbitmore_cIdx_DIGITAL_IN, charUUID[mbitmore_cIdx_DIGITAL_IN],
       (uint8_t *)(digitalInBuffer), MM_CH_BUFFER_SIZE_DEFAULT,
-      MM_CH_BUFFER_SIZE_DEFAULT, microbit_propREAD | microbit_propREADAUTH);
+      MM_CH_BUFFER_SIZE_DEFAULT, microbit_propREAD);
 
   CreateCharacteristic(
       mbitmore_cIdx_BUTTON_EVENT, charUUID[mbitmore_cIdx_BUTTON_EVENT],
@@ -75,6 +76,11 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
                        (uint8_t *)(commandBuffer), MM_CH_BUFFER_SIZE_DEFAULT,
                        MM_CH_BUFFER_SIZE_DEFAULT,
                        microbit_propWRITE | microbit_propWRITE_WITHOUT);
+
+  CreateCharacteristic(mbitmore_cIdx_LIGHT_LEVEL,
+                       charUUID[mbitmore_cIdx_LIGHT_LEVEL],
+                       (uint8_t *)(lightLevelBuffer), MM_CH_BUFFER_SIZE_DEFAULT,
+                       MM_CH_BUFFER_SIZE_DEFAULT, microbit_propREAD);
 
   // // Stop advertising.
   // uBit.ble->stopAdvertising();
@@ -111,8 +117,7 @@ void MbitMoreService::onConnect(const microbit_ble_evt_t *p_ble_evt) {
 /**
  * Invoked when BLE disconnects.
  */
-void MbitMoreService::onDisconnect(const microbit_ble_evt_t *p_ble_evt) {
-}
+void MbitMoreService::onDisconnect(const microbit_ble_evt_t *p_ble_evt) {}
 
 /**
  * Callback. Invoked when any of our attributes are written via BLE.
@@ -219,18 +224,17 @@ void MbitMoreService::onDataWritten(const microbit_ble_evt_write_t *params) {
  * Set  params->data and params->length to update the value
  */
 void MbitMoreService::onDataRead(microbit_onDataRead_t *params) {
-  if (params->handle == valueHandle(mbitmore_cIdx_DIGITAL_IN)) {
-    mbitMore->updateDigitalValues();
-    params->data = (uint8_t *)&(mbitMore->digitalValues);
-    params->length = 4;
-  }
+  // if (params->handle == valueHandle(mbitmore_cIdx_DIGITAL_IN)) {
+  //   mbitMore->updateDigitalValues();
+  //   params->data = (uint8_t *)&(mbitMore->digitalValues);
+  //   params->length = 4;
+  // }
 }
 
 /**
  * Periodic callback from MicroBit idle thread.
  */
-void MbitMoreService::idleCallback()
-{
+void MbitMoreService::idleCallback() {
   if (getConnected()) {
   } else {
     mbitMore->displayFriendlyName();
@@ -282,22 +286,25 @@ void MbitMoreService::notifySharedData() {
 /**
  * Notify data to Scratch3
  */
-void MbitMoreService::notify() {
-}
+void MbitMoreService::notify() {}
 
 /**
  * Update sensors.
  */
 void MbitMoreService::update() {
+  if (getConnected()) {
+    mbitMore->updateDigitalIn(digitalInBuffer);
+    mbitMore->updateLightLevel(lightLevelBuffer);
+  }
 }
 
-/**
- * Write IO characteristics.
- */
-void MbitMoreService::writeDigitalIn() {
-  writeChrValue(mbitmore_cIdx_DIGITAL_IN, (uint8_t *)&(mbitMore->digitalValues),
-                4);
-}
+// /**
+//  * Write IO characteristics.
+//  */
+// void MbitMoreService::writeDigitalIn() {
+//   writeChrValue(mbitmore_cIdx_DIGITAL_IN, (uint8_t *)&(mbitMore->digitalValues),
+//                 4);
+// }
 
 /**
  * Set value to shared data.

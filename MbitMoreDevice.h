@@ -13,6 +13,8 @@
 #include "MbitMoreService.h"
 #include "MicroBit.h"
 
+#define LIGHT_LEVEL_SAMPLES_SIZE 10
+
 class MbitMoreService;
 
 /**
@@ -106,12 +108,15 @@ public:
   uint16_t analogValues[6];
 
   /**
-   * Light level value from 0 to 255.
+   * Samples of Light Level.
    */
-  int lightLevel;
+  int lightLevelSamples[LIGHT_LEVEL_SAMPLES_SIZE] = {0};
 
-  // Duration for sensing of light level.
-  int lightSensingDuration;
+  /**
+   * @brief Last index of the Light Level Samples.
+   *
+   */
+  size_t lightLevelSamplesLast = 0;
 
   /**
    * Acceleration value [x, y, z] in milli-g.
@@ -167,6 +172,20 @@ public:
    * @param delay The time to delay between characters, in milliseconds.
    */
   void displayText(char *text, int delay);
+
+  /**
+   * @brief Get the Digital Input levels
+   *
+   * @param data Buffer for BLE characteristics.
+   */
+  void updateDigitalIn(uint8_t *data);
+
+  /**
+   * @brief Get the Light Level from LED matrix
+   *
+   * @param data Buffer for BLE characteristics.
+   */
+  void updateLightLevel(uint8_t *data);
 
   /**
    * Set value to Slots.

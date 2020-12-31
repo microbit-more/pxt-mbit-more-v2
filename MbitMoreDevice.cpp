@@ -300,18 +300,6 @@ void MbitMoreDevice::resetGesture() {
       gesture & (1 << 2); // Save moved state to detect continuous movement.
 }
 
-void MbitMoreDevice::updateDigitalValues() {
-  digitalValues = 0;
-  for (size_t i = 0; i < sizeof(gpio) / sizeof(gpio[0]); i++) {
-    if (uBit.io.pin[gpio[i]].isDigital()) {
-      if (uBit.io.pin[gpio[i]].isInput()) {
-        digitalValues =
-            digitalValues | (uBit.io.pin[gpio[i]].getDigitalValue() << gpio[i]);
-      }
-    }
-  }
-}
-
 void MbitMoreDevice::updateAnalogValues() {
   for (size_t i = 0; i < sizeof(analogIn) / sizeof(analogIn[0]); i++) {
     int samplingCount;
@@ -338,17 +326,6 @@ void MbitMoreDevice::updateAnalogValues() {
   // uBit.display.enable();
 }
 
-void MbitMoreDevice::updateLightSensor() {
-  if (lightSensingDuration <= 0) {
-    uBit.display.setDisplayMode(DisplayMode::DISPLAY_MODE_BLACK_AND_WHITE);
-    return;
-  }
-  lightLevel = uBit.display.readLightLevel();
-  if (lightSensingDuration < 255) // over 255 means no-limited.
-  {
-    lightSensingDuration--;
-  }
-}
 
 void MbitMoreDevice::updateAccelerometer() {
   acceleration[0] =
@@ -390,10 +367,6 @@ void MbitMoreDevice::setPinModeTouch(int pinIndex) {
                                      // value is not used.
 }
 
-void MbitMoreDevice::setLightSensingDuration(int duration) {
-  lightSensingDuration = duration;
-}
-
 void MbitMoreDevice::composeBasicData(uint8_t *buff) {
   // Tilt value is sent as int16_t big-endian.
   int16_t tiltX = (int16_t)convertToTilt(rotation[1]);
@@ -430,7 +403,6 @@ void MbitMoreDevice::notifyBasicData() {
   basicService->notifyBasicData((uint8_t *)&txBuffer,
                                 sizeof(txBuffer) / sizeof(txBuffer[0]));
 }
-
 
 /**
  * @brief Layer pattern on LED.
@@ -475,6 +447,63 @@ void MbitMoreDevice::displayText(char *text, int delay) {
 }
 
 /**
+ * @brief Get the Digital Input levels
+ *
+ * @param data Buffer for BLE characteristics.
+ */
+void MbitMoreDevice::updateDigitalIn(uint8_t *data) {
+  uint32_t flags = 0;
+  for (size_t i = 0; i < sizeof(gpio) / sizeof(gpio[0]); i++) {
+    if (uBit.io.pin[gpio[i]].isDigital()) {
+      if (uBit.io.pin[gpio[i]].isInput()) {
+        flags = flags | (uBit.io.pin[gpio[i]].getDigitalValue() << gpio[i]);
+      }
+    }
+  }
+  memcpy(data, (uint8_t *)&flags, 4);
+}
+
+float median(int n, int x[]) {
+  int temp;
+  int i, j;
+  // the following two loops sort the array x in ascending order
+  for (i = 0; i < n - 1; i++) {
+    for (j = i + 1; j < n; j++) {
+      if (x[j] < x[i]) {
+        // swap elements
+        temp = x[i];
+        x[i] = x[j];
+        x[j] = temp;
+      }
+    }
+  }
+
+  if (n % 2 == 0) {
+    // if there is an even number of elements, return mean of the two elements
+    // in the middle
+    return ((x[n / 2] + x[n / 2 - 1]) / 2.0);
+  } else {
+    // else return the element in the middle
+    return x[n / 2];
+  }
+}
+
+/**
+ * @brief Get the Light Level from LED matrix
+ *
+ * @param data Buffer for BLE characteristics.
+ */
+void MbitMoreDevice::updateLightLevel(uint8_t *data) {
+  lightLevelSamples[lightLevelSamplesLast] = uBit.display.readLightLevel();
+  lightLevelSamplesLast++;
+  if (lightLevelSamplesLast == LIGHT_LEVEL_SAMPLES_SIZE) {
+    lightLevelSamplesLast = 0;
+  }
+  data[0] = (uint8_t)median(LIGHT_LEVEL_SAMPLES_SIZE, lightLevelSamples);
+  // data[0] = uBit.display.readLightLevel();
+}
+
+/**
  * Set value to shared data.
  * shared data (0, 1, 2, 3)
  */
@@ -497,11 +526,6 @@ int MbitMoreDevice::getSharedData(int index) {
  * Update sensors.
  */
 void MbitMoreDevice::update() {
-  updateDigitalValues();
-  updateLightSensor();
-  updateAccelerometer();
-  updateMagnetometer();
-  writeSensors();
 }
 
 /**
@@ -557,7 +581,7 @@ void MbitMoreDevice::writeSensors() {
   memcpy(&(sensorsBuffer[16]), &force, 2);
 
   // Light sensor
-  sensorsBuffer[18] = (uint8_t)lightLevel;
+  // sensorsBuffer[18] = (uint8_t)lightLevel;
 
   // Temperature
   sensorsBuffer[19] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
