@@ -94,50 +94,116 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
   mbitMore->moreService = this;
 
   commandCh = new GattCharacteristic(
-      MBIT_MORE_CH_COMMAND, commandBuffer, 0, MM_CH_BUFFER_SIZE_DEFAULT,
+      MBIT_MORE_CH_COMMAND, commandBuffer, 0, sizeof(commandBuffer),
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE |
           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
   commandCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
   digitalInCh = new GattCharacteristic(
       MBIT_MORE_CH_DIGITAL_IN, (uint8_t *)&digitalInBuffer, 0,
-      MM_CH_BUFFER_SIZE_DEFAULT,
+      sizeof(digitalInBuffer),
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
   digitalInCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
+  // lightLevelCh = new GattCharacteristic(
+  //     MBIT_MORE_CH_LIGHT_LEVEL, (uint8_t *)&lightLevelBuffer, 0,
+  //     sizeof(lightLevelBuffer),
+  //     GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+  // lightLevelCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+
+  accelerationCh = new GattCharacteristic(
+      MBIT_MORE_CH_ACCELERATION, (uint8_t *)&accelerationBuffer, 0,
+      sizeof(accelerationBuffer),
+      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+  accelerationCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+
+  // magnetCh =
+  //     new GattCharacteristic(MBIT_MORE_CH_MAGNET, (uint8_t *)&magnetBuffer, 0,
+  //                            MM_CH_BUFFER_SIZE_DEFAULT,
+  //                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+  // magnetCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+
+  // temperatureCh = new GattCharacteristic(
+  //     MBIT_MORE_CH_TEMPERATURE, (uint8_t *)&temperatureBuffer, 0,
+  //     MM_CH_BUFFER_SIZE_DEFAULT,
+  //     GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+  // temperatureCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+
+  // microphoneCh = new GattCharacteristic(
+  //     MBIT_MORE_CH_MICROPHONE, (uint8_t *)&microphoneBuffer, 0,
+  //     MM_CH_BUFFER_SIZE_DEFAULT,
+  //     GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+  // microphoneCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+
+  pinEventCh = new GattCharacteristic(
+      MBIT_MORE_CH_PIN_EVENT, (uint8_t *)&pinEventBuffer,
+      sizeof(pinEventBuffer), sizeof(pinEventBuffer),
+      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
+          GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
+  pinEventCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+
   buttonEventCh = new GattCharacteristic(
       MBIT_MORE_CH_BUTTON_EVENT, (uint8_t *)&buttonEventBuffer,
-      MM_CH_BUFFER_SIZE_DEFAULT, MM_CH_BUFFER_SIZE_DEFAULT,
+      sizeof(buttonEventBuffer), sizeof(buttonEventBuffer),
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
   buttonEventCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
-  lightLevelCh = new GattCharacteristic(
-      MBIT_MORE_CH_LIGHT_LEVEL, (uint8_t *)&lightLevelBuffer, 0,
-      MM_CH_BUFFER_SIZE_DEFAULT,
+  // gestureEventCh = new GattCharacteristic(
+  //     MBIT_MORE_CH_GESTURE_EVENT, (uint8_t *)&gestureEventBuffer,
+  //     sizeof(gestureEventBuffer), sizeof(gestureEventBuffer),
+  //     GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
+  //         GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
+  // gestureEventCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+
+  analogInP0Ch = new GattCharacteristic(
+      MBIT_MORE_CH_ANALOG_IN_P0, (uint8_t *)&analogInP0Buffer, 0,
+      sizeof(analogInP0Buffer),
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
-  lightLevelCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+  analogInP0Ch->setReadAuthorizationCallback(
+      this, &MbitMoreServiceDAL::onReadAnalogIn);
+  analogInP0Ch->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
-  // analogInChar =
-  //     new GattCharacteristic(MBIT_MORE_ANALOG_IN, (uint8_t *)&analogInBuffer,
-  //     0,
-  //                            sizeof(analogInBuffer),
-  //                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
-  // analogInChar->setReadAuthorizationCallback(
-  //     this, &MbitMoreServiceDAL::onReadAnalogIn);
-  // analogInChar->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+  analogInP1Ch = new GattCharacteristic(
+      MBIT_MORE_CH_ANALOG_IN_P1, (uint8_t *)&analogInP1Buffer, 0,
+      sizeof(analogInP1Buffer),
+      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+  analogInP1Ch->setReadAuthorizationCallback(
+      this, &MbitMoreServiceDAL::onReadAnalogIn);
+  analogInP1Ch->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
-  // sharedDataChar = new GattCharacteristic(
-  //     MBIT_MORE_SHARED_DATA, (uint8_t *)&sharedBuffer, 0,
-  //     sizeof(sharedBuffer), GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ
-  //     |
-  //         GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY |
-  //         GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE |
-  //         GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
-  // sharedDataChar->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+  analogInP2Ch = new GattCharacteristic(
+      MBIT_MORE_CH_ANALOG_IN_P2, (uint8_t *)&analogInP2Buffer, 0,
+      sizeof(analogInP2Buffer),
+      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+  analogInP2Ch->setReadAuthorizationCallback(
+      this, &MbitMoreServiceDAL::onReadAnalogIn);
+  analogInP2Ch->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
-  GattCharacteristic *mbitMoreChars[] = {commandCh, digitalInCh, buttonEventCh,
-                                         lightLevelCh};
+  sharedDataCh = new GattCharacteristic(
+      MBIT_MORE_CH_SHARED_DATA, (uint8_t *)&sharedDataBuffer, 0,
+      sizeof(sharedDataBuffer),
+      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
+          GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY |
+          GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE |
+          GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
+  sharedDataCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+
+  // GattCharacteristic *mbitMoreChars[] = {
+  //     commandCh,     digitalInCh,  lightLevelCh, accelerationCh, magnetCh,
+  //     temperatureCh, microphoneCh, pinEventCh,   buttonEventCh,  gestureEventCh,
+  //     analogInP0Ch,  analogInP1Ch, analogInP2Ch, sharedDataCh};
+
+  // sensorCh = digitalIn[4], lightLevel[1], temperature[1], microphone[1]
+  // directionCh = acceleration[10], magnet[8]
+  // pinEventCh = pinEvent
+  // actionEventCh = buttonEvent, gestureEvent
+
+  GattCharacteristic *mbitMoreChars[] = {
+      commandCh,    digitalInCh,   accelerationCh,
+      pinEventCh,   buttonEventCh, analogInP0Ch,
+      analogInP1Ch, analogInP2Ch,  sharedDataCh};
+
   GattService mbitMoreService(MBIT_MORE_SERVICE, mbitMoreChars,
                               sizeof(mbitMoreChars) /
                                   sizeof(GattCharacteristic *));
@@ -155,8 +221,6 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
   // uBit.messageBus.listen(MICROBIT_ID_GESTURE, MICROBIT_EVT_ANY, this,
   //                        &MbitMoreServiceDAL::onGestureChanged,
   //                        MESSAGE_BUS_LISTENER_IMMEDIATE);
-
-  fiber_add_idle_component(this);
 }
 
 /**
@@ -201,11 +265,11 @@ void MbitMoreServiceDAL::onDataWritten(const GattWriteCallbackParams *params) {
  * @param length Lenght of the data.
  */
 void MbitMoreServiceDAL::notifyButtonEvent(uint8_t *data, uint16_t length) {
-  memcpy(buttonEventBuffer, data, length);
-  buttonEventBuffer[DATA_FORMAT_INDEX] = MbitMoreDataFormat::BUTTON_EVENT;
-  uBit.ble->gattServer().notify(
-      buttonEventCh->getValueHandle(), buttonEventBuffer,
-      (sizeof(buttonEventBuffer) / sizeof(buttonEventBuffer[0])));
+  // memcpy(buttonEventBuffer, data, length);
+  // buttonEventBuffer[DATA_FORMAT_INDEX] = MbitMoreDataFormat::BUTTON_EVENT;
+  // uBit.ble->gattServer().notify(
+  //     buttonEventCh->getValueHandle(), buttonEventBuffer,
+  //     (sizeof(buttonEventBuffer) / sizeof(buttonEventBuffer[0])));
 }
 
 /**
@@ -218,7 +282,8 @@ void MbitMoreServiceDAL::notifySharedData() {
   // sharedBuffer[DATA_FORMAT_INDEX] = MbitMoreDataFormat::SHARED_DATA;
   // uBit.ble->gattServer().notify(sharedDataCh->getValueHandle(),
   //                               (uint8_t *)&sharedBuffer,
-  //                               sizeof(sharedBuffer) / sizeof(sharedBuffer[0]));
+  //                               sizeof(sharedBuffer) /
+  //                               sizeof(sharedBuffer[0]));
 }
 
 /**
@@ -252,15 +317,6 @@ void MbitMoreServiceDAL::onBLEConnected(MicroBitEvent _e) {
 void MbitMoreServiceDAL::onBLEDisconnected(MicroBitEvent _e) {}
 
 /**
- * Periodic callback from MicroBit idle thread.
- */
-void MbitMoreServiceDAL::idleCallback() {
-  // if (!(uBit.ble->gap().getState().connected)) {
-  //   mbitMore->displayFriendlyName();
-  // }
-}
-
-/**
  * Update sensors.
  */
 void MbitMoreServiceDAL::update() {
@@ -268,9 +324,9 @@ void MbitMoreServiceDAL::update() {
     mbitMore->updateDigitalIn(digitalInBuffer);
     uBit.ble->gattServer().write(digitalInCh->getValueHandle(), digitalInBuffer,
                                  MM_CH_BUFFER_SIZE_DIGITAL_IN);
-    mbitMore->updateLightLevel(lightLevelBuffer);
-    uBit.ble->gattServer().write(lightLevelCh->getValueHandle(),
-                                 lightLevelBuffer, 1);
+    // mbitMore->updateLightLevel(lightLevelBuffer);
+    // uBit.ble->gattServer().write(lightLevelCh->getValueHandle(),
+    //                              lightLevelBuffer, 1);
   } else {
     mbitMore->displayFriendlyName();
   }

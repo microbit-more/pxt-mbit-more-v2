@@ -20,7 +20,7 @@ class MbitMoreDevice;
  * Class definition for a MicroBitMore Service.
  * Provides a BLE service to remotely read the state of sensors from Scratch3.
  */
-class MbitMoreServiceDAL : public MicroBitComponent {
+class MbitMoreServiceDAL {
 public:
   /**
    * Constructor.
@@ -71,18 +71,28 @@ public:
    */
   void onBLEDisconnected(MicroBitEvent e);
 
-  /**
-   * Periodic callback from MicroBit idle thread.
-   */
-  virtual void idleCallback();
-
   void update();
 
   // Buffer of characteristic for receiving commands.
   uint8_t commandBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
 
   // Buffer of characteristic for sending digital levels.
-  uint8_t digitalInBuffer[MM_CH_BUFFER_SIZE_DIGITAL_IN] = {0};
+  uint8_t digitalInBuffer[4] = {0};
+
+  // // Buffer of characteristic for sending level of light sensor.
+  // uint8_t lightLevelBuffer[3] = {0};
+
+  // Buffer of characteristic for sending data of acceleration.
+  uint8_t accelerationBuffer[18] = {0};
+
+  // // Buffer of characteristic for sending data of magnet.
+  // uint8_t magnetBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // // Buffer of characteristic for sending data of temperature.
+  // uint8_t temperatureBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // // Buffer of characteristic for sending data of microphone.
+  // uint8_t microphoneBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
 
   // Buffer of characteristic for sending pin events.
   uint8_t pinEventBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
@@ -90,32 +100,20 @@ public:
   // Buffer of characteristic for sending button events.
   uint8_t buttonEventBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
 
-  // Buffer of characteristic for sending level of light sensor.
-  uint8_t lightLevelBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
-
-  // Buffer of characteristic for sending data of acceleration.
-  uint8_t accelerationBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
-
-  // Buffer of characteristic for sending data of magnet.
-  uint8_t magnetBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
-
-  // Buffer of characteristic for sending data of temperature.
-  uint8_t temperatureBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
-
-  // Buffer of characteristic for sending data of microphone.
-  uint8_t microphoneBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  // // Buffer of characteristic for sending gesture events.
+  // uint8_t gestureEventBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
 
   // Buffer of characteristic for sending analog input values.
-  uint8_t analogIn0Buffer[3][MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  uint8_t analogInP0Buffer[3][2] = {0};
 
   // Buffer of characteristic for sending analog input values.
-  uint8_t analogIn1Buffer[3][MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  uint8_t analogInP1Buffer[3][2] = {0};
 
   // Buffer of characteristic for sending analog input values.
-  uint8_t analogIn2Buffer[3][MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  uint8_t analogInP2Buffer[3][2] = {0};
 
   // Buffer of characteristic for sending shared data.
-  uint8_t sharedDataBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  uint8_t sharedDataBuffer[8] = {0};
 
 private:
   /**
@@ -130,13 +128,20 @@ private:
    */
   MbitMoreDevice *mbitMore;
 
-  uint32_t digitalValues = 0;
-
   GattCharacteristic *commandCh;
   GattCharacteristic *digitalInCh;
-  GattCharacteristic *buttonEventCh;
   GattCharacteristic *lightLevelCh;
-  GattCharacteristic *analogIn0Ch;
+  GattCharacteristic *accelerationCh;
+  GattCharacteristic *magnetCh;
+  GattCharacteristic *temperatureCh;
+  GattCharacteristic *microphoneCh;
+  GattCharacteristic *pinEventCh;
+  GattCharacteristic *buttonEventCh;
+  GattCharacteristic *gestureEventCh;
+  GattCharacteristic *analogInP0Ch;
+  GattCharacteristic *analogInP1Ch;
+  GattCharacteristic *analogInP2Ch;
+  GattCharacteristic *sharedDataCh;
 };
 
 #endif // MBIT_MORE_SERVICE_DAL_H
