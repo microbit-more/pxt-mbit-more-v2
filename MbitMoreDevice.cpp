@@ -133,50 +133,50 @@ void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
  * Callback. Invoked when a pin event sent.
  */
 void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
-  uint8_t pinIndex;
-  switch (evt.source) // ID of the MicroBit Component that generated the event.
-                      // (uint16_t)
-  {
-  case MICROBIT_ID_IO_P0:
-    eventBuffer[0] = 0;
-    break;
-  case MICROBIT_ID_IO_P1:
-    eventBuffer[0] = 1;
-    break;
-  case MICROBIT_ID_IO_P2:
-    eventBuffer[0] = 2;
-    break;
-  case MICROBIT_ID_IO_P8:
-    eventBuffer[0] = 8;
-    break;
-  case MICROBIT_ID_IO_P13:
-    eventBuffer[0] = 13;
-    break;
-  case MICROBIT_ID_IO_P14:
-    eventBuffer[0] = 14;
-    break;
-  case MICROBIT_ID_IO_P15:
-    eventBuffer[0] = 15;
-    break;
-  case MICROBIT_ID_IO_P16:
-    eventBuffer[0] = 16;
-    break;
+  // uint8_t pinIndex;
+  // switch (evt.source) // ID of the MicroBit Component that generated the event.
+  //                     // (uint16_t)
+  // {
+  // case MICROBIT_ID_IO_P0:
+  //   eventBuffer[0] = 0;
+  //   break;
+  // case MICROBIT_ID_IO_P1:
+  //   eventBuffer[0] = 1;
+  //   break;
+  // case MICROBIT_ID_IO_P2:
+  //   eventBuffer[0] = 2;
+  //   break;
+  // case MICROBIT_ID_IO_P8:
+  //   eventBuffer[0] = 8;
+  //   break;
+  // case MICROBIT_ID_IO_P13:
+  //   eventBuffer[0] = 13;
+  //   break;
+  // case MICROBIT_ID_IO_P14:
+  //   eventBuffer[0] = 14;
+  //   break;
+  // case MICROBIT_ID_IO_P15:
+  //   eventBuffer[0] = 15;
+  //   break;
+  // case MICROBIT_ID_IO_P16:
+  //   eventBuffer[0] = 16;
+  //   break;
 
-  default:
-    break;
-  }
+  // default:
+  //   break;
+  // }
 
-  // event ID is sent as uint16_t little-endian.
-  // #define MICROBIT_PIN_EVT_RISE               2
-  // #define MICROBIT_PIN_EVT_FALL               3
-  // #define MICROBIT_PIN_EVT_PULSE_HI           4
-  // #define MICROBIT_PIN_EVT_PULSE_LO           5
-  memcpy(&(eventBuffer[1]), &(evt.value), 2);
+  // // event ID is sent as uint16_t little-endian.
+  // // #define MICROBIT_PIN_EVT_RISE               2
+  // // #define MICROBIT_PIN_EVT_FALL               3
+  // // #define MICROBIT_PIN_EVT_PULSE_HI           4
+  // // #define MICROBIT_PIN_EVT_PULSE_LO           5
+  // memcpy(&(eventBuffer[1]), &(evt.value), 2);
 
-  // event timestamp is sent as uint32_t little-endian coerced from uint64_t
-  // value.
-  uint32_t timestamp = (uint32_t)evt.timestamp;
-  memcpy(&(eventBuffer[3]), &timestamp, 4);
+  // // event timestamp is sent as uint32_t little-endian coerced from uint64_t
+  // // value.
+  // uint32_t timestamp = (uint32_t)evt.timestamp;
+  // memcpy(&(eventBuffer[3]), &timestamp, 4);
 
   // moreService->notifyIOEvent((uint8_t *)&eventBuffer,
   //                            sizeof(eventBuffer) / sizeof(eventBuffer[0]));
@@ -392,9 +392,9 @@ void MbitMoreDevice::composeBasicData(uint8_t *buff) {
  * Notify shared data to Scratch3
  */
 void MbitMoreDevice::notifySharedData() {
-  for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
-    memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
-  }
+  // for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
+  //   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
+  // }
   // moreService->notifySharedData(
   //     (uint8_t *)&sharedBuffer,
   //     sizeof(sharedBuffer) / sizeof(sharedBuffer[0]));
@@ -530,9 +530,9 @@ void MbitMoreDevice::update() {}
  * Write shared data characteristics.
  */
 void MbitMoreDevice::writeSharedData() {
-  for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
-    memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
-  }
+  // for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
+  //   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
+  // }
 
   // moreService->writeSharedData((uint8_t *)&sharedBuffer,
   //                              sizeof(sharedBuffer) /
@@ -543,46 +543,46 @@ void MbitMoreDevice::writeSharedData() {
  * Write data of all sensors to the characteristic.
  */
 void MbitMoreDevice::writeSensors() {
-  // Accelerometer
-  int16_t acc;
-  // Acceleration X [milli-g] is sent as int16_t little-endian.
-  acc = (int16_t)acceleration[0];
-  memcpy(&(sensorsBuffer[0]), &acc, 2);
-  // Acceleration Y [milli-g] is sent as int16_t little-endian.
-  acc = (int16_t)acceleration[1];
-  memcpy(&(sensorsBuffer[2]), &acc, 2);
-  // Acceleration Z [milli-g] is sent as int16_t little-endian.
-  acc = (int16_t)acceleration[2];
-  memcpy(&(sensorsBuffer[4]), &acc, 2);
+  // // Accelerometer
+  // int16_t acc;
+  // // Acceleration X [milli-g] is sent as int16_t little-endian.
+  // acc = (int16_t)acceleration[0];
+  // memcpy(&(sensorsBuffer[0]), &acc, 2);
+  // // Acceleration Y [milli-g] is sent as int16_t little-endian.
+  // acc = (int16_t)acceleration[1];
+  // memcpy(&(sensorsBuffer[2]), &acc, 2);
+  // // Acceleration Z [milli-g] is sent as int16_t little-endian.
+  // acc = (int16_t)acceleration[2];
+  // memcpy(&(sensorsBuffer[4]), &acc, 2);
 
-  int16_t rot;
-  // Pitch (radians / 1000) is sent as int16_t little-endian [6..7].
-  rot = (int16_t)(rotation[0] * 1000);
-  memcpy(&(sensorsBuffer[6]), &rot, 2);
-  // Roll (radians / 1000) is sent as int16_t little-endian [8..9].
-  rot = (int16_t)(rotation[1] * 1000);
-  memcpy(&(sensorsBuffer[8]), &rot, 2);
+  // int16_t rot;
+  // // Pitch (radians / 1000) is sent as int16_t little-endian [6..7].
+  // rot = (int16_t)(rotation[0] * 1000);
+  // memcpy(&(sensorsBuffer[6]), &rot, 2);
+  // // Roll (radians / 1000) is sent as int16_t little-endian [8..9].
+  // rot = (int16_t)(rotation[1] * 1000);
+  // memcpy(&(sensorsBuffer[8]), &rot, 2);
 
-  // Magnetometer
-  uint16_t heading = (uint16_t)normalizeCompassHeading(compassHeading);
-  memcpy(&(sensorsBuffer[10]), &heading, 2);
+  // // Magnetometer
+  // uint16_t heading = (uint16_t)normalizeCompassHeading(compassHeading);
+  // memcpy(&(sensorsBuffer[10]), &heading, 2);
 
-  int16_t force;
-  // Magnetic force X (micro-teslas) is sent as uint16_t little-endian [2..3].
-  force = (int16_t)(magneticForce[0] / 1000);
-  memcpy(&(sensorsBuffer[12]), &force, 2);
-  // Magnetic force Y (micro-teslas) is sent as uint16_t little-endian [4..5].
-  force = (int16_t)(magneticForce[1] / 1000);
-  memcpy(&(sensorsBuffer[14]), &force, 2);
-  // Magnetic force Z (micro-teslas) is sent as uint16_t little-endian [6..7].
-  force = (int16_t)(magneticForce[2] / 1000);
-  memcpy(&(sensorsBuffer[16]), &force, 2);
+  // int16_t force;
+  // // Magnetic force X (micro-teslas) is sent as uint16_t little-endian [2..3].
+  // force = (int16_t)(magneticForce[0] / 1000);
+  // memcpy(&(sensorsBuffer[12]), &force, 2);
+  // // Magnetic force Y (micro-teslas) is sent as uint16_t little-endian [4..5].
+  // force = (int16_t)(magneticForce[1] / 1000);
+  // memcpy(&(sensorsBuffer[14]), &force, 2);
+  // // Magnetic force Z (micro-teslas) is sent as uint16_t little-endian [6..7].
+  // force = (int16_t)(magneticForce[2] / 1000);
+  // memcpy(&(sensorsBuffer[16]), &force, 2);
 
   // Light sensor
   // sensorsBuffer[18] = (uint8_t)lightLevel;
 
   // Temperature
-  sensorsBuffer[19] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
+  // sensorsBuffer[19] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
 
   // moreService->writeSensor((uint8_t *)&sensorsBuffer,
   //                          sizeof(sensorsBuffer) / sizeof(sensorsBuffer[0]));

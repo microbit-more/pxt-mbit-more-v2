@@ -64,27 +64,6 @@ public:
    */
   MbitMoreService *moreService;
 
-  // Sending data to Scratch3.
-  uint8_t txBuffer[20];
-
-  // Recieving buffer from Scratch3.
-  uint8_t rxBuffer[10];
-
-  // Config buffer set by Scratch.
-  uint8_t eventBuffer[20];
-
-  // Sending data of IO to Scratch.
-  uint8_t ioBuffer[4];
-
-  // Sending data of analog input to Scratch.
-  uint8_t analogInBuffer[20];
-
-  // Sending data of all sensors to Scratch.
-  uint8_t sensorsBuffer[20];
-
-  // Shared data with Scratch.
-  uint8_t sharedBuffer[20];
-
   // ---------------------
 
   // Button events for Scratch.
