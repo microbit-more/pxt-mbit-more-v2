@@ -1,8 +1,6 @@
 
 #include "pxt.h"
 
-#if MICROBIT_CODAL
-
 /**
  * Class definition for the Scratch MicroBit More Service.
  * Provides a BLE service to remotely controll Micro:bit from Scratch3.
@@ -19,11 +17,7 @@
 #define MBIT_MORE_BUTTON_EVT_HOLD 5
 #define MBIT_MORE_BUTTON_EVT_DOUBLE_CLICK 6
 
-int gpio[] = {0,  1,  2,
-              5, // button A
-              8,
-              11, // button B
-              13, 14, 15, 16};
+int gpio[] = {0, 1, 2, 8, 12, 13, 14, 15, 16};
 int analogIn[] = {0, 1, 2};
 int digitalIn[] = {
     0, 1,
@@ -66,7 +60,11 @@ MbitMoreDevice::~MbitMoreDevice() {
 void MbitMoreDevice::initConfiguration() {
   // Initialize pin configuration.
   for (size_t i = 0; i < sizeof(digitalIn) / sizeof(digitalIn[0]); i++) {
+#if MICROBIT_CODAL
     setPullMode(digitalIn[i], PullMode::Up);
+#else // NOT MICROBIT_CODAL
+    setPullMode(digitalIn[i], PinMode::PullUp);
+#endif // NOT MICROBIT_CODAL
   }
   uBit.display.stopAnimation(); // To stop display friendly name.
   // uBit.display.scrollAsync("v.0.6.0"); // Display version number
@@ -180,8 +178,8 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
   uint32_t timestamp = (uint32_t)evt.timestamp;
   memcpy(&(eventBuffer[3]), &timestamp, 4);
 
-  moreService->notifyIOEvent((uint8_t *)&eventBuffer,
-                             sizeof(eventBuffer) / sizeof(eventBuffer[0]));
+  // moreService->notifyIOEvent((uint8_t *)&eventBuffer,
+  //                            sizeof(eventBuffer) / sizeof(eventBuffer[0]));
 }
 
 /**
@@ -306,7 +304,11 @@ void MbitMoreDevice::updateAnalogValues() {
     int prevValue;
     int value;
     if (uBit.io.pin[analogIn[i]].isInput()) {
+#if MICROBIT_CODAL
       uBit.io.pin[analogIn[i]].setPull(PullMode::None);
+#else // NOT MICROBIT_CODAL
+      uBit.io.pin[analogIn[i]].setPull(PinMode::PullNone);
+#endif // NOT MICROBIT_CODAL
       // for accuracy, read more than 2 times to get same values continuously
       do {
         prevValue = value;
@@ -326,7 +328,6 @@ void MbitMoreDevice::updateAnalogValues() {
   // uBit.display.enable();
 }
 
-
 void MbitMoreDevice::updateAccelerometer() {
   acceleration[0] =
       -uBit.accelerometer.getX(); // Face side is positive in Z-axis.
@@ -344,7 +345,11 @@ void MbitMoreDevice::updateMagnetometer() {
   magneticForce[2] = uBit.compass.getZ();
 }
 
+#if MICROBIT_CODAL
 void MbitMoreDevice::setPullMode(int pinIndex, PullMode pull) {
+#else // NOT MICROBIT_CODAL
+void MbitMoreDevice::setPullMode(int pinIndex, PinMode pull) {
+#endif // NOT MICROBIT_CODAL
   uBit.io.pin[pinIndex].getDigitalValue(pull);
   pullMode[pinIndex] = pull;
 }
@@ -393,15 +398,6 @@ void MbitMoreDevice::notifySharedData() {
   // moreService->notifySharedData(
   //     (uint8_t *)&sharedBuffer,
   //     sizeof(sharedBuffer) / sizeof(sharedBuffer[0]));
-}
-
-/**
- * Notify default micro:bit data to Scratch.
- */
-void MbitMoreDevice::notifyBasicData() {
-  composeBasicData(txBuffer);
-  basicService->notifyBasicData((uint8_t *)&txBuffer,
-                                sizeof(txBuffer) / sizeof(txBuffer[0]));
 }
 
 /**
@@ -460,6 +456,9 @@ void MbitMoreDevice::updateDigitalIn(uint8_t *data) {
       }
     }
   }
+  // DAL can not read the buttons state as digital input. (CODAL can do that)
+  flags = flags | (!uBit.buttonA.isPressed() << 5);
+  flags = flags | (!uBit.buttonB.isPressed() << 11);
   memcpy(data, (uint8_t *)&flags, 4);
 }
 
@@ -525,8 +524,7 @@ int MbitMoreDevice::getSharedData(int index) {
 /**
  * Update sensors.
  */
-void MbitMoreDevice::update() {
-}
+void MbitMoreDevice::update() {}
 
 /**
  * Write shared data characteristics.
@@ -594,5 +592,3 @@ void MbitMoreDevice::displayFriendlyName() {
   ManagedString sign(" -MORE 0.6.0- ");
   uBit.display.scrollAsync(ManagedString(microbit_friendly_name()) + sign, 120);
 }
-
-#endif // MICROBIT_CODAL

@@ -8,48 +8,37 @@
 #include "MicroBit.h"
 
 #include "MbitMoreCommon.h"
+#include "MbitMoreDevice.h"
 
-#define SCRATCH_MORE_ID 2000
+// // Forward declaration
+class MbitMoreDevice;
 
-#define SCRATCH_MORE_EVT_NOTIFY 1
+#define MM_CH_BUFFER_SIZE_DEFAULT 20
+#define MM_CH_BUFFER_SIZE_DIGITAL_IN 4
 
 /**
- * Position of data format in a value holder.
+ * Class definition for a MicroBitMore Service.
+ * Provides a BLE service to remotely read the state of sensors from Scratch3.
  */
-#define DATA_FORMAT_INDEX 19
-
-// UUIDs for our service and characteristics
-extern const uint16_t MBIT_MORE_BASIC_SERVICE;
-extern const uint8_t MBIT_MORE_BASIC_TX[];
-extern const uint8_t MBIT_MORE_BASIC_RX[];
-extern const uint8_t MBIT_MORE_SERVICE[];
-extern const uint8_t MBIT_MORE_EVENT[];
-extern const uint8_t MBIT_MORE_IO[];
-extern const uint8_t MBIT_MORE_SENSORS[];
-extern const uint8_t MBIT_MORE_SHARED_DATA[];
-extern const uint8_t MBIT_MORE_ANALOG_IN[];
-
-/**
-  * Class definition for a MicroBitMore Service.
-  * Provides a BLE service to remotely read the state of sensors from Scratch3.
-  */
-class MbitMoreServiceDAL
-{
+class MbitMoreServiceDAL : public MicroBitComponent {
 public:
   /**
-    * Constructor.
-    * Create a representation of the MbitMoreService
-    * @param _uBit The instance of a MicroBit runtime.
-    */
+   * Constructor.
+   * Create a representation of the MbitMoreService
+   * @param _uBit The instance of a MicroBit runtime.
+   */
   MbitMoreServiceDAL();
 
-  void initConfiguration();
+  void notify();
 
   /**
-    * Notify data to Scratch3.
-    */
-  void notify();
-  void notifyDefaultData();
+   * @brief Notify button event.
+   *
+   * @param data Data to notify.
+   * @param length Lenght of the data.
+   */
+  void notifyButtonEvent(uint8_t *data, uint16_t length);
+
   void notifySharedData();
 
   /**
@@ -83,158 +72,72 @@ public:
   void onBLEDisconnected(MicroBitEvent e);
 
   /**
-   * Callback. Invoked when a pin event sent.
+   * Periodic callback from MicroBit idle thread.
    */
-  void onPinEvent(MicroBitEvent evt);
+  virtual void idleCallback();
 
   void update();
 
-  void updateDigitalValues();
-  void updatePowerVoltage();
-  void updateAnalogValues();
-  void updateLightSensor();
-  void updateAccelerometer();
-  void updateMagnetometer();
+  // Buffer of characteristic for receiving commands.
+  uint8_t commandBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
 
-  void writeIo();
-  void writeAnalogIn();
-  void writeSensors();
-  void writeSharedData();
+  // Buffer of characteristic for sending digital levels.
+  uint8_t digitalInBuffer[MM_CH_BUFFER_SIZE_DIGITAL_IN] = {0};
+
+  // Buffer of characteristic for sending pin events.
+  uint8_t pinEventBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending button events.
+  uint8_t buttonEventBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending level of light sensor.
+  uint8_t lightLevelBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending data of acceleration.
+  uint8_t accelerationBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending data of magnet.
+  uint8_t magnetBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending data of temperature.
+  uint8_t temperatureBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending data of microphone.
+  uint8_t microphoneBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending analog input values.
+  uint8_t analogIn0Buffer[3][MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending analog input values.
+  uint8_t analogIn1Buffer[3][MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending analog input values.
+  uint8_t analogIn2Buffer[3][MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+
+  // Buffer of characteristic for sending shared data.
+  uint8_t sharedDataBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
 
 private:
-
-  // Sending data to Scratch3.
-  uint8_t txData[20];
-
-  // Recieving buffer from Scratch3.
-  uint8_t rxBuffer[10];
-
-  // Config buffer set by Scratch.
-  uint8_t eventBuffer[20];
-
-  // Sending data of IO to Scratch.
-  uint8_t ioBuffer[4];
-
-  // Sending data of analog input to Scratch.
-  uint8_t analogInBuffer[20];
-
-  // Sending data of all sensors to Scratch.
-  uint8_t sensorsBuffer[20];
-
-  // Shared data with Scratch.
-  uint8_t sharedBuffer[20];
-
   /**
-   * Button state.
+   * @brief micro:bit runtime object.
+   *
    */
-  int buttonAState;
-  int buttonBState;
-
-  /**
-   * Hold gesture state until next nofification.
-   */
-  int gesture;
-
-  /**
-   * Save the last accelerometer values to conpaire current for detecting moving.
-   */
-  int lastAcc[3];
-
-  /**
-   * Heading angle of compass.
-   */
-  int compassHeading;
-
-  uint32_t digitalValues;
-
-  uint16_t analogValues[6];
-
-  /**
-   * Light level value from 0 to 255.
-   */
-  int lightLevel;
-
-  int lightSensingDuration;
-
-  /**
-   * Acceleration value [x, y, z] in milli-g.
-   */
-  int acceleration[6];
-
-  /**
-   * Rotation value [pitch, roll] in radians.
-   */
-  float rotation[2];
-
-  /**
-   * Magnetic force [x, y, z] in 1000 * micro-teslas.
-   */
-  int magneticForce[3];
-
-  /**
-   * Shared data
-   */
-  int16_t sharedData[4];
-
-  /**
-   * Protocol of microbit more.
-   */
-  int mbitMoreProtocol;
-
-  /**
-   * Current mode of all pins.
-   */
-  PinMode pullMode[21];
-  
-  /**
-   * Voltage of the power supply in [mV]
-   */
-  int powerVoltage;
-
-
-  void listenPinEventOn(int pinIndex, int eventType);
-  void setPullMode(int pinIndex, PinMode pull);
-  void setDigitalValue(int pinIndex, int value);
-  void setAnalogValue(int pinIndex, int value);
-  void setServoValue(int pinIndex, int angle, int range, int center);
-  void setPinModeTouch(int pinIndex);
-  void setLightSensingDuration(int duration);
-
-  void onButtonChanged(MicroBitEvent);
-  void onGestureChanged(MicroBitEvent);
-
-  void updateGesture(void);
-  void resetGesture(void);
-
-  int normalizeCompassHeading(int heading);
-  int convertToTilt(float radians);
-
-  void composeDefaultData(uint8_t *buff);
-  void composeTxBuffer01(void);
-  void composeTxBuffer02(void);
-  void composeTxBuffer03(void);
-
-  void displayFriendlyName();
-
-  // microbit runtime instance
   MicroBit &uBit;
 
-  // Handles to access each characteristic when they are held by Soft Device.
-  GattAttribute::Handle_t txCharacteristicHandle;
-  GattAttribute::Handle_t rxCharacteristicHandle;
+  /**
+   * @brief Microbit More object.
+   *
+   */
+  MbitMoreDevice *mbitMore;
 
-  GattCharacteristic *eventChar;
-  GattCharacteristic *ioChar;
-  GattCharacteristic *analogInChar;
-  GattCharacteristic *sensorsChar;
-  GattCharacteristic *sharedDataChar;
+  uint32_t digitalValues = 0;
 
-  GattAttribute::Handle_t eventCharHandle;
-  GattAttribute::Handle_t ioCharHandle;
-  GattAttribute::Handle_t sensorsCharHandle;
-  GattAttribute::Handle_t sharedDataCharHandle;
-
+  GattCharacteristic *commandCh;
+  GattCharacteristic *digitalInCh;
+  GattCharacteristic *buttonEventCh;
+  GattCharacteristic *lightLevelCh;
+  GattCharacteristic *analogIn0Ch;
 };
 
-#endif  // MBIT_MORE_SERVICE_DAL_H
+#endif // MBIT_MORE_SERVICE_DAL_H
 #endif // !MICROBIT_CODAL

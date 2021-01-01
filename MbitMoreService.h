@@ -9,11 +9,12 @@
 
 #if CONFIG_ENABLED(DEVICE_BLE)
 
-#include "MbitMoreCommon.h"
-#include "MbitMoreDevice.h"
 #include "MicroBit.h"
 #include "MicroBitBLEManager.h"
 #include "MicroBitBLEService.h"
+
+#include "MbitMoreCommon.h"
+#include "MbitMoreDevice.h"
 
 // // Forward declaration
 class MbitMoreDevice;

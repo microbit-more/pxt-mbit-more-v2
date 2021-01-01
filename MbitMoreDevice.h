@@ -3,19 +3,22 @@
 
 #include "pxt.h"
 
-#if MICROBIT_CODAL
-
+#include "MicroBit.h"
 #include "MicroBitConfig.h"
 
-#if CONFIG_ENABLED(DEVICE_BLE)
-
 #include "MbitMoreCommon.h"
+
+
+#if MICROBIT_CODAL
 #include "MbitMoreService.h"
-#include "MicroBit.h"
+class MbitMoreService;
+#else // MICROBIT_CODAL
+#include "MbitMoreServiceDAL.h"
+class MbitMoreServiceDAL;
+using MbitMoreService = MbitMoreServiceDAL;
+#endif // NOT MICROBIT_CODAL
 
 #define LIGHT_LEVEL_SAMPLES_SIZE 10
-
-class MbitMoreService;
 
 /**
  * Class definition for the Scratch basic Service.
@@ -146,7 +149,11 @@ public:
   /**
    * Current mode of all pins.
    */
+#if MICROBIT_CODAL
   PullMode pullMode[21];
+#else // MICROBIT_CODAL
+  PinMode pullMode[21];
+#endif // NOT MICROBIT_CODAL
 
   void initConfiguration();
 
@@ -208,14 +215,12 @@ public:
 
   void update();
 
-  void updateDigitalValues();
   void updateAnalogValues();
   void updateLightSensor();
   void updateAccelerometer();
   void updateMagnetometer();
 
   void notifySharedData();
-  void notifyBasicData();
   void notify();
 
   void writeAnalogIn();
@@ -226,7 +231,13 @@ public:
 
 private:
   void listenPinEventOn(int pinIndex, int eventType);
+
+#if MICROBIT_CODAL
   void setPullMode(int pinIndex, PullMode pull);
+#else // MICROBIT_CODAL
+  void setPullMode(int pinIndex, PinMode pull);
+#endif // NOT MICROBIT_CODAL
+
   void setDigitalValue(int pinIndex, int value);
   void setAnalogValue(int pinIndex, int value);
   void setServoValue(int pinIndex, int angle, int range, int center);
@@ -244,6 +255,4 @@ private:
   int convertToTilt(float radians);
 };
 
-#endif // CONFIG_ENABLED(DEVICE_BLE)
-#endif // MICROBIT_CODAL
 #endif // MBIT_MORE_DEVICE_H
