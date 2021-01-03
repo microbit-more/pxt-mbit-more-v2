@@ -1,11 +1,12 @@
 #ifndef MBIT_MORE_COMMON_H
 #define MBIT_MORE_COMMON_H
 
-#define MM_CH_BUFFER_SIZE_DEFAULT 20
-
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
-#endif
+#define MM_CH_BUFFER_SIZE_MAX 20
+#define MM_CH_BUFFER_SIZE_NOTIFY 20
+#define MM_CH_BUFFER_SIZE_SENSORS 7
+#define MM_CH_BUFFER_SIZE_DIRECTION 18
+#define MM_CH_BUFFER_SIZE_ANALOG_IN 2
+#define MM_CH_BUFFER_SIZE_SHARED_DATA 5
 
 enum ScratchBLECommand
 {
@@ -56,6 +57,21 @@ enum MbitMoreButtonEvent
   LONG_CLICK = 4,
   HOLD = 5,
   DOUBLE_CLICK = 6
+};
+
+enum MbitMoreGestureEvent
+{
+  TILT_UP = 1,
+  TILT_DOWN = 2,
+  TILT_LEFT = 3,
+  TILT_RIGHT = 4,
+  FACE_UP = 5,
+  FACE_DOWN = 6,
+  FREEFALL = 7,
+  G3 = 8,
+  G6 = 9,
+  G8 = 10,
+  SHAKE = 11
 };
 
 enum MbitMorePinEventType

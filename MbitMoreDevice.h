@@ -65,14 +65,6 @@ public:
 
   // ---------------------
 
-  // Button events for Scratch.
-  uint8_t buttonEvent[MM_CH_BUFFER_SIZE_DEFAULT];
-
-  /**
-   * Hold gesture state until next nofification.
-   */
-  int gesture;
-
   /**
    * Save the last accelerometer values to conpaire current for detecting
    * moving.

@@ -12,9 +12,10 @@
 
 #if CONFIG_ENABLED(DEVICE_BLE)
 
+// #include "ble_advdata.h"
+
 #include "MbitMoreService.h"
 #include "MicroBitButton.h"
-#include "ble_advdata.h"
 
 const uint8_t MbitMoreService::baseUUID[16] = {
     0xa6, 0x2d, 0x57, 0x4e, 0x1b, 0x34, 0x40, 0x92,
@@ -47,51 +48,47 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
 
   // Add each of our characteristics.
   CreateCharacteristic(mbitmore_cIdx_COMMAND, charUUID[mbitmore_cIdx_COMMAND],
-                       (uint8_t *)(commandChBuffer), 0,
-                       ARRAY_SIZE(commandChBuffer),
+                       (uint8_t *)(commandChBuffer), 0, MM_CH_BUFFER_SIZE_MAX,
                        microbit_propWRITE | microbit_propWRITE_WITHOUT);
 
   CreateCharacteristic(mbitmore_cIdx_SENSORS, charUUID[mbitmore_cIdx_SENSORS],
-                       (uint8_t *)(sensorsChBuffer),
-                       ARRAY_SIZE(sensorsChBuffer), ARRAY_SIZE(sensorsChBuffer),
-                       microbit_propREAD);
+                       (uint8_t *)(sensorsChBuffer), MM_CH_BUFFER_SIZE_SENSORS,
+                       MM_CH_BUFFER_SIZE_SENSORS, microbit_propREAD);
 
-  CreateCharacteristic(mbitmore_cIdx_DIRECTION,
-                       charUUID[mbitmore_cIdx_DIRECTION],
-                       (uint8_t *)(directionChBuffer), 0,
-                       ARRAY_SIZE(directionChBuffer), microbit_propREAD);
+  CreateCharacteristic(
+      mbitmore_cIdx_DIRECTION, charUUID[mbitmore_cIdx_DIRECTION],
+      (uint8_t *)(directionChBuffer), MM_CH_BUFFER_SIZE_DIRECTION,
+      MM_CH_BUFFER_SIZE_DIRECTION, microbit_propREAD);
 
   CreateCharacteristic(
       mbitmore_cIdx_PIN_EVENT, charUUID[mbitmore_cIdx_PIN_EVENT],
-      (uint8_t *)(pinEventChBuffer), ARRAY_SIZE(pinEventChBuffer),
-      ARRAY_SIZE(pinEventChBuffer), microbit_propREAD | microbit_propNOTIFY);
+      (uint8_t *)(pinEventChBuffer), MM_CH_BUFFER_SIZE_NOTIFY,
+      MM_CH_BUFFER_SIZE_NOTIFY, microbit_propREAD | microbit_propNOTIFY);
 
   CreateCharacteristic(
       mbitmore_cIdx_ACTION_EVENT, charUUID[mbitmore_cIdx_ACTION_EVENT],
-      (uint8_t *)(actionEventChBuffer), ARRAY_SIZE(actionEventChBuffer),
-      ARRAY_SIZE(actionEventChBuffer), microbit_propREAD | microbit_propNOTIFY);
+      (uint8_t *)(actionEventChBuffer), MM_CH_BUFFER_SIZE_NOTIFY,
+      MM_CH_BUFFER_SIZE_NOTIFY, microbit_propREAD | microbit_propNOTIFY);
 
   CreateCharacteristic(
       mbitmore_cIdx_ANALOG_IN_P0, charUUID[mbitmore_cIdx_ANALOG_IN_P0],
-      (uint8_t *)(analogInP0ChBuffer), 0, ARRAY_SIZE(analogInP0ChBuffer),
-      microbit_propREAD | microbit_propREADAUTH);
+      (uint8_t *)(analogInP0ChBuffer), MM_CH_BUFFER_SIZE_ANALOG_IN,
+      MM_CH_BUFFER_SIZE_ANALOG_IN, microbit_propREAD | microbit_propREADAUTH);
 
   CreateCharacteristic(
       mbitmore_cIdx_ANALOG_IN_P1, charUUID[mbitmore_cIdx_ANALOG_IN_P1],
-      (uint8_t *)(analogInP1ChBuffer), 0, ARRAY_SIZE(analogInP1ChBuffer),
-      microbit_propREAD | microbit_propREADAUTH);
+      (uint8_t *)(analogInP1ChBuffer), MM_CH_BUFFER_SIZE_ANALOG_IN,
+      MM_CH_BUFFER_SIZE_ANALOG_IN, microbit_propREAD | microbit_propREADAUTH);
 
   CreateCharacteristic(
       mbitmore_cIdx_ANALOG_IN_P2, charUUID[mbitmore_cIdx_ANALOG_IN_P2],
-      (uint8_t *)(analogInP2ChBuffer), 0, ARRAY_SIZE(analogInP2ChBuffer),
-      microbit_propREAD | microbit_propREADAUTH);
+      (uint8_t *)(analogInP2ChBuffer), MM_CH_BUFFER_SIZE_ANALOG_IN,
+      MM_CH_BUFFER_SIZE_ANALOG_IN, microbit_propREAD | microbit_propREADAUTH);
 
   CreateCharacteristic(
       mbitmore_cIdx_SHARED_DATA, charUUID[mbitmore_cIdx_SHARED_DATA],
-      (uint8_t *)(sharedDataChBuffer), ARRAY_SIZE(sharedDataChBuffer),
-      ARRAY_SIZE(sharedDataChBuffer),
-      microbit_propWRITE | microbit_propWRITE_WITHOUT | microbit_propREAD |
-          microbit_propNOTIFY);
+      (uint8_t *)(sharedDataChBuffer), MM_CH_BUFFER_SIZE_SHARED_DATA,
+      MM_CH_BUFFER_SIZE_SHARED_DATA, microbit_propREAD | microbit_propNOTIFY);
 
   // // Stop advertising.
   // uBit.ble->stopAdvertising();
@@ -264,12 +261,10 @@ void MbitMoreService::notifyBasicData(uint8_t *data, uint16_t length) {
 
 /**
  * @brief Notify action event.
- *
- * @param data Data to notify.
- * @param length Lenght of the data.
  */
-void MbitMoreService::notifyActionEvent(uint8_t *data, uint16_t length) {
-  notifyChrValue(mbitmore_cIdx_ACTION_EVENT, data, length);
+void MbitMoreService::notifyActionEvent() {
+  notifyChrValue(mbitmore_cIdx_ACTION_EVENT, actionEventChBuffer,
+                 MM_CH_BUFFER_SIZE_NOTIFY);
 }
 
 /**

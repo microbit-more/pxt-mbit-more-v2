@@ -64,40 +64,40 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
   mbitMore->moreService = this;
 
   commandCh = new GattCharacteristic(
-      MBIT_MORE_CH_COMMAND, commandChBuffer, 0, ARRAY_SIZE(commandChBuffer),
+      MBIT_MORE_CH_COMMAND, commandChBuffer, 0, MM_CH_BUFFER_SIZE_MAX,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE |
           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
   commandCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
   sensorsCh = new GattCharacteristic(
       MBIT_MORE_CH_SENSORS, (uint8_t *)&sensorsChBuffer,
-      ARRAY_SIZE(sensorsChBuffer), ARRAY_SIZE(sensorsChBuffer),
+      MM_CH_BUFFER_SIZE_SENSORS, MM_CH_BUFFER_SIZE_SENSORS,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
   sensorsCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
   directionCh = new GattCharacteristic(
       MBIT_MORE_CH_DIRECTION, (uint8_t *)&directionChBuffer,
-      ARRAY_SIZE(directionChBuffer), ARRAY_SIZE(directionChBuffer),
+      MM_CH_BUFFER_SIZE_DIRECTION, MM_CH_BUFFER_SIZE_DIRECTION,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
   directionCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
   pinEventCh = new GattCharacteristic(
       MBIT_MORE_CH_PIN_EVENT, (uint8_t *)&pinEventChBuffer,
-      ARRAY_SIZE(pinEventChBuffer), ARRAY_SIZE(pinEventChBuffer),
+      MM_CH_BUFFER_SIZE_NOTIFY, MM_CH_BUFFER_SIZE_NOTIFY,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
   pinEventCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
   actionEventCh = new GattCharacteristic(
       MBIT_MORE_CH_ACTION_EVENT, (uint8_t *)&actionEventChBuffer,
-      ARRAY_SIZE(actionEventChBuffer), ARRAY_SIZE(actionEventChBuffer),
+      MM_CH_BUFFER_SIZE_NOTIFY, MM_CH_BUFFER_SIZE_NOTIFY,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
   actionEventCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
   analogInP0Ch = new GattCharacteristic(
       MBIT_MORE_CH_ANALOG_IN_P0, (uint8_t *)&analogInP0ChBuffer,
-      ARRAY_SIZE(analogInP0ChBuffer), ARRAY_SIZE(analogInP0ChBuffer),
+      MM_CH_BUFFER_SIZE_ANALOG_IN, MM_CH_BUFFER_SIZE_ANALOG_IN,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
   analogInP0Ch->setReadAuthorizationCallback(
       this, &MbitMoreServiceDAL::onReadAnalogIn);
@@ -105,7 +105,7 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
 
   analogInP1Ch = new GattCharacteristic(
       MBIT_MORE_CH_ANALOG_IN_P1, (uint8_t *)&analogInP1ChBuffer,
-      ARRAY_SIZE(analogInP1ChBuffer), ARRAY_SIZE(analogInP1ChBuffer),
+      MM_CH_BUFFER_SIZE_ANALOG_IN, MM_CH_BUFFER_SIZE_ANALOG_IN,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
   analogInP1Ch->setReadAuthorizationCallback(
       this, &MbitMoreServiceDAL::onReadAnalogIn);
@@ -113,7 +113,7 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
 
   analogInP2Ch = new GattCharacteristic(
       MBIT_MORE_CH_ANALOG_IN_P2, (uint8_t *)&analogInP2ChBuffer,
-      ARRAY_SIZE(analogInP2ChBuffer), ARRAY_SIZE(analogInP2ChBuffer),
+      MM_CH_BUFFER_SIZE_ANALOG_IN, MM_CH_BUFFER_SIZE_ANALOG_IN,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
   analogInP2Ch->setReadAuthorizationCallback(
       this, &MbitMoreServiceDAL::onReadAnalogIn);
@@ -121,7 +121,7 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
 
   sharedDataCh = new GattCharacteristic(
       MBIT_MORE_CH_SHARED_DATA, (uint8_t *)&sharedDataChBuffer,
-      ARRAY_SIZE(sharedDataChBuffer), ARRAY_SIZE(sharedDataChBuffer),
+      MM_CH_BUFFER_SIZE_SHARED_DATA, MM_CH_BUFFER_SIZE_SHARED_DATA,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
   sharedDataCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
@@ -136,7 +136,8 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
       analogInP0Ch, analogInP1Ch, analogInP2Ch, sharedDataCh};
 
   GattService mbitMoreService(MBIT_MORE_SERVICE, mbitMoreChs,
-                              ARRAY_SIZE(mbitMoreChs));
+                              sizeof(mbitMoreChs) /
+                                  sizeof(GattCharacteristic *));
   uBit.ble->addService(mbitMoreService);
 
   // Setup callbacks for events.
@@ -187,12 +188,10 @@ void MbitMoreServiceDAL::onDataWritten(const GattWriteCallbackParams *params) {
 
 /**
  * @brief Notify action event.
- *
- * @param data Data to notify.
- * @param length Lenght of the data.
  */
-void MbitMoreServiceDAL::notifyActionEvent(uint8_t *data, uint16_t length) {
-  uBit.ble->gattServer().notify(actionEventCh->getValueHandle(), data, length);
+void MbitMoreServiceDAL::notifyActionEvent() {
+  uBit.ble->gattServer().notify(actionEventCh->getValueHandle(),
+                                actionEventChBuffer, MM_CH_BUFFER_SIZE_NOTIFY);
 }
 
 /**
@@ -246,7 +245,7 @@ void MbitMoreServiceDAL::update() {
   if (uBit.ble->gap().getState().connected) {
     mbitMore->updateSensors(sensorsChBuffer);
     uBit.ble->gattServer().write(sensorsCh->getValueHandle(), sensorsChBuffer,
-                                 ARRAY_SIZE(sensorsChBuffer));
+                                 MM_CH_BUFFER_SIZE_SENSORS);
   } else {
     mbitMore->displayFriendlyName();
   }

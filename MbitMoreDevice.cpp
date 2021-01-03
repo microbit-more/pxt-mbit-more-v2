@@ -185,65 +185,114 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
  * Button update callback
  */
 void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
-  buttonEvent[0] = MbitMoreActionEvent::BUTTON;
-  int componentID;
+  uint8_t *data = moreService->actionEventChBuffer;
+  data[0] = MbitMoreActionEvent::BUTTON;
   // Component ID that generated the event.
   switch (evt.source) {
   case MICROBIT_ID_BUTTON_A:
-    buttonEvent[1] = MBIT_MORE_BUTTON_PIN_A;
+    data[1] = MBIT_MORE_BUTTON_PIN_A;
     break;
 
   case MICROBIT_ID_BUTTON_B:
-    buttonEvent[1] = MBIT_MORE_BUTTON_PIN_B;
+    data[1] = MBIT_MORE_BUTTON_PIN_B;
     break;
 
   default:
-    return;
+    data[1] = evt.source;
     break;
   }
   // Event ID.
   switch (evt.value) {
   case MICROBIT_BUTTON_EVT_DOWN:
-    buttonEvent[2] = MbitMoreButtonEvent::DOWN;
+    data[2] = MbitMoreButtonEvent::DOWN;
     break;
 
   case MICROBIT_BUTTON_EVT_UP:
-    buttonEvent[2] = MbitMoreButtonEvent::UP;
+    data[2] = MbitMoreButtonEvent::UP;
     break;
 
   case MICROBIT_BUTTON_EVT_CLICK:
-    buttonEvent[2] = MbitMoreButtonEvent::CLICK;
+    data[2] = MbitMoreButtonEvent::CLICK;
     break;
 
   case MICROBIT_BUTTON_EVT_LONG_CLICK:
-    buttonEvent[2] = MbitMoreButtonEvent::LONG_CLICK;
+    data[2] = MbitMoreButtonEvent::LONG_CLICK;
     break;
 
   case MICROBIT_BUTTON_EVT_HOLD:
-    buttonEvent[2] = MbitMoreButtonEvent::HOLD;
+    data[2] = MbitMoreButtonEvent::HOLD;
     break;
 
   case MICROBIT_BUTTON_EVT_DOUBLE_CLICK:
-    buttonEvent[2] = MbitMoreButtonEvent::DOUBLE_CLICK;
+    data[2] = MbitMoreButtonEvent::DOUBLE_CLICK;
     break;
 
   default:
+    data[2] = evt.value;
     break;
   }
   // Timestamp of the event.
-  memcpy(&(buttonEvent[4]), &evt.timestamp, 4);
-  buttonEvent[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
-  moreService->notifyActionEvent((uint8_t *)&buttonEvent,
-                                 ARRAY_SIZE(buttonEvent));
+  memcpy(&(data[3]), &evt.timestamp, 4);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
+  moreService->notifyActionEvent();
 }
 
-void MbitMoreDevice::onGestureChanged(MicroBitEvent e) {
-  if (e.value == MICROBIT_ACCELEROMETER_EVT_SHAKE) {
-    gesture = gesture | 1;
+void MbitMoreDevice::onGestureChanged(MicroBitEvent evt) {
+  uint8_t *data = moreService->actionEventChBuffer;
+  data[0] = MbitMoreActionEvent::GESTURE;
+  switch (evt.value) {
+  case MICROBIT_ACCELEROMETER_EVT_TILT_UP:
+    data[1] = MbitMoreGestureEvent::TILT_UP;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_TILT_DOWN:
+    data[1] = MbitMoreGestureEvent::TILT_DOWN;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_TILT_LEFT:
+    data[1] = MbitMoreGestureEvent::TILT_LEFT;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_TILT_RIGHT:
+    data[1] = MbitMoreGestureEvent::TILT_RIGHT;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_FACE_UP:
+    data[1] = MbitMoreGestureEvent::FACE_UP;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_FACE_DOWN:
+    data[1] = MbitMoreGestureEvent::FACE_DOWN;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_FREEFALL:
+    data[1] = MbitMoreGestureEvent::FREEFALL;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_3G:
+    data[1] = MbitMoreGestureEvent::G3;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_6G:
+    data[1] = MbitMoreGestureEvent::G6;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_8G:
+    data[1] = MbitMoreGestureEvent::G8;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_SHAKE:
+    data[1] = MbitMoreGestureEvent::SHAKE;
+    break;
+
+  default:
+    data[1] = evt.value;
+    break;
   }
-  if (e.value == MICROBIT_ACCELEROMETER_EVT_FREEFALL) {
-    gesture = gesture | 1 << 1;
-  }
+  // Timestamp of the event.
+  memcpy(&(data[2]), &evt.timestamp, 4);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
+  moreService->notifyActionEvent();
 }
 
 /**
@@ -276,34 +325,13 @@ int MbitMoreDevice::convertToTilt(float radians) {
   return (int)(tilt * 1000.0f);
 }
 
-void MbitMoreDevice::updateGesture() {
-  int old[] = {lastAcc[0], lastAcc[1], lastAcc[2]};
-  lastAcc[0] = uBit.accelerometer.getX();
-  lastAcc[1] = uBit.accelerometer.getY();
-  lastAcc[2] = uBit.accelerometer.getZ();
-  if ((gesture >> 2) & 1) {
-    gesture = gesture ^ (1 << 2);
-    return;
-  }
-  int threshold = 50;
-  if ((abs(lastAcc[0] - old[0]) > threshold) ||
-      (abs(lastAcc[1] - old[1]) > threshold) ||
-      (abs(lastAcc[2] - old[2]) > threshold)) {
-    // Moved
-    gesture = gesture | (1 << 2);
-  }
-}
 
-void MbitMoreDevice::resetGesture() {
-  gesture =
-      gesture & (1 << 2); // Save moved state to detect continuous movement.
-}
 
 void MbitMoreDevice::updateAnalogValues() {
   for (size_t i = 0; i < sizeof(analogIn) / sizeof(analogIn[0]); i++) {
-    int samplingCount;
+    int samplingCount = 0;
     int prevValue;
-    int value;
+    int value = 0;
     if (uBit.io.pin[analogIn[i]].isInput()) {
 #if MICROBIT_CODAL
       uBit.io.pin[analogIn[i]].setPull(PullMode::None);
@@ -371,22 +399,6 @@ void MbitMoreDevice::setServoValue(int pinIndex, int angle, int range,
 void MbitMoreDevice::setPinModeTouch(int pinIndex) {
   uBit.io.pin[pinIndex].isTouched(); // Configure to touch mode then the return
                                      // value is not used.
-}
-
-void MbitMoreDevice::composeBasicData(uint8_t *buff) {
-  // Tilt value is sent as int16_t big-endian.
-  int16_t tiltX = (int16_t)convertToTilt(rotation[1]);
-  buff[0] = (tiltX >> 8) & 0xFF;
-  buff[1] = tiltX & 0xFF;
-  int16_t tiltY = (int16_t)convertToTilt(rotation[0]);
-  buff[2] = (tiltY >> 8) & 0xFF;
-  buff[3] = tiltY & 0xFF;
-  buff[4] = (uint8_t)((digitalValues >> MBIT_MORE_BUTTON_PIN_A) & 1);
-  buff[5] = (uint8_t)((digitalValues >> MBIT_MORE_BUTTON_PIN_B) & 1);
-  buff[6] = (uint8_t)(((digitalValues >> 0) & 1) ^ 1);
-  buff[7] = (uint8_t)(((digitalValues >> 1) & 1) ^ 1);
-  buff[8] = (uint8_t)(((digitalValues >> 2) & 1) ^ 1);
-  buff[9] = (uint8_t)gesture;
 }
 
 /**
@@ -475,9 +487,9 @@ void MbitMoreDevice::updateSensors(uint8_t *data) {
   memcpy(data, (uint8_t *)&digitalLevels, 4);
   data[4] = sampleLigthLevel();
   data[5] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
-// #if MICROBIT_CODAL
-//   data[6] = uBit.microphone.soundLevel(); // This is not implemented yet.
-// #endif // MICROBIT_CODAL
+  // #if MICROBIT_CODAL
+  //   data[6] = uBit.microphone.soundLevel(); // This is not implemented yet.
+  // #endif // MICROBIT_CODAL
 }
 
 int median(int n, int x[]) {
@@ -607,5 +619,6 @@ void MbitMoreDevice::writeSensors() {
 
 void MbitMoreDevice::displayFriendlyName() {
   ManagedString version(" -M 0.6.0- ");
-  uBit.display.scrollAsync(ManagedString(microbit_friendly_name()) + version, 120);
+  uBit.display.scrollAsync(ManagedString(microbit_friendly_name()) + version,
+                           120);
 }

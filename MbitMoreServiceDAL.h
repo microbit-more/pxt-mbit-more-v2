@@ -13,8 +13,6 @@
 // // Forward declaration
 class MbitMoreDevice;
 
-#define MM_CH_BUFFER_SIZE_DEFAULT 20
-#define MM_CH_BUFFER_SIZE_DIGITAL_IN 4
 
 /**
  * Class definition for a MicroBitMore Service.
@@ -25,7 +23,6 @@ public:
   /**
    * Constructor.
    * Create a representation of the MbitMoreService
-   * @param _uBit The instance of a MicroBit runtime.
    */
   MbitMoreServiceDAL();
 
@@ -33,11 +30,8 @@ public:
 
   /**
    * @brief Notify action event.
-   *
-   * @param data Data to notify.
-   * @param length Lenght of the data.
    */
-  void notifyActionEvent(uint8_t *data, uint16_t length);
+  void notifyActionEvent();
 
   void notifySharedData();
 
@@ -74,31 +68,31 @@ public:
   void update();
 
   // Buffer of characteristic for receiving commands.
-  uint8_t commandChBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  uint8_t commandChBuffer[MM_CH_BUFFER_SIZE_MAX] = {0};
 
   // Buffer of characteristic for sending data of sensors.
-  uint8_t sensorsChBuffer[7] = {0};
+  uint8_t sensorsChBuffer[MM_CH_BUFFER_SIZE_SENSORS] = {0};
 
   // Buffer of characteristic for sending data about direction.
-  uint8_t directionChBuffer[18] = {0};
+  uint8_t directionChBuffer[MM_CH_BUFFER_SIZE_DIRECTION] = {0};
 
   // Buffer of characteristic for sending pin events.
-  uint8_t pinEventChBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  uint8_t pinEventChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
 
   // Buffer of characteristic for sending action events.
-  uint8_t actionEventChBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  uint8_t actionEventChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
 
   // Buffer of characteristic for sending analog input values of P0.
-  uint8_t analogInP0ChBuffer[2] = {0};
+  uint8_t analogInP0ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
 
   // Buffer of characteristic for sending analog input values of P1.
-  uint8_t analogInP1ChBuffer[2] = {0};
+  uint8_t analogInP1ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
 
   // Buffer of characteristic for sending analog input values of P2.
-  uint8_t analogInP2ChBuffer[2] = {0};
+  uint8_t analogInP2ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
 
   // Buffer of characteristic for sending shared data.
-  uint8_t sharedDataChBuffer[8] = {0};
+  uint8_t sharedDataChBuffer[MM_CH_BUFFER_SIZE_SHARED_DATA] = {0};
 
 private:
   /**

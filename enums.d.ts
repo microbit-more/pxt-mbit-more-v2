@@ -58,6 +58,22 @@
     }
 
 
+    declare const enum MbitMoreGestureEvent
+    {
+    TILT_UP = 1,
+    TILT_DOWN = 2,
+    TILT_LEFT = 3,
+    TILT_RIGHT = 4,
+    FACE_UP = 5,
+    FACE_DOWN = 6,
+    FREEFALL = 7,
+    G3 = 8,
+    G6 = 9,
+    G8 = 10,
+    SHAKE = 11,
+    }
+
+
     declare const enum MbitMorePinEventType
     {
     NONE = 0,

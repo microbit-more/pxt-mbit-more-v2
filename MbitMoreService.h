@@ -25,6 +25,33 @@ class MbitMoreDevice;
  */
 class MbitMoreService : public MicroBitBLEService, MicroBitComponent {
 public:
+  // Buffer of characteristic for receiving commands.
+  uint8_t commandChBuffer[MM_CH_BUFFER_SIZE_MAX] = {0};
+
+  // Buffer of characteristic for sending data of sensors.
+  uint8_t sensorsChBuffer[MM_CH_BUFFER_SIZE_SENSORS] = {0};
+
+  // Buffer of characteristic for sending data about direction.
+  uint8_t directionChBuffer[MM_CH_BUFFER_SIZE_DIRECTION] = {0};
+
+  // Buffer of characteristic for sending pin events.
+  uint8_t pinEventChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
+
+  // Buffer of characteristic for sending action events.
+  uint8_t actionEventChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
+
+  // Buffer of characteristic for sending analog input values of P0.
+  uint8_t analogInP0ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
+
+  // Buffer of characteristic for sending analog input values of P1.
+  uint8_t analogInP1ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
+
+  // Buffer of characteristic for sending analog input values of P2.
+  uint8_t analogInP2ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
+
+  // Buffer of characteristic for sending shared data.
+  uint8_t sharedDataChBuffer[MM_CH_BUFFER_SIZE_SHARED_DATA] = {0};
+
   /**
    * Constructor.
    * Create a representation of default extension for Scratch3.
@@ -67,11 +94,8 @@ public:
 
   /**
    * @brief Notify action event.
-   *
-   * @param data Data to notify.
-   * @param length Lenght of the data.
    */
-  void notifyActionEvent(uint8_t *data, uint16_t length);
+  void notifyActionEvent();
 
   /**
    * @brief Notify IO event.
@@ -132,33 +156,6 @@ private:
 
   // Data for each characteristic when they are held by Soft Device.
   MicroBitBLEChar chars[mbitmore_cIdx_COUNT];
-
-  // Buffer of characteristic for receiving commands.
-  uint8_t commandChBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
-
-  // Buffer of characteristic for sending data of sensors.
-  uint8_t sensorsChBuffer[7] = {0};
-
-  // Buffer of characteristic for sending data about direction.
-  uint8_t directionChBuffer[18] = {0};
-
-  // Buffer of characteristic for sending pin events.
-  uint8_t pinEventChBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
-
-  // Buffer of characteristic for sending action events.
-  uint8_t actionEventChBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
-
-  // Buffer of characteristic for sending analog input values of P0.
-  uint8_t analogInP0ChBuffer[2] = {0};
-
-  // Buffer of characteristic for sending analog input values of P1.
-  uint8_t analogInP1ChBuffer[2] = {0};
-
-  // Buffer of characteristic for sending analog input values of P2.
-  uint8_t analogInP2ChBuffer[2] = {0};
-
-  // Buffer of characteristic for sending shared data.
-  uint8_t sharedDataChBuffer[8] = {0};
 
   /**
    * Write IO characteristics.
