@@ -1,6 +1,12 @@
 #ifndef MBIT_MORE_COMMON_H
 #define MBIT_MORE_COMMON_H
 
+#define MM_CH_BUFFER_SIZE_DEFAULT 20
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+#endif
+
 enum ScratchBLECommand
 {
   CMD_PIN_CONFIG = 0x80,
@@ -31,15 +37,18 @@ enum MbitMorePinMode
 
 enum MbitMoreDataFormat
 {
-  MIX_01 = 0x01,
-  MIX_02 = 0x02,
-  MIX_03 = 0x03,
-  BUTTON_EVENT = 0x11,
-  EVENT = 0x12,
+  PIN_EVENT = 0x10,
+  ACTION_EVENT = 0x11,
   SHARED_DATA = 0x13
 };
 
-enum MMButtonEvent
+enum MbitMoreActionEvent
+{
+  BUTTON = 0x01,
+  GESTURE = 0x02
+};
+
+enum MbitMoreButtonEvent
 {
   DOWN = 1,
   UP = 2,

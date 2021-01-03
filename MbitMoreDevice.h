@@ -8,7 +8,6 @@
 
 #include "MbitMoreCommon.h"
 
-
 #if MICROBIT_CODAL
 #include "MbitMoreService.h"
 class MbitMoreService;
@@ -67,7 +66,7 @@ public:
   // ---------------------
 
   // Button events for Scratch.
-  uint8_t buttonEvent[6];
+  uint8_t buttonEvent[MM_CH_BUFFER_SIZE_DEFAULT];
 
   /**
    * Hold gesture state until next nofification.
@@ -160,18 +159,18 @@ public:
   void displayText(char *text, int delay);
 
   /**
-   * @brief Get the Digital Input levels
+   * @brief Get data of the sensors
    *
    * @param data Buffer for BLE characteristics.
    */
-  void updateDigitalIn(uint8_t *data);
+  void updateSensors(uint8_t *data);
 
   /**
-   * @brief Get the Light Level from LED matrix
+   * @brief Sample current light level and return median.
    *
-   * @param data Buffer for BLE characteristics.
+   * @return int Median filterd light level.
    */
-  void updateLightLevel(uint8_t *data);
+  int sampleLigthLevel();
 
   /**
    * Set value to Slots.

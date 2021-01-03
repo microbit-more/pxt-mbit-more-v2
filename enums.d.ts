@@ -34,16 +34,20 @@
 
     declare const enum MbitMoreDataFormat
     {
-    MIX_01 = 0x01,
-    MIX_02 = 0x02,
-    MIX_03 = 0x03,
-    BUTTON_EVENT = 0x11,
-    EVENT = 0x12,
+    PIN_EVENT = 0x10,
+    ACTION_EVENT = 0x11,
     SHARED_DATA = 0x13,
     }
 
 
-    declare const enum MMButtonEvent
+    declare const enum MbitMoreActionEvent
+    {
+    BUTTON = 0x01,
+    GESTURE = 0x02,
+    }
+
+
+    declare const enum MbitMoreButtonEvent
     {
     DOWN = 1,
     UP = 2,

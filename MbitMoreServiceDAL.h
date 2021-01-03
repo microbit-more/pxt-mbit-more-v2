@@ -32,12 +32,12 @@ public:
   void notify();
 
   /**
-   * @brief Notify button event.
+   * @brief Notify action event.
    *
    * @param data Data to notify.
    * @param length Lenght of the data.
    */
-  void notifyButtonEvent(uint8_t *data, uint16_t length);
+  void notifyActionEvent(uint8_t *data, uint16_t length);
 
   void notifySharedData();
 
@@ -74,46 +74,31 @@ public:
   void update();
 
   // Buffer of characteristic for receiving commands.
-  uint8_t commandBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  uint8_t commandChBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
 
-  // Buffer of characteristic for sending digital levels.
-  uint8_t digitalInBuffer[4] = {0};
+  // Buffer of characteristic for sending data of sensors.
+  uint8_t sensorsChBuffer[7] = {0};
 
-  // // Buffer of characteristic for sending level of light sensor.
-  // uint8_t lightLevelBuffer[3] = {0};
-
-  // Buffer of characteristic for sending data of acceleration.
-  uint8_t accelerationBuffer[18] = {0};
-
-  // // Buffer of characteristic for sending data of magnet.
-  // uint8_t magnetBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
-
-  // // Buffer of characteristic for sending data of temperature.
-  // uint8_t temperatureBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
-
-  // // Buffer of characteristic for sending data of microphone.
-  // uint8_t microphoneBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  // Buffer of characteristic for sending data about direction.
+  uint8_t directionChBuffer[18] = {0};
 
   // Buffer of characteristic for sending pin events.
-  uint8_t pinEventBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  uint8_t pinEventChBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
 
-  // Buffer of characteristic for sending button events.
-  uint8_t buttonEventBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  // Buffer of characteristic for sending action events.
+  uint8_t actionEventChBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
 
-  // // Buffer of characteristic for sending gesture events.
-  // uint8_t gestureEventBuffer[MM_CH_BUFFER_SIZE_DEFAULT] = {0};
+  // Buffer of characteristic for sending analog input values of P0.
+  uint8_t analogInP0ChBuffer[2] = {0};
 
-  // Buffer of characteristic for sending analog input values.
-  uint8_t analogInP0Buffer[3][2] = {0};
+  // Buffer of characteristic for sending analog input values of P1.
+  uint8_t analogInP1ChBuffer[2] = {0};
 
-  // Buffer of characteristic for sending analog input values.
-  uint8_t analogInP1Buffer[3][2] = {0};
-
-  // Buffer of characteristic for sending analog input values.
-  uint8_t analogInP2Buffer[3][2] = {0};
+  // Buffer of characteristic for sending analog input values of P2.
+  uint8_t analogInP2ChBuffer[2] = {0};
 
   // Buffer of characteristic for sending shared data.
-  uint8_t sharedDataBuffer[8] = {0};
+  uint8_t sharedDataChBuffer[8] = {0};
 
 private:
   /**
@@ -129,15 +114,10 @@ private:
   MbitMoreDevice *mbitMore;
 
   GattCharacteristic *commandCh;
-  GattCharacteristic *digitalInCh;
-  GattCharacteristic *lightLevelCh;
-  GattCharacteristic *accelerationCh;
-  GattCharacteristic *magnetCh;
-  GattCharacteristic *temperatureCh;
-  GattCharacteristic *microphoneCh;
+  GattCharacteristic *sensorsCh;
+  GattCharacteristic *directionCh;
   GattCharacteristic *pinEventCh;
-  GattCharacteristic *buttonEventCh;
-  GattCharacteristic *gestureEventCh;
+  GattCharacteristic *actionEventCh;
   GattCharacteristic *analogInP0Ch;
   GattCharacteristic *analogInP1Ch;
   GattCharacteristic *analogInP2Ch;

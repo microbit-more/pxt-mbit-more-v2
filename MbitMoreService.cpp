@@ -16,28 +16,16 @@
 #include "MicroBitButton.h"
 #include "ble_advdata.h"
 
-/**
- * Position of data format in a value holder.
- */
-#define MBIT_MORE_DATA_FORMAT_INDEX 19
-
-#define MBIT_MORE_DATA_FORMAT_BUTTON_EVENT 0x11
-
 const uint8_t MbitMoreService::baseUUID[16] = {
     0xa6, 0x2d, 0x57, 0x4e, 0x1b, 0x34, 0x40, 0x92,
     0x8d, 0xee, 0x41, 0x51, 0xf6, 0x3b, 0x28, 0x65};
 const uint16_t MbitMoreService::serviceUUID = 0x574e;
 const uint16_t MbitMoreService::charUUID[mbitmore_cIdx_COUNT] = {
     0x0100, // COMMAND
-    0x0101, // DIGITAL_IN
-    0x0102, // LIGHT_LEVEL
-    0x0103, // ACCELERATION
-    0x0104, // MAGNET
-    0x0105, // TEMPERATURE
-    0x0106, // MICROPHONE
+    0x0101, // SENSORS
+    0x0102, // DIRECTION
     0x0110, // PIN_EVENT
-    0x0111, // BUTTON_EVENT
-    0x0112, // GESTURE_EVENT
+    0x0111, // ACTION_EVENT
     0x0120, // ANALOG_IN_P0
     0x0121, // ANALOG_IN_P1
     0x0122, // ANALOG_IN_P2
@@ -57,30 +45,53 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
   RegisterBaseUUID(baseUUID);
   CreateService(serviceUUID);
 
-  // Initialize buffers.
-  buttonEventBuffer[MBIT_MORE_DATA_FORMAT_INDEX] =
-      MBIT_MORE_DATA_FORMAT_BUTTON_EVENT;
-
   // Add each of our characteristics.
-  CreateCharacteristic(
-      mbitmore_cIdx_DIGITAL_IN, charUUID[mbitmore_cIdx_DIGITAL_IN],
-      (uint8_t *)(digitalInBuffer), MM_CH_BUFFER_SIZE_DEFAULT,
-      MM_CH_BUFFER_SIZE_DEFAULT, microbit_propREAD);
-
-  CreateCharacteristic(
-      mbitmore_cIdx_BUTTON_EVENT, charUUID[mbitmore_cIdx_BUTTON_EVENT],
-      (uint8_t *)(buttonEventBuffer), MM_CH_BUFFER_SIZE_DEFAULT,
-      MM_CH_BUFFER_SIZE_DEFAULT, microbit_propREAD | microbit_propNOTIFY);
-
   CreateCharacteristic(mbitmore_cIdx_COMMAND, charUUID[mbitmore_cIdx_COMMAND],
-                       (uint8_t *)(commandBuffer), MM_CH_BUFFER_SIZE_DEFAULT,
-                       MM_CH_BUFFER_SIZE_DEFAULT,
+                       (uint8_t *)(commandChBuffer), 0,
+                       ARRAY_SIZE(commandChBuffer),
                        microbit_propWRITE | microbit_propWRITE_WITHOUT);
 
-  CreateCharacteristic(mbitmore_cIdx_LIGHT_LEVEL,
-                       charUUID[mbitmore_cIdx_LIGHT_LEVEL],
-                       (uint8_t *)(lightLevelBuffer), MM_CH_BUFFER_SIZE_DEFAULT,
-                       MM_CH_BUFFER_SIZE_DEFAULT, microbit_propREAD);
+  CreateCharacteristic(mbitmore_cIdx_SENSORS, charUUID[mbitmore_cIdx_SENSORS],
+                       (uint8_t *)(sensorsChBuffer),
+                       ARRAY_SIZE(sensorsChBuffer), ARRAY_SIZE(sensorsChBuffer),
+                       microbit_propREAD);
+
+  CreateCharacteristic(mbitmore_cIdx_DIRECTION,
+                       charUUID[mbitmore_cIdx_DIRECTION],
+                       (uint8_t *)(directionChBuffer), 0,
+                       ARRAY_SIZE(directionChBuffer), microbit_propREAD);
+
+  CreateCharacteristic(
+      mbitmore_cIdx_PIN_EVENT, charUUID[mbitmore_cIdx_PIN_EVENT],
+      (uint8_t *)(pinEventChBuffer), ARRAY_SIZE(pinEventChBuffer),
+      ARRAY_SIZE(pinEventChBuffer), microbit_propREAD | microbit_propNOTIFY);
+
+  CreateCharacteristic(
+      mbitmore_cIdx_ACTION_EVENT, charUUID[mbitmore_cIdx_ACTION_EVENT],
+      (uint8_t *)(actionEventChBuffer), ARRAY_SIZE(actionEventChBuffer),
+      ARRAY_SIZE(actionEventChBuffer), microbit_propREAD | microbit_propNOTIFY);
+
+  CreateCharacteristic(
+      mbitmore_cIdx_ANALOG_IN_P0, charUUID[mbitmore_cIdx_ANALOG_IN_P0],
+      (uint8_t *)(analogInP0ChBuffer), 0, ARRAY_SIZE(analogInP0ChBuffer),
+      microbit_propREAD | microbit_propREADAUTH);
+
+  CreateCharacteristic(
+      mbitmore_cIdx_ANALOG_IN_P1, charUUID[mbitmore_cIdx_ANALOG_IN_P1],
+      (uint8_t *)(analogInP1ChBuffer), 0, ARRAY_SIZE(analogInP1ChBuffer),
+      microbit_propREAD | microbit_propREADAUTH);
+
+  CreateCharacteristic(
+      mbitmore_cIdx_ANALOG_IN_P2, charUUID[mbitmore_cIdx_ANALOG_IN_P2],
+      (uint8_t *)(analogInP2ChBuffer), 0, ARRAY_SIZE(analogInP2ChBuffer),
+      microbit_propREAD | microbit_propREADAUTH);
+
+  CreateCharacteristic(
+      mbitmore_cIdx_SHARED_DATA, charUUID[mbitmore_cIdx_SHARED_DATA],
+      (uint8_t *)(sharedDataChBuffer), ARRAY_SIZE(sharedDataChBuffer),
+      ARRAY_SIZE(sharedDataChBuffer),
+      microbit_propWRITE | microbit_propWRITE_WITHOUT | microbit_propREAD |
+          microbit_propNOTIFY);
 
   // // Stop advertising.
   // uBit.ble->stopAdvertising();
@@ -224,10 +235,10 @@ void MbitMoreService::onDataWritten(const microbit_ble_evt_write_t *params) {
  * Set  params->data and params->length to update the value
  */
 void MbitMoreService::onDataRead(microbit_onDataRead_t *params) {
-  // if (params->handle == valueHandle(mbitmore_cIdx_DIGITAL_IN)) {
-  //   mbitMore->updateDigitalValues();
-  //   params->data = (uint8_t *)&(mbitMore->digitalValues);
-  //   params->length = 4;
+  // if (params->handle == valueHandle(mbitmore_cIdx_ANALOG_IN_P0)) {
+  //   mbitMore->updateAnalogInValue(0);
+  //   params->data = (uint8_t *)&(mbitMore->analogInValues[0]);
+  //   params->length = 2;
   // }
 }
 
@@ -252,13 +263,13 @@ void MbitMoreService::notifyBasicData(uint8_t *data, uint16_t length) {
 }
 
 /**
- * @brief Notify button event.
+ * @brief Notify action event.
  *
  * @param data Data to notify.
  * @param length Lenght of the data.
  */
-void MbitMoreService::notifyButtonEvent(uint8_t *data, uint16_t length) {
-  notifyChrValue(mbitmore_cIdx_BUTTON_EVENT, data, length);
+void MbitMoreService::notifyActionEvent(uint8_t *data, uint16_t length) {
+  notifyChrValue(mbitmore_cIdx_ACTION_EVENT, data, length);
 }
 
 /**
@@ -293,18 +304,9 @@ void MbitMoreService::notify() {}
  */
 void MbitMoreService::update() {
   if (getConnected()) {
-    mbitMore->updateDigitalIn(digitalInBuffer);
-    mbitMore->updateLightLevel(lightLevelBuffer);
+    mbitMore->updateSensors(sensorsChBuffer);
   }
 }
-
-// /**
-//  * Write IO characteristics.
-//  */
-// void MbitMoreService::writeDigitalIn() {
-//   writeChrValue(mbitmore_cIdx_DIGITAL_IN, (uint8_t *)&(mbitMore->digitalValues),
-//                 4);
-// }
 
 /**
  * Set value to shared data.

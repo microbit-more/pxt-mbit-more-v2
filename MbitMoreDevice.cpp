@@ -7,15 +7,13 @@
  */
 #include "MbitMoreDevice.h"
 
+/**
+ * Position of data format in a value holder.
+ */
+#define MBIT_MORE_DATA_FORMAT_INDEX 19
+
 #define MBIT_MORE_BUTTON_PIN_A 5
 #define MBIT_MORE_BUTTON_PIN_B 11
-
-#define MBIT_MORE_BUTTON_EVT_DOWN 1
-#define MBIT_MORE_BUTTON_EVT_UP 2
-#define MBIT_MORE_BUTTON_EVT_CLICK 3
-#define MBIT_MORE_BUTTON_EVT_LONG_CLICK 4
-#define MBIT_MORE_BUTTON_EVT_HOLD 5
-#define MBIT_MORE_BUTTON_EVT_DOUBLE_CLICK 6
 
 int gpio[] = {0, 1, 2, 8, 12, 13, 14, 15, 16};
 int analogIn[] = {0, 1, 2};
@@ -134,7 +132,8 @@ void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
  */
 void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
   // uint8_t pinIndex;
-  // switch (evt.source) // ID of the MicroBit Component that generated the event.
+  // switch (evt.source) // ID of the MicroBit Component that generated the
+  // event.
   //                     // (uint16_t)
   // {
   // case MICROBIT_ID_IO_P0:
@@ -186,15 +185,16 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
  * Button update callback
  */
 void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
+  buttonEvent[0] = MbitMoreActionEvent::BUTTON;
   int componentID;
   // Component ID that generated the event.
   switch (evt.source) {
   case MICROBIT_ID_BUTTON_A:
-    buttonEvent[0] = MBIT_MORE_BUTTON_PIN_A;
+    buttonEvent[1] = MBIT_MORE_BUTTON_PIN_A;
     break;
 
   case MICROBIT_ID_BUTTON_B:
-    buttonEvent[0] = MBIT_MORE_BUTTON_PIN_B;
+    buttonEvent[1] = MBIT_MORE_BUTTON_PIN_B;
     break;
 
   default:
@@ -204,36 +204,37 @@ void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
   // Event ID.
   switch (evt.value) {
   case MICROBIT_BUTTON_EVT_DOWN:
-    buttonEvent[1] = MBIT_MORE_BUTTON_EVT_DOWN;
+    buttonEvent[2] = MbitMoreButtonEvent::DOWN;
     break;
 
   case MICROBIT_BUTTON_EVT_UP:
-    buttonEvent[1] = MBIT_MORE_BUTTON_EVT_UP;
+    buttonEvent[2] = MbitMoreButtonEvent::UP;
     break;
 
   case MICROBIT_BUTTON_EVT_CLICK:
-    buttonEvent[1] = MBIT_MORE_BUTTON_EVT_CLICK;
+    buttonEvent[2] = MbitMoreButtonEvent::CLICK;
     break;
 
   case MICROBIT_BUTTON_EVT_LONG_CLICK:
-    buttonEvent[1] = MBIT_MORE_BUTTON_EVT_LONG_CLICK;
+    buttonEvent[2] = MbitMoreButtonEvent::LONG_CLICK;
     break;
 
   case MICROBIT_BUTTON_EVT_HOLD:
-    buttonEvent[1] = MBIT_MORE_BUTTON_EVT_HOLD;
+    buttonEvent[2] = MbitMoreButtonEvent::HOLD;
     break;
 
   case MICROBIT_BUTTON_EVT_DOUBLE_CLICK:
-    buttonEvent[1] = MBIT_MORE_BUTTON_EVT_DOUBLE_CLICK;
+    buttonEvent[2] = MbitMoreButtonEvent::DOUBLE_CLICK;
     break;
 
   default:
     break;
   }
   // Timestamp of the event.
-  memcpy(&(buttonEvent[3]), &evt.timestamp, 4);
-  moreService->notifyButtonEvent((uint8_t *)&buttonEvent,
-                                 sizeof(buttonEvent) / sizeof(buttonEvent[0]));
+  memcpy(&(buttonEvent[4]), &evt.timestamp, 4);
+  buttonEvent[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
+  moreService->notifyActionEvent((uint8_t *)&buttonEvent,
+                                 ARRAY_SIZE(buttonEvent));
 }
 
 void MbitMoreDevice::onGestureChanged(MicroBitEvent e) {
@@ -443,26 +444,43 @@ void MbitMoreDevice::displayText(char *text, int delay) {
 }
 
 /**
- * @brief Get the Digital Input levels
+ * @brief Get data of the sensors.
  *
  * @param data Buffer for BLE characteristics.
  */
-void MbitMoreDevice::updateDigitalIn(uint8_t *data) {
-  uint32_t flags = 0;
+void MbitMoreDevice::updateSensors(uint8_t *data) {
+  uint32_t digitalLevels = 0;
   for (size_t i = 0; i < sizeof(gpio) / sizeof(gpio[0]); i++) {
     if (uBit.io.pin[gpio[i]].isDigital()) {
       if (uBit.io.pin[gpio[i]].isInput()) {
-        flags = flags | (uBit.io.pin[gpio[i]].getDigitalValue() << gpio[i]);
+        digitalLevels =
+            digitalLevels | (uBit.io.pin[gpio[i]].getDigitalValue() << gpio[i]);
       }
     }
   }
   // DAL can not read the buttons state as digital input. (CODAL can do that)
-  flags = flags | (!uBit.buttonA.isPressed() << 5);
-  flags = flags | (!uBit.buttonB.isPressed() << 11);
-  memcpy(data, (uint8_t *)&flags, 4);
+#if MICROBIT_CODAL
+  digitalLevels =
+      digitalLevels | (uBit.io.pin[MBIT_MORE_BUTTON_PIN_A].getDigitalValue()
+                       << MBIT_MORE_BUTTON_PIN_A);
+  digitalLevels =
+      digitalLevels | (uBit.io.pin[MBIT_MORE_BUTTON_PIN_B].getDigitalValue()
+                       << MBIT_MORE_BUTTON_PIN_B);
+#else // NOT MICROBIT_CODAL
+  digitalLevels =
+      digitalLevels | (!uBit.buttonA.isPressed() << MBIT_MORE_BUTTON_PIN_A);
+  digitalLevels =
+      digitalLevels | (!uBit.buttonB.isPressed() << MBIT_MORE_BUTTON_PIN_B);
+#endif // NOT MICROBIT_CODAL
+  memcpy(data, (uint8_t *)&digitalLevels, 4);
+  data[4] = sampleLigthLevel();
+  data[5] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
+// #if MICROBIT_CODAL
+//   data[6] = uBit.microphone.soundLevel(); // This is not implemented yet.
+// #endif // MICROBIT_CODAL
 }
 
-float median(int n, int x[]) {
+int median(int n, int x[]) {
   int temp;
   int i, j;
   // the following two loops sort the array x in ascending order
@@ -480,7 +498,7 @@ float median(int n, int x[]) {
   if (n % 2 == 0) {
     // if there is an even number of elements, return mean of the two elements
     // in the middle
-    return ((x[n / 2] + x[n / 2 - 1]) / 2.0);
+    return ((x[n / 2] + x[n / 2 - 1]) / 2);
   } else {
     // else return the element in the middle
     return x[n / 2];
@@ -488,18 +506,17 @@ float median(int n, int x[]) {
 }
 
 /**
- * @brief Get the Light Level from LED matrix
+ * @brief Sample current light level and return median.
  *
- * @param data Buffer for BLE characteristics.
+ * @return int Median filterd light level.
  */
-void MbitMoreDevice::updateLightLevel(uint8_t *data) {
+int MbitMoreDevice::sampleLigthLevel() {
   lightLevelSamples[lightLevelSamplesLast] = uBit.display.readLightLevel();
   lightLevelSamplesLast++;
   if (lightLevelSamplesLast == LIGHT_LEVEL_SAMPLES_SIZE) {
     lightLevelSamplesLast = 0;
   }
-  data[0] = (uint8_t)median(LIGHT_LEVEL_SAMPLES_SIZE, lightLevelSamples);
-  // data[0] = uBit.display.readLightLevel();
+  return median(LIGHT_LEVEL_SAMPLES_SIZE, lightLevelSamples);
 }
 
 /**
@@ -568,14 +585,14 @@ void MbitMoreDevice::writeSensors() {
   // memcpy(&(sensorsBuffer[10]), &heading, 2);
 
   // int16_t force;
-  // // Magnetic force X (micro-teslas) is sent as uint16_t little-endian [2..3].
-  // force = (int16_t)(magneticForce[0] / 1000);
+  // // Magnetic force X (micro-teslas) is sent as uint16_t little-endian
+  // [2..3]. force = (int16_t)(magneticForce[0] / 1000);
   // memcpy(&(sensorsBuffer[12]), &force, 2);
-  // // Magnetic force Y (micro-teslas) is sent as uint16_t little-endian [4..5].
-  // force = (int16_t)(magneticForce[1] / 1000);
+  // // Magnetic force Y (micro-teslas) is sent as uint16_t little-endian
+  // [4..5]. force = (int16_t)(magneticForce[1] / 1000);
   // memcpy(&(sensorsBuffer[14]), &force, 2);
-  // // Magnetic force Z (micro-teslas) is sent as uint16_t little-endian [6..7].
-  // force = (int16_t)(magneticForce[2] / 1000);
+  // // Magnetic force Z (micro-teslas) is sent as uint16_t little-endian
+  // [6..7]. force = (int16_t)(magneticForce[2] / 1000);
   // memcpy(&(sensorsBuffer[16]), &force, 2);
 
   // Light sensor
@@ -589,6 +606,6 @@ void MbitMoreDevice::writeSensors() {
 }
 
 void MbitMoreDevice::displayFriendlyName() {
-  ManagedString sign(" -MORE 0.6.0- ");
-  uBit.display.scrollAsync(ManagedString(microbit_friendly_name()) + sign, 120);
+  ManagedString version(" -M 0.6.0- ");
+  uBit.display.scrollAsync(ManagedString(microbit_friendly_name()) + version, 120);
 }
