@@ -8,15 +8,12 @@
 #define MM_CH_BUFFER_SIZE_ANALOG_IN 2
 #define MM_CH_BUFFER_SIZE_SHARED_DATA 5
 
-enum ScratchBLECommand
+enum MbitMoreCommand
 {
-  CMD_PIN_CONFIG = 0x80,
-  CMD_DISPLAY_TEXT = 0x81,
-  CMD_DISPLAY_LED = 0x82,
-  CMD_PROTOCOL = 0x90,
-  CMD_PIN = 0x91,
-  CMD_SHARED_DATA = 0x92,
-  CMD_LIGHT_SENSING = 0x93
+  CMD_CONFIG = 0x10,
+  CMD_PIN = 0x11,
+  CMD_DISPLAY = 0x12,
+  CMD_SHARED_DATA = 0x13,
 };
 
 enum MbitMorePinCommand
@@ -27,6 +24,22 @@ enum MbitMorePinCommand
   SET_PULL = 0x04,
   SET_EVENT = 0x05,
   SET_TOUCH = 0x06,
+};
+
+enum MbitMoreDisplayCommand
+{
+  CLEAR = 0x00,
+  TEXT = 0x01,
+  PIXELS = 0x02,
+};
+
+/**
+ * @brief Enum for write mode of display pixels.
+ */
+enum MbitMoreDisplayWriteMode
+{
+  LAYER = 0,
+  OVER_WRITE = 1
 };
 
 enum MbitMorePinMode

@@ -128,6 +128,14 @@ public:
   void initConfiguration();
 
   /**
+   * @brief Call when a command was received.
+   *
+   * @param data
+   * @param length
+   */
+  void onCommandReceived(uint8_t *data, size_t length);
+
+  /**
    * @brief Layer pattern on LED.
    *
    * @param pattern Matrix to display 5 columns x 5 rows.
@@ -141,6 +149,17 @@ public:
    * @param pattern Matrix to display 5 columns x 5 rows.
    */
   void displayPattern(uint8_t *pattern);
+
+  /**
+   * @brief Display pixcels on LED.
+   *
+   * @param pattern Pixel pattern to display.
+   * @param length Size of the pattern data.
+   * @param writeMode Clear or not previous pattern.
+   * @param brightness Brightness level of all the pixcel.
+   */
+  void displayPixcels(uint8_t *pattern, size_t length, MbitMoreDisplayWriteMode writeMode,
+                      uint8_t brightness);
 
   /**
    * @brief Display text on LED.

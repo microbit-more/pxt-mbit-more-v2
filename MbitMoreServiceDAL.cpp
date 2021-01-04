@@ -173,17 +173,7 @@ void MbitMoreServiceDAL::onReadAnalogIn(
  * Callback. Invoked when any of our attributes are written via BLE.
  */
 void MbitMoreServiceDAL::onDataWritten(const GattWriteCallbackParams *params) {
-  uint8_t *data = (uint8_t *)params->data;
-
-  if (params->handle == commandCh->getValueHandle() && params->len > 0) {
-    if (data[0] == ScratchBLECommand::CMD_DISPLAY_TEXT) {
-      char text[params->len - 2] = {0};
-      memcpy(text, &(data[2]), (params->len) - 2);
-      mbitMore->displayText(text, data[1]);
-    } else if (data[0] == ScratchBLECommand::CMD_DISPLAY_LED) {
-      mbitMore->displayPattern(&data[1]);
-    }
-  }
+  mbitMore->onCommandReceived((uint8_t *)params->data, params->len);
 }
 
 /**

@@ -65,12 +65,135 @@ void MbitMoreDevice::initConfiguration() {
 #endif // NOT MICROBIT_CODAL
   }
   uBit.display.stopAnimation(); // To stop display friendly name.
+  uBit.display.print("M");
   // uBit.display.scrollAsync("v.0.6.0"); // Display version number
   // MicroBitImage smiley(
   //     "0,255,0,255, "
   //     "0\n0,255,0,255,0\n0,0,0,0,0\n255,0,0,0,255\n0,255,255,255,0\n");
   // uBit.display.animateAsync(smiley, 3000, 5);
-  uBit.display.print("M");
+  // MicroBitImage smiley(
+  //     "0,255,0,255, 0\n0,255,0,255,0\n0,0,0,0,0\n32,0,0,0,32\n0,32,32,32,0\n");
+  // uBit.display.setDisplayMode(DISPLAY_MODE_GREYSCALE);
+  // uBit.display.print(smiley);
+}
+
+/**
+ * @brief Call when a command was received.
+ *
+ * @param data
+ * @param length
+ */
+void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
+  if (data[0] == MbitMoreCommand::CMD_DISPLAY &&
+      data[1] == MbitMoreDisplayCommand::TEXT) {
+    char text[length - 1] = {0};
+    memcpy(text, &(data[3]), length - 2);
+    displayText(text, data[2]);
+  } else if (data[0] == MbitMoreCommand::CMD_DISPLAY &&
+             data[1] == MbitMoreDisplayCommand::PIXELS) {
+    displayPixcels(&data[5], data[4], (MbitMoreDisplayWriteMode)data[2],
+                   data[3]);
+  }
+  // } else if (data[0] == MbitMoreCommand::CMD_LAYER_LED) {
+  //   mbitMore->;layerPattern(data[2], data[1]);
+  // }
+  // else if (data[0] == MbitMoreCommand::CMD_PIN)
+  // {
+  //   if (data[1] == MbitMorePinCommand::SET_PULL)
+  //   {
+  //     switch (data[3])
+  //     {
+  //     case MbitMorePullNone:
+  //       setPullMode(data[2], PinMode::PullNone);
+  //       break;
+  //     case MbitMorePullUp:
+  //       setPullMode(data[2], PinMode::PullUp);
+  //       break;
+  //     case MbitMorePullDown:
+  //       setPullMode(data[2], PinMode::PullDown);
+  //       break;
+
+  //     default:
+  //       break;
+  //     }
+  //   }
+  //   else if (data[1] == MbitMorePinCommand::SET_TOUCH)
+  //   {
+  //     setPinModeTouch(data[2]);
+  //   }
+  //   else if (data[1] == MbitMorePinCommand::SET_OUTPUT)
+  //   {
+  //     setDigitalValue(data[2], data[3]);
+  //   }
+  //   else if (data[1] == MbitMorePinCommand::SET_PWM)
+  //   {
+  //     // value is read as uint16_t little-endian.
+  //     int value;
+  //     memcpy(&value, &(data[3]), 2);
+  //     setAnalogValue(data[2], value);
+  //   }
+  //   else if (data[1] == MbitMorePinCommand::SET_SERVO)
+  //   {
+  //     int pinIndex = (int)data[2];
+  //     // angle is read as uint16_t little-endian.
+  //     uint16_t angle;
+  //     memcpy(&angle, &(data[3]), 2);
+  //     // range is read as uint16_t little-endian.
+  //     uint16_t range;
+  //     memcpy(&range, &(data[5]), 2);
+  //     // center is read as uint16_t little-endian.
+  //     uint16_t center;
+  //     memcpy(&center, &(data[7]), 2);
+  //     if (range == 0)
+  //     {
+  //       uBit.io.pin[pinIndex].setServoValue(angle);
+  //     }
+  //     else if (center == 0)
+  //     {
+  //       uBit.io.pin[pinIndex].setServoValue(angle, range);
+  //     }
+  //     else
+  //     {
+  //       uBit.io.pin[pinIndex].setServoValue(angle, range, center);
+  //     }
+  //   }
+  //   else if (data[1] == MbitMorePinCommand::SET_EVENT)
+  //   {
+  //     listenPinEventOn((int)data[2], (int)data[3]);
+  //   }
+  // }
+  // else if (data[0] == MbitMoreCommand::CMD_SHARED_DATA)
+  // {
+  //   // value is read as int16_t little-endian.
+  //   int16_t value;
+  //   memcpy(&value, &(data[2]), 2);
+  //   sharedData[data[1]] = value;
+  // }
+  // else if (data[0] == MbitMoreCommand::CMD_PROTOCOL)
+  // {
+  //   mbitMoreProtocol = data[1];
+  // }
+  // else if (data[0] == MbitMoreCommand::CMD_LIGHT_SENSING)
+  // {
+  //   setLightSensingDuration(data[1]);
+  // }
+}
+
+/**
+ * @brief Display pixcels on LED.
+ *
+ * @param pattern Pixel pattern to display.
+ * @param length Size of the pattern data.
+ * @param writeMode Clear or not previous pattern.
+ * @param brightness Brightness level of all the pixcel.
+ */
+void MbitMoreDevice::displayPixcels(uint8_t *pattern, size_t length,
+                                    MbitMoreDisplayWriteMode writeMode,
+                                    uint8_t brightness) {
+  if (writeMode == MbitMoreDisplayWriteMode::OVER_WRITE) {
+    uBit.display.clear();
+  }
+  layerPattern(pattern, brightness);
 }
 
 /**
@@ -325,8 +448,6 @@ int MbitMoreDevice::convertToTilt(float radians) {
   return (int)(tilt * 1000.0f);
 }
 
-
-
 void MbitMoreDevice::updateAnalogValues() {
   for (size_t i = 0; i < sizeof(analogIn) / sizeof(analogIn[0]); i++) {
     int samplingCount = 0;
@@ -421,7 +542,6 @@ void MbitMoreDevice::notifySharedData() {
  * @param brightness Brightness level (0-255) of this layer.
  */
 void MbitMoreDevice::layerPattern(uint8_t *pattern, uint8_t brightness) {
-  uBit.display.stopAnimation();
   for (int y = 0; y < 5; y++) {
     for (int x = 0; x < 5; x++) {
       if (pattern[y] & (0x01 << x)) {
