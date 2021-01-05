@@ -72,7 +72,8 @@ void MbitMoreDevice::initConfiguration() {
   //     "0\n0,255,0,255,0\n0,0,0,0,0\n255,0,0,0,255\n0,255,255,255,0\n");
   // uBit.display.animateAsync(smiley, 3000, 5);
   // MicroBitImage smiley(
-  //     "0,255,0,255, 0\n0,255,0,255,0\n0,0,0,0,0\n32,0,0,0,32\n0,32,32,32,0\n");
+  //     "0,255,0,255,
+  //     0\n0,255,0,255,0\n0,0,0,0,0\n32,0,0,0,32\n0,32,32,32,0\n");
   // uBit.display.setDisplayMode(DISPLAY_MODE_GREYSCALE);
   // uBit.display.print(smiley);
 }
@@ -84,15 +85,17 @@ void MbitMoreDevice::initConfiguration() {
  * @param length
  */
 void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
-  if (data[0] == MbitMoreCommand::CMD_DISPLAY &&
-      data[1] == MbitMoreDisplayCommand::TEXT) {
-    char text[length - 1] = {0};
-    memcpy(text, &(data[3]), length - 2);
-    displayText(text, data[2]);
-  } else if (data[0] == MbitMoreCommand::CMD_DISPLAY &&
-             data[1] == MbitMoreDisplayCommand::PIXELS) {
-    displayPixcels(&data[5], data[4], (MbitMoreDisplayWriteMode)data[2],
-                   data[3]);
+  const int command = (data[0] >> 5);
+  if (command == MbitMoreCommand::CMD_DISPLAY) {
+    const int displayCommand = (data[0] >> 3) & 0b11;
+    if (displayCommand == MbitMoreDisplayCommand::TEXT) {
+      char text[length - 1] = {0};
+      memcpy(text, &(data[2]), length - 2);
+      displayText(text, (data[1] * 10));
+    } else if (displayCommand == MbitMoreDisplayCommand::PIXELS) {
+      displayPixcels(&data[4], data[3], (MbitMoreDisplayWriteMode)data[1],
+                     data[2]);
+    }
   }
   // } else if (data[0] == MbitMoreCommand::CMD_LAYER_LED) {
   //   mbitMore->;layerPattern(data[2], data[1]);

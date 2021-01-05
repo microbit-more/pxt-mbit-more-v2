@@ -8,15 +8,15 @@
 #define MM_CH_BUFFER_SIZE_ANALOG_IN 2
 #define MM_CH_BUFFER_SIZE_SHARED_DATA 5
 
-enum MbitMoreCommand
+enum MbitMoreCommand // 3 bit (0x00..0x07)
 {
-  CMD_CONFIG = 0x10,
-  CMD_PIN = 0x11,
-  CMD_DISPLAY = 0x12,
-  CMD_SHARED_DATA = 0x13,
+  CMD_CONFIG = 0x00,
+  CMD_PIN = 0x01,
+  CMD_DISPLAY = 0x02,
+  CMD_SHARED_DATA = 0x03,
 };
 
-enum MbitMorePinCommand
+enum MbitMorePinCommand // 3 bit (0x00..0x07)
 {
   SET_OUTPUT = 0x01,
   SET_PWM = 0x02,
@@ -26,7 +26,7 @@ enum MbitMorePinCommand
   SET_TOUCH = 0x06,
 };
 
-enum MbitMoreDisplayCommand
+enum MbitMoreDisplayCommand // 2 bit (0x00..0x03)
 {
   CLEAR = 0x00,
   TEXT = 0x01,

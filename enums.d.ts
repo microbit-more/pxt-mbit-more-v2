@@ -3,10 +3,10 @@
 
     declare const enum MbitMoreCommand
     {
-    CMD_CONFIG = 0x10,
-    CMD_PIN = 0x11,
-    CMD_DISPLAY = 0x12,
-    CMD_SHARED_DATA = 0x13,
+    CMD_CONFIG = 0x00,
+    CMD_PIN = 0x01,
+    CMD_DISPLAY = 0x02,
+    CMD_SHARED_DATA = 0x03,
     }
 
 
