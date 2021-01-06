@@ -25,7 +25,8 @@
     {
     CLEAR = 0x00,
     TEXT = 0x01,
-    PIXELS = 0x02,
+    PIXELS_0 = 0x02,
+    PIXELS_1 = 0x03,
     }
 
 

@@ -66,6 +66,12 @@ public:
   // ---------------------
 
   /**
+   * @brief Shadow screen to display on the LED.
+   *
+   */
+  uint8_t shadowPixcels[5][5] = {0};
+
+  /**
    * Save the last accelerometer values to conpaire current for detecting
    * moving.
    */
@@ -136,6 +142,20 @@ public:
   void onCommandReceived(uint8_t *data, size_t length);
 
   /**
+   * @brief Set the pattern on the line of the shadow pixels.
+   *
+   * @param line Index of the lines to set.
+   * @param pattern Array of brightness(0..255) according columns.
+   */
+  void setPixelsShadowLine(int line, uint8_t *pattern);
+
+  /**
+   * @brief Display the shadow pixels on the LED.
+   *
+   */
+  void displayShadowPixels();
+
+  /**
    * @brief Layer pattern on LED.
    *
    * @param pattern Matrix to display 5 columns x 5 rows.
@@ -158,8 +178,8 @@ public:
    * @param writeMode Clear or not previous pattern.
    * @param brightness Brightness level of all the pixcel.
    */
-  void displayPixcels(uint8_t *pattern, size_t length, MbitMoreDisplayWriteMode writeMode,
-                      uint8_t brightness);
+  void displayPixcels(uint8_t *pattern, size_t length,
+                      MbitMoreDisplayWriteMode writeMode, uint8_t brightness);
 
   /**
    * @brief Display text on LED.

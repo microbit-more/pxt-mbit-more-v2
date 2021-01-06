@@ -87,14 +87,19 @@ void MbitMoreDevice::initConfiguration() {
 void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
   const int command = (data[0] >> 5);
   if (command == MbitMoreCommand::CMD_DISPLAY) {
-    const int displayCommand = (data[0] >> 3) & 0b11;
+    const int displayCommand = data[0] & 0b11111;
     if (displayCommand == MbitMoreDisplayCommand::TEXT) {
       char text[length - 1] = {0};
       memcpy(text, &(data[2]), length - 2);
       displayText(text, (data[1] * 10));
-    } else if (displayCommand == MbitMoreDisplayCommand::PIXELS) {
-      displayPixcels(&data[4], data[3], (MbitMoreDisplayWriteMode)data[1],
-                     data[2]);
+    } else if (displayCommand == MbitMoreDisplayCommand::PIXELS_0) {
+      setPixelsShadowLine(0, &data[1]);
+      setPixelsShadowLine(1, &data[6]);
+      setPixelsShadowLine(2, &data[11]);
+    } else if (displayCommand == MbitMoreDisplayCommand::PIXELS_1) {
+      setPixelsShadowLine(3, &data[1]);
+      setPixelsShadowLine(4, &data[6]);
+      displayShadowPixels();
     }
   }
   // } else if (data[0] == MbitMoreCommand::CMD_LAYER_LED) {
@@ -180,6 +185,30 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
   // {
   //   setLightSensingDuration(data[1]);
   // }
+}
+
+/**
+ * @brief Set the pattern on the line of the shadow pixels.
+ *
+ * @param line Index of the lines to set.
+ * @param pattern Array of brightness(0..255) according columns.
+ */
+void MbitMoreDevice::setPixelsShadowLine(int line, uint8_t *pattern) {
+  for (size_t col = 0; col < 5; col++) {
+    shadowPixcels[line][col] = pattern[col];
+  }
+}
+
+/**
+ * @brief Display the shadow pixels on the LED.
+ *
+ */
+void MbitMoreDevice::displayShadowPixels() {
+  for (size_t y = 0; y < 5; y++) {
+    for (size_t x = 0; x < 5; x++) {
+      uBit.display.image.setPixelValue(x, y, shadowPixcels[y][x]);
+    }
+  }
 }
 
 /**
