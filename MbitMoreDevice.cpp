@@ -204,6 +204,7 @@ void MbitMoreDevice::setPixelsShadowLine(int line, uint8_t *pattern) {
  *
  */
 void MbitMoreDevice::displayShadowPixels() {
+  uBit.display.stopAnimation();
   for (size_t y = 0; y < 5; y++) {
     for (size_t x = 0; x < 5; x++) {
       uBit.display.image.setPixelValue(x, y, shadowPixcels[y][x]);
