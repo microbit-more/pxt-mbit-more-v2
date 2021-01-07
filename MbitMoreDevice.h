@@ -69,7 +69,7 @@ public:
    * @brief Shadow screen to display on the LED.
    *
    */
-  uint8_t shadowPixcels[5][5] = {0};
+  uint8_t shadowPixcels[5][5] = {{0}};
 
   /**
    * Save the last accelerometer values to conpaire current for detecting
