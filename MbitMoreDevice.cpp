@@ -102,9 +102,6 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
       displayShadowPixels();
     }
   }
-  // } else if (data[0] == MbitMoreCommand::CMD_LAYER_LED) {
-  //   mbitMore->;layerPattern(data[2], data[1]);
-  // }
   // else if (data[0] == MbitMoreCommand::CMD_PIN)
   // {
   //   if (data[1] == MbitMorePinCommand::SET_PULL)
@@ -210,23 +207,6 @@ void MbitMoreDevice::displayShadowPixels() {
       uBit.display.image.setPixelValue(x, y, shadowPixcels[y][x]);
     }
   }
-}
-
-/**
- * @brief Display pixcels on LED.
- *
- * @param pattern Pixel pattern to display.
- * @param length Size of the pattern data.
- * @param writeMode Clear or not previous pattern.
- * @param brightness Brightness level of all the pixcel.
- */
-void MbitMoreDevice::displayPixcels(uint8_t *pattern, size_t length,
-                                    MbitMoreDisplayWriteMode writeMode,
-                                    uint8_t brightness) {
-  if (writeMode == MbitMoreDisplayWriteMode::OVER_WRITE) {
-    uBit.display.clear();
-  }
-  layerPattern(pattern, brightness);
 }
 
 /**
@@ -565,34 +545,6 @@ void MbitMoreDevice::notifySharedData() {
   // moreService->notifySharedData(
   //     (uint8_t *)&sharedBuffer,
   //     sizeof(sharedBuffer) / sizeof(sharedBuffer[0]));
-}
-
-/**
- * @brief Layer pattern on LED.
- * 0 value in the pattern is hold previous brightness.
- *
- * @param pattern Matrix to display 5 columns x 5 rows.
- * @param brightness Brightness level (0-255) of this layer.
- */
-void MbitMoreDevice::layerPattern(uint8_t *pattern, uint8_t brightness) {
-  for (int y = 0; y < 5; y++) {
-    for (int x = 0; x < 5; x++) {
-      if (pattern[y] & (0x01 << x)) {
-        uBit.display.image.setPixelValue(x, y, brightness);
-      }
-    }
-  }
-}
-
-/**
- * @brief Display pattern on LED.
- *
- * @param pattern Matrix to display 5 columns x 5 rows.
- */
-void MbitMoreDevice::displayPattern(uint8_t *pattern) {
-  uBit.display.stopAnimation();
-  uBit.display.clear();
-  layerPattern(pattern, 255);
 }
 
 /**

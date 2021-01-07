@@ -156,32 +156,6 @@ public:
   void displayShadowPixels();
 
   /**
-   * @brief Layer pattern on LED.
-   *
-   * @param pattern Matrix to display 5 columns x 5 rows.
-   * @param brightness Brightness level (0-255) of this layer.
-   */
-  void layerPattern(uint8_t *pattern, uint8_t brightness);
-
-  /**
-   * @brief Display symbol on LED.
-   *
-   * @param pattern Matrix to display 5 columns x 5 rows.
-   */
-  void displayPattern(uint8_t *pattern);
-
-  /**
-   * @brief Display pixcels on LED.
-   *
-   * @param pattern Pixel pattern to display.
-   * @param length Size of the pattern data.
-   * @param writeMode Clear or not previous pattern.
-   * @param brightness Brightness level of all the pixcel.
-   */
-  void displayPixcels(uint8_t *pattern, size_t length,
-                      MbitMoreDisplayWriteMode writeMode, uint8_t brightness);
-
-  /**
    * @brief Display text on LED.
    *
    * @param text Contents to display with null termination.
