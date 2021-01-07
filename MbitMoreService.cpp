@@ -209,6 +209,7 @@ void MbitMoreService::notify() {}
 void MbitMoreService::update() {
   if (getConnected()) {
     mbitMore->updateSensors(sensorsChBuffer);
+    mbitMore->updateDirection(directionChBuffer);
   }
 }
 

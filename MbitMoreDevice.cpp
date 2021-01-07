@@ -28,9 +28,9 @@ int digitalIn[] = {
  */
 MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
   // Calibrate the compass before start bluetooth service.
-  // if (!uBit.compass.isCalibrated()) {
-  //   uBit.compass.calibrate();
-  // }
+  if (!uBit.compass.isCalibrated()) {
+    uBit.compass.calibrate();
+  }
 
   uBit.messageBus.listen(MICROBIT_ID_BUTTON_A, MICROBIT_EVT_ANY, this,
                          &MbitMoreDevice::onButtonChanged,
@@ -491,23 +491,6 @@ void MbitMoreDevice::updateAnalogValues() {
   // uBit.display.enable();
 }
 
-void MbitMoreDevice::updateAccelerometer() {
-  acceleration[0] =
-      -uBit.accelerometer.getX(); // Face side is positive in Z-axis.
-  acceleration[1] = uBit.accelerometer.getY();
-  acceleration[2] =
-      -uBit.accelerometer.getZ(); // Face side is positive in Z-axis.
-  rotation[0] = uBit.accelerometer.getPitchRadians();
-  rotation[1] = uBit.accelerometer.getRollRadians();
-}
-
-void MbitMoreDevice::updateMagnetometer() {
-  compassHeading = uBit.compass.heading();
-  magneticForce[0] = uBit.compass.getX();
-  magneticForce[1] = uBit.compass.getY();
-  magneticForce[2] = uBit.compass.getZ();
-}
-
 #if MICROBIT_CODAL
 void MbitMoreDevice::setPullMode(int pinIndex, PullMode pull) {
 #else // NOT MICROBIT_CODAL
@@ -592,9 +575,52 @@ void MbitMoreDevice::updateSensors(uint8_t *data) {
   memcpy(data, (uint8_t *)&digitalLevels, 4);
   data[4] = sampleLigthLevel();
   data[5] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
-  // #if MICROBIT_CODAL
-  //   data[6] = uBit.microphone.soundLevel(); // This is not implemented yet.
-  // #endif // MICROBIT_CODAL
+#if MICROBIT_CODAL
+  // data[6] = uBit.microphone.soundLevel(); // This is not implemented yet.
+#endif // MICROBIT_CODAL
+}
+
+/**
+ * @brief Update data of direction.
+ *
+ * @param data Buffer for BLE characteristics.
+ */
+void MbitMoreDevice::updateDirection(uint8_t *data) {
+  // Accelerometer
+  int16_t rot;
+  // Pitch (radians / 1000) is sent as int16_t little-endian [0..1].
+  rot = (int16_t)(uBit.accelerometer.getPitchRadians() * 1000);
+  memcpy(&(data[0]), &rot, 2);
+  // Roll (radians / 1000) is sent as int16_t little-endian [2..3].
+  rot = (int16_t)(uBit.accelerometer.getRollRadians() * 1000);
+  memcpy(&(data[2]), &rot, 2);
+
+  int16_t acc;
+  // Acceleration X [milli-g] is sent as int16_t little-endian [4..5].
+  acc = (int16_t)-uBit.accelerometer.getX(); // Face side is positive in Z-axis.
+  memcpy(&(data[4]), &acc, 2);
+  // Acceleration Y [milli-g] is sent as int16_t little-endian [6..7].
+  acc = (int16_t)uBit.accelerometer.getY();
+  memcpy(&(data[6]), &acc, 2);
+  // Acceleration Z [milli-g] is sent as int16_t little-endian [8..9].
+  acc = (int16_t)-uBit.accelerometer.getZ(); // Face side is positive in Z-axis.
+  memcpy(&(data[8]), &acc, 2);
+
+  // Magnetometer
+  // Compass Heading is sent as uint16_t little-endian [10..11]
+  uint16_t heading = (uint16_t)normalizeCompassHeading(uBit.compass.heading());
+  memcpy(&(data[10]), &heading, 2);
+
+  int16_t force;
+  // Magnetic force X (micro-teslas) is sent as int16_t little-endian[12..13].
+  force = (int16_t)(uBit.compass.getX() / 1000);
+  memcpy(&(data[12]), &force, 2);
+  // Magnetic force Y (micro-teslas) is sent as int16_t little-endian[14..15].
+  force = (int16_t)(uBit.compass.getY() / 1000);
+  memcpy(&(data[14]), &force, 2);
+  // Magnetic force Z (micro-teslas) is sent as int16_t little-endian[16..17].
+  force = (int16_t)(uBit.compass.getZ() / 1000);
+  memcpy(&(data[16]), &force, 2);
 }
 
 int median(int n, int x[]) {
@@ -656,11 +682,6 @@ int MbitMoreDevice::getSharedData(int index) {
 }
 
 /**
- * Update sensors.
- */
-void MbitMoreDevice::update() {}
-
-/**
  * Write shared data characteristics.
  */
 void MbitMoreDevice::writeSharedData() {
@@ -671,55 +692,6 @@ void MbitMoreDevice::writeSharedData() {
   // moreService->writeSharedData((uint8_t *)&sharedBuffer,
   //                              sizeof(sharedBuffer) /
   //                              sizeof(sharedBuffer[0]));
-}
-
-/**
- * Write data of all sensors to the characteristic.
- */
-void MbitMoreDevice::writeSensors() {
-  // // Accelerometer
-  // int16_t acc;
-  // // Acceleration X [milli-g] is sent as int16_t little-endian.
-  // acc = (int16_t)acceleration[0];
-  // memcpy(&(sensorsBuffer[0]), &acc, 2);
-  // // Acceleration Y [milli-g] is sent as int16_t little-endian.
-  // acc = (int16_t)acceleration[1];
-  // memcpy(&(sensorsBuffer[2]), &acc, 2);
-  // // Acceleration Z [milli-g] is sent as int16_t little-endian.
-  // acc = (int16_t)acceleration[2];
-  // memcpy(&(sensorsBuffer[4]), &acc, 2);
-
-  // int16_t rot;
-  // // Pitch (radians / 1000) is sent as int16_t little-endian [6..7].
-  // rot = (int16_t)(rotation[0] * 1000);
-  // memcpy(&(sensorsBuffer[6]), &rot, 2);
-  // // Roll (radians / 1000) is sent as int16_t little-endian [8..9].
-  // rot = (int16_t)(rotation[1] * 1000);
-  // memcpy(&(sensorsBuffer[8]), &rot, 2);
-
-  // // Magnetometer
-  // uint16_t heading = (uint16_t)normalizeCompassHeading(compassHeading);
-  // memcpy(&(sensorsBuffer[10]), &heading, 2);
-
-  // int16_t force;
-  // // Magnetic force X (micro-teslas) is sent as uint16_t little-endian
-  // [2..3]. force = (int16_t)(magneticForce[0] / 1000);
-  // memcpy(&(sensorsBuffer[12]), &force, 2);
-  // // Magnetic force Y (micro-teslas) is sent as uint16_t little-endian
-  // [4..5]. force = (int16_t)(magneticForce[1] / 1000);
-  // memcpy(&(sensorsBuffer[14]), &force, 2);
-  // // Magnetic force Z (micro-teslas) is sent as uint16_t little-endian
-  // [6..7]. force = (int16_t)(magneticForce[2] / 1000);
-  // memcpy(&(sensorsBuffer[16]), &force, 2);
-
-  // Light sensor
-  // sensorsBuffer[18] = (uint8_t)lightLevel;
-
-  // Temperature
-  // sensorsBuffer[19] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
-
-  // moreService->writeSensor((uint8_t *)&sensorsBuffer,
-  //                          sizeof(sensorsBuffer) / sizeof(sensorsBuffer[0]));
 }
 
 void MbitMoreDevice::displayFriendlyName() {

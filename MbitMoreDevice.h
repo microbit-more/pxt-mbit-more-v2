@@ -71,17 +71,6 @@ public:
    */
   uint8_t shadowPixcels[5][5] = {{0}};
 
-  /**
-   * Save the last accelerometer values to conpaire current for detecting
-   * moving.
-   */
-  int lastAcc[3];
-
-  /**
-   * Heading angle of compass.
-   */
-  int compassHeading;
-
   uint32_t digitalValues;
 
   uint16_t analogValues[6];
@@ -96,21 +85,6 @@ public:
    *
    */
   size_t lightLevelSamplesLast = 0;
-
-  /**
-   * Acceleration value [x, y, z] in milli-g.
-   */
-  int acceleration[6];
-
-  /**
-   * Rotation value [pitch, roll] in radians.
-   */
-  float rotation[2];
-
-  /**
-   * Magnetic force [x, y, z] in 1000 * micro-teslas.
-   */
-  int magneticForce[3];
 
   /**
    * Shared data
@@ -164,11 +138,18 @@ public:
   void displayText(char *text, int delay);
 
   /**
-   * @brief Get data of the sensors
+   * @brief Update data of sensors.
    *
    * @param data Buffer for BLE characteristics.
    */
   void updateSensors(uint8_t *data);
+
+  /**
+   * @brief Update data of direction.
+   *
+   * @param data Buffer for BLE characteristics.
+   */
+  void updateDirection(uint8_t *data);
 
   /**
    * @brief Sample current light level and return median.
@@ -196,18 +177,13 @@ public:
    */
   void onPinEvent(MicroBitEvent evt);
 
-  void update();
-
   void updateAnalogValues();
   void updateLightSensor();
-  void updateAccelerometer();
-  void updateMagnetometer();
 
   void notifySharedData();
   void notify();
 
   void writeAnalogIn();
-  void writeSensors();
   void writeSharedData();
 
   void displayFriendlyName();
@@ -230,9 +206,6 @@ private:
 
   void onButtonChanged(MicroBitEvent);
   void onGestureChanged(MicroBitEvent);
-
-  void updateGesture(void);
-  void resetGesture(void);
 
   int normalizeCompassHeading(int heading);
   int convertToTilt(float radians);

@@ -236,6 +236,9 @@ void MbitMoreServiceDAL::update() {
     mbitMore->updateSensors(sensorsChBuffer);
     uBit.ble->gattServer().write(sensorsCh->getValueHandle(), sensorsChBuffer,
                                  MM_CH_BUFFER_SIZE_SENSORS);
+    mbitMore->updateDirection(directionChBuffer);
+    uBit.ble->gattServer().write(directionCh->getValueHandle(), directionChBuffer,
+                                 MM_CH_BUFFER_SIZE_DIRECTION);
   } else {
     mbitMore->displayFriendlyName();
   }
