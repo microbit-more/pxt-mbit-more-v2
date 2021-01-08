@@ -24,19 +24,17 @@ using MbitMoreService = MbitMoreServiceDAL;
 
 //% color=#FF9900 weight=95 icon="\uf1b0"
 namespace MbitMore {
-MbitMoreService *_pService = NULL;
+  MbitMoreService *_pService = NULL;
 
-void update() {
-  while (NULL != _pService) {
-    _pService->update();
-    fiber_sleep(UPDATE_PERIOD);
-  }
+  void update() {
+    while (NULL != _pService) {
+      _pService->update();
+      fiber_sleep(UPDATE_PERIOD);
+    }
   }
 
-  void notifyScratch()
-  {
-    while (NULL != _pService)
-    {
+  void notifyScratch() {
+    while (NULL != _pService) {
       // notyfy data to Scratch
       _pService->notify();
       fiber_sleep(NOTIFY_PERIOD);
@@ -44,11 +42,10 @@ void update() {
   }
 
   /**
-    * Starts a Scratch extension service.
-    */
+   * Starts a Scratch extension service.
+   */
   //%
-  void startMbitMoreService()
-  {
+  void startMbitMoreService() {
     if (NULL != _pService)
       return;
 
@@ -59,11 +56,10 @@ void update() {
   }
 
   /**
-    * Set shared data value.
-    */
+   * Set shared data value.
+   */
   //%
-  void setMbitMoreSharedData(SharedDataIndex index, int value)
-  {
+  void setMbitMoreSharedData(SharedDataIndex index, int value) {
     if (NULL == _pService)
       return;
 
@@ -71,14 +67,13 @@ void update() {
   }
 
   /**
-     * Get shared data value. 
-     */
+   * Get shared data value.
+   */
   //%
-  int getMbitMoreSharedData(SharedDataIndex index)
-  {
+  int getMbitMoreSharedData(SharedDataIndex index) {
     if (NULL == _pService)
       return 0;
 
     return _pService->getSharedData((int)index);
   }
-  } // namespace MbitMore
+} // namespace MbitMore

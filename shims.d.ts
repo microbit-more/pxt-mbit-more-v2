@@ -18,7 +18,7 @@ declare namespace MbitMore {
     function setMbitMoreSharedData(index: SharedDataIndex, value: int32): void;
 
     /**
-     * Get shared data value. 
+     * Get shared data value.
      */
     //% shim=MbitMore::getMbitMoreSharedData
     function getMbitMoreSharedData(index: SharedDataIndex): int32;
