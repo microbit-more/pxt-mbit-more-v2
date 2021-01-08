@@ -16,7 +16,6 @@
 #define MBIT_MORE_BUTTON_PIN_B 11
 
 int gpio[] = {0, 1, 2, 8, 12, 13, 14, 15, 16};
-int analogIn[] = {0, 1, 2};
 int digitalIn[] = {
     0, 1,
     2}; // PullUp at connected to be same behaviour as the standard extension.
@@ -461,36 +460,6 @@ int MbitMoreDevice::convertToTilt(float radians) {
   return (int)(tilt * 1000.0f);
 }
 
-void MbitMoreDevice::updateAnalogValues() {
-  for (size_t i = 0; i < sizeof(analogIn) / sizeof(analogIn[0]); i++) {
-    int samplingCount = 0;
-    int prevValue;
-    int value = 0;
-    if (uBit.io.pin[analogIn[i]].isInput()) {
-#if MICROBIT_CODAL
-      uBit.io.pin[analogIn[i]].setPull(PullMode::None);
-#else // NOT MICROBIT_CODAL
-      uBit.io.pin[analogIn[i]].setPull(PinMode::PullNone);
-#endif // NOT MICROBIT_CODAL
-      // for accuracy, read more than 2 times to get same values continuously
-      do {
-        prevValue = value;
-        value = (uint16_t)uBit.io.pin[analogIn[i]].getAnalogValue();
-        samplingCount++;
-      } while (prevValue != value || samplingCount < 4);
-      analogValues[i] = value;
-      setPullMode(analogIn[i], pullMode[analogIn[i]]);
-    }
-  }
-
-  //// It will cause flickering LED.
-  // uBit.display.disable();
-  // analogValues[3] = (uint16_t)uBit.io.P3.getAnalogValue();
-  // analogValues[4] = (uint16_t)uBit.io.P4.getAnalogValue();
-  // analogValues[5] = (uint16_t)uBit.io.P10.getAnalogValue();
-  // uBit.display.enable();
-}
-
 #if MICROBIT_CODAL
 void MbitMoreDevice::setPullMode(int pinIndex, PullMode pull) {
 #else // NOT MICROBIT_CODAL
@@ -621,6 +590,35 @@ void MbitMoreDevice::updateDirection(uint8_t *data) {
   // Magnetic force Z (micro-teslas) is sent as int16_t little-endian[16..17].
   force = (int16_t)(uBit.compass.getZ() / 1000);
   memcpy(&(data[16]), &force, 2);
+}
+
+/**
+ * @brief Get data of analog input of the pin.
+ *
+ * @param data Buffer for BLE characteristics.
+ * @param pinIndex Index of the pin [0, 1, 2].
+ */
+void MbitMoreDevice::updateAnalogIn(uint8_t *data, size_t pinIndex) {
+  uint16_t value = 0;
+  if (uBit.io.pin[pinIndex].isInput()) {
+#if MICROBIT_CODAL
+    uBit.io.pin[pinIndex].setPull(PullMode::None);
+    // value = (uint16_t)uBit.io.pin[pinIndex].getAnalogValue();
+#else // NOT MICROBIT_CODAL
+    uBit.io.pin[pinIndex].setPull(PinMode::PullNone);
+#endif // NOT MICROBIT_CODAL
+    // for accuracy, read more than 2 times to get same values continuously
+    int samplingCount = 0;
+    int prevValue;
+    do {
+      prevValue = value;
+      value = (uint16_t)uBit.io.pin[pinIndex].getAnalogValue();
+      samplingCount++;
+    } while (prevValue != value || samplingCount < 4);
+    // analog value (0 to 1023) is sent as uint16_t little-endian.
+    memcpy(&(data[0]), &value, 2);
+    setPullMode(pinIndex, pullMode[pinIndex]);
+  }
 }
 
 int median(int n, int x[]) {

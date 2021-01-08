@@ -152,6 +152,14 @@ public:
   void updateDirection(uint8_t *data);
 
   /**
+   * @brief Get data of analog input of the pin.
+   *
+   * @param data Buffer for BLE characteristics.
+   * @param pinIndex Index of the pin [0, 1, 2].
+   */
+  void updateAnalogIn(uint8_t *data, size_t pinIndex);
+
+  /**
    * @brief Sample current light level and return median.
    *
    * @return int Median filterd light level.
@@ -177,7 +185,6 @@ public:
    */
   void onPinEvent(MicroBitEvent evt);
 
-  void updateAnalogValues();
   void updateLightSensor();
 
   void notifySharedData();

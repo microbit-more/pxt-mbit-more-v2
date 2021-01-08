@@ -156,17 +156,25 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
  */
 void MbitMoreServiceDAL::onReadAnalogIn(
     GattReadAuthCallbackParams *authParams) {
-  // updateAnalogValues();
-  // // analog value (0 to 1023) is sent as uint16_t little-endian.
-  // memcpy(&(analogInBuffer[0]), &(analogValues[0]), 2);
-  // memcpy(&(analogInBuffer[2]), &(analogValues[1]), 2);
-  // memcpy(&(analogInBuffer[4]), &(analogValues[2]), 2);
-  // // voltage of power supply [mV] is sent as uint16_t little-endian.
-  // memcpy(&(analogInBuffer[6]), &powerVoltage, 2);
-  // authParams->data = (uint8_t *)&analogInBuffer;
-  // authParams->offset = 0;
-  // authParams->len = sizeof(analogInBuffer) / sizeof(analogInBuffer[0]);
-  // authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
+  if (authParams->handle == analogInP0Ch->getValueHandle()) {
+    mbitMore->updateAnalogIn(analogInP0ChBuffer, 0);
+    authParams->data = (uint8_t *)&analogInP0ChBuffer;
+    authParams->offset = 0;
+    authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
+    authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
+  } else if (authParams->handle == analogInP1Ch->getValueHandle()) {
+    mbitMore->updateAnalogIn(analogInP1ChBuffer, 1);
+    authParams->data = (uint8_t *)&analogInP1ChBuffer;
+    authParams->offset = 0;
+    authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
+    authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
+  } else if (authParams->handle == analogInP2Ch->getValueHandle()) {
+    mbitMore->updateAnalogIn(analogInP2ChBuffer, 2);
+    authParams->data = (uint8_t *)&analogInP2ChBuffer;
+    authParams->offset = 0;
+    authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
+    authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
+  }
 }
 
 /**
@@ -237,7 +245,8 @@ void MbitMoreServiceDAL::update() {
     uBit.ble->gattServer().write(sensorsCh->getValueHandle(), sensorsChBuffer,
                                  MM_CH_BUFFER_SIZE_SENSORS);
     mbitMore->updateDirection(directionChBuffer);
-    uBit.ble->gattServer().write(directionCh->getValueHandle(), directionChBuffer,
+    uBit.ble->gattServer().write(directionCh->getValueHandle(),
+                                 directionChBuffer,
                                  MM_CH_BUFFER_SIZE_DIRECTION);
   } else {
     mbitMore->displayFriendlyName();

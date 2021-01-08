@@ -141,11 +141,19 @@ void MbitMoreService::onDataWritten(const microbit_ble_evt_write_t *params) {
  * Set  params->data and params->length to update the value
  */
 void MbitMoreService::onDataRead(microbit_onDataRead_t *params) {
-  // if (params->handle == valueHandle(mbitmore_cIdx_ANALOG_IN_P0)) {
-  //   mbitMore->updateAnalogInValue(0);
-  //   params->data = (uint8_t *)&(mbitMore->analogInValues[0]);
-  //   params->length = 2;
-  // }
+  if (params->handle == valueHandle(mbitmore_cIdx_ANALOG_IN_P0)) {
+    mbitMore->updateAnalogIn(analogInP0ChBuffer, 0);
+    params->data = analogInP0ChBuffer;
+    params->length = 2;
+  } else if (params->handle == valueHandle(mbitmore_cIdx_ANALOG_IN_P1)) {
+    mbitMore->updateAnalogIn(analogInP1ChBuffer, 1);
+    params->data = analogInP1ChBuffer;
+    params->length = 2;
+  } else if (params->handle == valueHandle(mbitmore_cIdx_ANALOG_IN_P2)) {
+    mbitMore->updateAnalogIn(analogInP2ChBuffer, 2);
+    params->data = analogInP2ChBuffer;
+    params->length = 2;
+  }
 }
 
 /**
