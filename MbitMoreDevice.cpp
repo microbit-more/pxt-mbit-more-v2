@@ -8,6 +8,37 @@
 #include "MbitMoreDevice.h"
 
 /**
+ * @brief Compute median value for the array.
+ *
+ * @param size Length of the array.
+ * @param data Array to compute median.
+ * @return int Median value.
+ */
+int median(int size, int *data) {
+  int temp;
+  int i, j;
+  // the following two loops sort the array x in ascending order
+  for (i = 0; i < size - 1; i++) {
+    for (j = i + 1; j < size; j++) {
+      if (data[j] < data[i]) {
+        // swap elements
+        temp = data[i];
+        data[i] = data[j];
+        data[j] = temp;
+      }
+    }
+  }
+  if (size % 2 == 0) {
+    // if there is an even number of elements, return mean of the two elements
+    // in the middle
+    return ((data[size / 2] + data[size / 2 - 1]) / 2);
+  } else {
+    // else return the element in the middle
+    return data[size / 2];
+  }
+}
+
+/**
  * Position of data format in a value holder.
  */
 #define MBIT_MORE_DATA_FORMAT_INDEX 19
@@ -599,7 +630,6 @@ void MbitMoreDevice::updateDirection(uint8_t *data) {
  * @param pinIndex Index of the pin [0, 1, 2].
  */
 void MbitMoreDevice::updateAnalogIn(uint8_t *data, size_t pinIndex) {
-  uint16_t value = 0;
   if (uBit.io.pin[pinIndex].isInput()) {
 #if MICROBIT_CODAL
     uBit.io.pin[pinIndex].setPull(PullMode::None);
@@ -607,42 +637,16 @@ void MbitMoreDevice::updateAnalogIn(uint8_t *data, size_t pinIndex) {
 #else // NOT MICROBIT_CODAL
     uBit.io.pin[pinIndex].setPull(PinMode::PullNone);
 #endif // NOT MICROBIT_CODAL
-    // for accuracy, read more than 2 times to get same values continuously
-    int samplingCount = 0;
-    int prevValue;
-    do {
-      prevValue = value;
-      value = (uint16_t)uBit.io.pin[pinIndex].getAnalogValue();
-      samplingCount++;
-    } while (prevValue != value || samplingCount < 4);
+
+    // median filter
+    for (size_t i = 0; i < ANALOG_IN_SAMPLES_SIZE; i++) {
+      analogInSamples[pinIndex][i] = uBit.io.pin[pinIndex].getAnalogValue();
+    }
+    uint16_t value = median(ANALOG_IN_SAMPLES_SIZE, analogInSamples[pinIndex]);
+
     // analog value (0 to 1023) is sent as uint16_t little-endian.
     memcpy(&(data[0]), &value, 2);
     setPullMode(pinIndex, pullMode[pinIndex]);
-  }
-}
-
-int median(int n, int x[]) {
-  int temp;
-  int i, j;
-  // the following two loops sort the array x in ascending order
-  for (i = 0; i < n - 1; i++) {
-    for (j = i + 1; j < n; j++) {
-      if (x[j] < x[i]) {
-        // swap elements
-        temp = x[i];
-        x[i] = x[j];
-        x[j] = temp;
-      }
-    }
-  }
-
-  if (n % 2 == 0) {
-    // if there is an even number of elements, return mean of the two elements
-    // in the middle
-    return ((x[n / 2] + x[n / 2 - 1]) / 2);
-  } else {
-    // else return the element in the middle
-    return x[n / 2];
   }
 }
 
