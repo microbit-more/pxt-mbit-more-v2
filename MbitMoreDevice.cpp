@@ -101,16 +101,6 @@ void MbitMoreDevice::initConfiguration() {
   }
   uBit.display.stopAnimation(); // To stop display friendly name.
   uBit.display.print("M");
-  // uBit.display.scrollAsync("v.0.6.0"); // Display version number
-  // MicroBitImage smiley(
-  //     "0,255,0,255, "
-  //     "0\n0,255,0,255,0\n0,0,0,0,0\n255,0,0,0,255\n0,255,255,255,0\n");
-  // uBit.display.animateAsync(smiley, 3000, 5);
-  // MicroBitImage smiley(
-  //     "0,255,0,255,
-  //     0\n0,255,0,255,0\n0,0,0,0,0\n32,0,0,0,32\n0,32,32,32,0\n");
-  // uBit.display.setDisplayMode(DISPLAY_MODE_GREYSCALE);
-  // uBit.display.print(smiley);
 }
 
 /**
