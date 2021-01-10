@@ -57,7 +57,12 @@ int digitalIn[] = {
  * @param _uBit The instance of a MicroBit runtime.
  */
 MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
-  // Calibrate the compass before start bluetooth service.
+  // Reset compass
+  if (uBit.buttonA.isPressed()) { // buttonAB is already used in v2.
+    uBit.compass.clearCalibration();
+  }
+
+  // Compass must be calibrated before starting bluetooth service.
   if (!uBit.compass.isCalibrated()) {
     uBit.compass.calibrate();
   }
