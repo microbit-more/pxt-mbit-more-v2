@@ -66,15 +66,14 @@ public:
 
   // ---------------------
 
+  int gpioPin[9] = {0, 1, 2, 8, 12, 13, 14, 15, 16};
+  int initialPullUp[3] = {0, 1, 2};
+
   /**
    * @brief Shadow screen to display on the LED.
    *
    */
   uint8_t shadowPixcels[5][5] = {{0}};
-
-  uint32_t digitalValues;
-
-  uint16_t analogValues[6];
 
   /**
    * Samples of Light Level.
@@ -95,7 +94,7 @@ public:
   /**
    * Shared data
    */
-  int16_t sharedData[4];
+  int16_t sharedData[16];
 
   /**
    * Protocol of microbit more.
@@ -106,12 +105,22 @@ public:
    * Current mode of all pins.
    */
 #if MICROBIT_CODAL
-  PullMode pullMode[21];
+  PullMode pullMode[sizeof(gpioPin) / sizeof(gpioPin[0])];
 #else // MICROBIT_CODAL
-  PinMode pullMode[21];
+  PinMode pullMode[sizeof(gpioPin) / sizeof(gpioPin[0])];
 #endif // NOT MICROBIT_CODAL
 
-  void initConfiguration();
+  /**
+   * @brief Set pin configuration for initial.
+   *
+   */
+  void initialConfiguration();
+
+  /**
+   * @brief Set pin configuration for release.
+   *
+   */
+  void releaseConfiguration();
 
   /**
    * @brief Call when a command was received.
@@ -191,14 +200,6 @@ public:
    */
   void onPinEvent(MicroBitEvent evt);
 
-  void updateLightSensor();
-
-  void notifySharedData();
-  void notify();
-
-  void writeAnalogIn();
-  void writeSharedData();
-
   void displayFriendlyName();
 
 private:
@@ -214,7 +215,7 @@ private:
   void setAnalogValue(int pinIndex, int value);
   void setServoValue(int pinIndex, int angle, int range, int center);
   void setPinModeTouch(int pinIndex);
-  void setLightSensingDuration(int duration);
+
   void composeBasicData(uint8_t *buff);
 
   void onButtonChanged(MicroBitEvent);

@@ -33,6 +33,11 @@ public:
    */
   void notifyActionEvent();
 
+  /**
+   * @brief Notify action event.
+   */
+  void notifyPinEvent();
+
   void notifySharedData();
 
   /**

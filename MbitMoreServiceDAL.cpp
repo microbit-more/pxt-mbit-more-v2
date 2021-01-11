@@ -193,6 +193,14 @@ void MbitMoreServiceDAL::notifyActionEvent() {
 }
 
 /**
+ * @brief Notify pin event.
+ */
+void MbitMoreServiceDAL::notifyPinEvent() {
+  uBit.ble->gattServer().notify(pinEventCh->getValueHandle(),
+                                pinEventChBuffer, MM_CH_BUFFER_SIZE_NOTIFY);
+}
+
+/**
  * Notify shared data to Scratch3
  */
 void MbitMoreServiceDAL::notifySharedData() {
@@ -231,10 +239,12 @@ int MbitMoreServiceDAL::getSharedData(int index) {
 }
 
 void MbitMoreServiceDAL::onBLEConnected(MicroBitEvent _e) {
-  mbitMore->initConfiguration();
+  mbitMore->initialConfiguration();
 }
 
-void MbitMoreServiceDAL::onBLEDisconnected(MicroBitEvent _e) {}
+void MbitMoreServiceDAL::onBLEDisconnected(MicroBitEvent _e) {
+  mbitMore->releaseConfiguration();
+}
 
 /**
  * Update sensors.

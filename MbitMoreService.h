@@ -98,12 +98,9 @@ public:
   void notifyActionEvent();
 
   /**
-   * @brief Notify IO event.
-   *
-   * @param data Data to notify.
-   * @param length Lenght of the data.
+   * @brief Notify action event.
    */
-  void notifyIOEvent(uint8_t *data, uint16_t length);
+  void notifyPinEvent();
 
   void notifySharedData();
 

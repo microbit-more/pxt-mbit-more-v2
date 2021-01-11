@@ -41,11 +41,11 @@
     }
 
 
-    declare const enum MbitMorePinMode
+    declare const enum MbitMorePullMode
     {
-    MbitMorePullNone = 0,
-    MbitMorePullUp = 1,
-    MbitMorePullDown = 2,
+    None = 0,
+    Down = 1,
+    Up = 2,
     }
 
 
@@ -97,6 +97,15 @@
     ON_EDGE = 1,
     ON_PULSE = 2,
     ON_TOUCH = 3,
+    }
+
+
+    declare const enum MbitMorePinEvent
+    {
+    RISE = 2,
+    FALL = 3,
+    PULSE_HIGH = 4,
+    PULSE_LOW = 5,
     }
 
 

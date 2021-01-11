@@ -119,13 +119,15 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
  * Invoked when BLE connects.
  */
 void MbitMoreService::onConnect(const microbit_ble_evt_t *p_ble_evt) {
-  mbitMore->initConfiguration();
+  mbitMore->initialConfiguration();
 }
 
 /**
  * Invoked when BLE disconnects.
  */
-void MbitMoreService::onDisconnect(const microbit_ble_evt_t *p_ble_evt) {}
+void MbitMoreService::onDisconnect(const microbit_ble_evt_t *p_ble_evt) {
+  mbitMore->releaseConfiguration();
+}
 
 /**
  * Callback. Invoked when any of our attributes are written via BLE.
@@ -185,13 +187,11 @@ void MbitMoreService::notifyActionEvent() {
 }
 
 /**
- * @brief Notify IO event.
- *
- * @param data Data to notify.
- * @param length Lenght of the data.
+ * @brief Notify pin event.
  */
-void MbitMoreService::notifyIOEvent(uint8_t *data, uint16_t length) {
-  // notifyChrValue(mbbs_cIdxIOEvent, data, length);
+void MbitMoreService::notifyPinEvent() {
+  notifyChrValue(mbitmore_cIdx_PIN_EVENT, pinEventChBuffer,
+                 MM_CH_BUFFER_SIZE_NOTIFY);
 }
 
 /**

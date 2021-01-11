@@ -43,11 +43,11 @@ enum MbitMoreDisplayWriteMode
   OVER_WRITE = 1
 };
 
-enum MbitMorePinMode
+enum MbitMorePullMode
 {
-  MbitMorePullNone = 0,
-  MbitMorePullUp = 1,
-  MbitMorePullDown = 2,
+  None = 0,
+  Down = 1,
+  Up = 2,
 };
 
 enum MbitMoreDataFormat
@@ -94,6 +94,14 @@ enum MbitMorePinEventType
   ON_EDGE = 1,
   ON_PULSE = 2,
   ON_TOUCH = 3
+};
+
+enum MbitMorePinEvent
+{
+  RISE = 2,
+  FALL = 3,
+  PULSE_HIGH = 4,
+  PULSE_LOW = 5
 };
 
 #endif // MBIT_MORE_COMMON_H

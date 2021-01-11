@@ -46,11 +46,6 @@ int median(int size, int *data) {
 #define MBIT_MORE_BUTTON_PIN_A 5
 #define MBIT_MORE_BUTTON_PIN_B 11
 
-int gpio[] = {0, 1, 2, 8, 12, 13, 14, 15, 16};
-int digitalIn[] = {
-    0, 1,
-    2}; // PullUp at connected to be same behaviour as the standard extension.
-
 /**
  * Constructor.
  * Create a representation of the device for Microbit More service.
@@ -90,17 +85,41 @@ MbitMoreDevice::~MbitMoreDevice() {
   delete basicService;
 }
 
-void MbitMoreDevice::initConfiguration() {
-  // Initialize pin configuration.
-  for (size_t i = 0; i < sizeof(digitalIn) / sizeof(digitalIn[0]); i++) {
+/**
+ * @brief Set pin configuration for initial.
+ *
+ */
+void MbitMoreDevice::initialConfiguration() {
+  // P0,P1,P2 are pull-up as standerd extension.
+  for (size_t i = 0; i < (sizeof(initialPullUp) / sizeof(initialPullUp[0]));
+       i++) {
 #if MICROBIT_CODAL
-    setPullMode(digitalIn[i], PullMode::Up);
+    setPullMode(initialPullUp[i], PullMode::Up);
 #else // NOT MICROBIT_CODAL
-    setPullMode(digitalIn[i], PinMode::PullUp);
+    setPullMode(initialPullUp[i], PinMode::PullUp);
 #endif // NOT MICROBIT_CODAL
   }
   uBit.display.stopAnimation(); // To stop display friendly name.
   uBit.display.print("M");
+}
+
+/**
+ * @brief Set pin configuration for release.
+ *
+ */
+void MbitMoreDevice::releaseConfiguration() {
+  uBit.display.stopAnimation();
+  // All GPIO is digital input pull-none mode.
+#if MICROBIT_CODAL
+  for (size_t i = 0; i < (sizeof(gpioPin) / sizeof(gpioPin[0])); i++) {
+    setPullMode(gpioPin[i], PullMode::None);
+  }
+#else // NOT MICROBIT_CODAL
+// Error 020 (no free memory)
+// for (size_t i = 0; i < (sizeof(gpioPin) / sizeof(gpioPin[0])); i++) {
+//   setPullMode(gpioPin[i], PinMode::PullNone);
+// }
+#endif // NOT MICROBIT_CODAL
 }
 
 /**
@@ -126,87 +145,76 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
       setPixelsShadowLine(4, &data[6]);
       displayShadowPixels();
     }
-  }
-  // else if (data[0] == MbitMoreCommand::CMD_PIN)
-  // {
-  //   if (data[1] == MbitMorePinCommand::SET_PULL)
-  //   {
-  //     switch (data[3])
-  //     {
-  //     case MbitMorePullNone:
-  //       setPullMode(data[2], PinMode::PullNone);
-  //       break;
-  //     case MbitMorePullUp:
-  //       setPullMode(data[2], PinMode::PullUp);
-  //       break;
-  //     case MbitMorePullDown:
-  //       setPullMode(data[2], PinMode::PullDown);
-  //       break;
+  } else if (command == MbitMoreCommand::CMD_PIN) {
+    const int pinCommand = data[0] & 0b11111;
+    if (pinCommand == MbitMorePinCommand::SET_PULL) {
+#if MICROBIT_CODAL
+      switch (data[2]) {
+      case MbitMorePullMode::None:
+        setPullMode(data[1], PullMode::None);
+        break;
+      case MbitMorePullMode::Up:
+        setPullMode(data[1], PullMode::Up);
+        break;
+      case MbitMorePullMode::Down:
+        setPullMode(data[1], PullMode::Down);
+        break;
 
-  //     default:
-  //       break;
-  //     }
-  //   }
-  //   else if (data[1] == MbitMorePinCommand::SET_TOUCH)
-  //   {
-  //     setPinModeTouch(data[2]);
-  //   }
-  //   else if (data[1] == MbitMorePinCommand::SET_OUTPUT)
-  //   {
-  //     setDigitalValue(data[2], data[3]);
-  //   }
-  //   else if (data[1] == MbitMorePinCommand::SET_PWM)
-  //   {
-  //     // value is read as uint16_t little-endian.
-  //     int value;
-  //     memcpy(&value, &(data[3]), 2);
-  //     setAnalogValue(data[2], value);
-  //   }
-  //   else if (data[1] == MbitMorePinCommand::SET_SERVO)
-  //   {
-  //     int pinIndex = (int)data[2];
-  //     // angle is read as uint16_t little-endian.
-  //     uint16_t angle;
-  //     memcpy(&angle, &(data[3]), 2);
-  //     // range is read as uint16_t little-endian.
-  //     uint16_t range;
-  //     memcpy(&range, &(data[5]), 2);
-  //     // center is read as uint16_t little-endian.
-  //     uint16_t center;
-  //     memcpy(&center, &(data[7]), 2);
-  //     if (range == 0)
-  //     {
-  //       uBit.io.pin[pinIndex].setServoValue(angle);
-  //     }
-  //     else if (center == 0)
-  //     {
-  //       uBit.io.pin[pinIndex].setServoValue(angle, range);
-  //     }
-  //     else
-  //     {
-  //       uBit.io.pin[pinIndex].setServoValue(angle, range, center);
-  //     }
-  //   }
-  //   else if (data[1] == MbitMorePinCommand::SET_EVENT)
-  //   {
-  //     listenPinEventOn((int)data[2], (int)data[3]);
-  //   }
-  // }
-  // else if (data[0] == MbitMoreCommand::CMD_SHARED_DATA)
-  // {
-  //   // value is read as int16_t little-endian.
-  //   int16_t value;
-  //   memcpy(&value, &(data[2]), 2);
-  //   sharedData[data[1]] = value;
-  // }
-  // else if (data[0] == MbitMoreCommand::CMD_PROTOCOL)
-  // {
-  //   mbitMoreProtocol = data[1];
-  // }
-  // else if (data[0] == MbitMoreCommand::CMD_LIGHT_SENSING)
-  // {
-  //   setLightSensingDuration(data[1]);
-  // }
+      default:
+        break;
+      }
+#else // NOT MICROBIT_CODAL
+      switch (data[2]) {
+      case MbitMorePullMode::None:
+        setPullMode(data[1], PinMode::PullNone);
+        break;
+      case MbitMorePullMode::Up:
+        setPullMode(data[1], PinMode::PullUp);
+        break;
+      case MbitMorePullMode::Down:
+        setPullMode(data[1], PinMode::PullDown);
+        break;
+
+      default:
+        break;
+      }
+#endif // NOT MICROBIT_CODAL
+    } else if (pinCommand == MbitMorePinCommand::SET_TOUCH) {
+      setPinModeTouch(data[1]);
+    } else if (pinCommand == MbitMorePinCommand::SET_OUTPUT) {
+      setDigitalValue(data[1], data[2]);
+    } else if (pinCommand == MbitMorePinCommand::SET_PWM) {
+      // value is read as uint16_t little-endian.
+      uint16_t value;
+      memcpy(&value, &(data[2]), 2);
+      setAnalogValue(data[1], value);
+    } else if (pinCommand == MbitMorePinCommand::SET_SERVO) {
+      int pinIndex = (int)data[1];
+      // angle is read as uint16_t little-endian.
+      uint16_t angle;
+      memcpy(&angle, &(data[2]), 2);
+      // range is read as uint16_t little-endian.
+      uint16_t range;
+      memcpy(&range, &(data[5]), 2);
+      // center is read as uint16_t little-endian.
+      uint16_t center;
+      memcpy(&center, &(data[7]), 2);
+      if (range == 0) {
+        uBit.io.pin[pinIndex].setServoValue(angle);
+      } else if (center == 0) {
+        uBit.io.pin[pinIndex].setServoValue(angle, range);
+      } else {
+        uBit.io.pin[pinIndex].setServoValue(angle, range, center);
+      }
+    } else if (pinCommand == MbitMorePinCommand::SET_EVENT) {
+      listenPinEventOn((int)data[2], (int)data[1]);
+    }
+  } else if (command == MbitMoreCommand::CMD_SHARED_DATA) {
+    // value is read as int16_t little-endian.
+    int16_t value;
+    memcpy(&value, &(data[2]), 2);
+    sharedData[data[1]] = value;
+  }
 }
 
 /**
@@ -254,6 +262,9 @@ void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
   case 8:
     componentID = MICROBIT_ID_IO_P8;
     break;
+  case 12:
+    componentID = MICROBIT_ID_IO_P12;
+    break;
   case 13:
     componentID = MICROBIT_ID_IO_P13;
     break;
@@ -292,54 +303,67 @@ void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
  * Callback. Invoked when a pin event sent.
  */
 void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
-  // uint8_t pinIndex;
-  // switch (evt.source) // ID of the MicroBit Component that generated the
-  // event.
-  //                     // (uint16_t)
-  // {
-  // case MICROBIT_ID_IO_P0:
-  //   eventBuffer[0] = 0;
-  //   break;
-  // case MICROBIT_ID_IO_P1:
-  //   eventBuffer[0] = 1;
-  //   break;
-  // case MICROBIT_ID_IO_P2:
-  //   eventBuffer[0] = 2;
-  //   break;
-  // case MICROBIT_ID_IO_P8:
-  //   eventBuffer[0] = 8;
-  //   break;
-  // case MICROBIT_ID_IO_P13:
-  //   eventBuffer[0] = 13;
-  //   break;
-  // case MICROBIT_ID_IO_P14:
-  //   eventBuffer[0] = 14;
-  //   break;
-  // case MICROBIT_ID_IO_P15:
-  //   eventBuffer[0] = 15;
-  //   break;
-  // case MICROBIT_ID_IO_P16:
-  //   eventBuffer[0] = 16;
-  //   break;
+  uint8_t *data = moreService->pinEventChBuffer;
+  // pinIndex is sent as uint8_t.
+  switch (evt.source) // ID of the MicroBit Component (uint16_t).
+  {
+  case MICROBIT_ID_IO_P0:
+    data[0] = 0;
+    break;
+  case MICROBIT_ID_IO_P1:
+    data[0] = 1;
+    break;
+  case MICROBIT_ID_IO_P2:
+    data[0] = 2;
+    break;
+  case MICROBIT_ID_IO_P8:
+    data[0] = 8;
+    break;
+  case MICROBIT_ID_IO_P12:
+    data[0] = 12;
+    break;
+  case MICROBIT_ID_IO_P13:
+    data[0] = 13;
+    break;
+  case MICROBIT_ID_IO_P14:
+    data[0] = 14;
+    break;
+  case MICROBIT_ID_IO_P15:
+    data[0] = 15;
+    break;
+  case MICROBIT_ID_IO_P16:
+    data[0] = 16;
+    break;
 
-  // default:
-  //   break;
-  // }
+  default:
+    break;
+  }
 
-  // // event ID is sent as uint16_t little-endian.
-  // // #define MICROBIT_PIN_EVT_RISE               2
-  // // #define MICROBIT_PIN_EVT_FALL               3
-  // // #define MICROBIT_PIN_EVT_PULSE_HI           4
-  // // #define MICROBIT_PIN_EVT_PULSE_LO           5
-  // memcpy(&(eventBuffer[1]), &(evt.value), 2);
+  // event ID is sent as uint8_t.
+  switch (evt.value) {
+  case MICROBIT_PIN_EVT_RISE:
+    data[1] = MbitMorePinEvent::RISE;
+    break;
+  case MICROBIT_PIN_EVT_FALL:
+    data[1] = MbitMorePinEvent::FALL;
+    break;
+  case MICROBIT_PIN_EVT_PULSE_HI:
+    data[1] = MbitMorePinEvent::PULSE_HIGH;
+    break;
+  case MICROBIT_PIN_EVT_PULSE_LO:
+    data[1] = MbitMorePinEvent::PULSE_LOW;
+    break;
 
-  // // event timestamp is sent as uint32_t little-endian coerced from uint64_t
-  // // value.
-  // uint32_t timestamp = (uint32_t)evt.timestamp;
-  // memcpy(&(eventBuffer[3]), &timestamp, 4);
+  default:
+    break;
+  }
 
-  // moreService->notifyIOEvent((uint8_t *)&eventBuffer,
-  //                            sizeof(eventBuffer) / sizeof(eventBuffer[0]));
+  // event timestamp is sent as uint32_t little-endian
+  // coerced from uint64_t value.
+  uint32_t timestamp = (uint32_t)evt.timestamp;
+  memcpy(&(data[2]), &timestamp, 4);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::PIN_EVENT;
+  moreService->notifyPinEvent();
 }
 
 /**
@@ -500,7 +524,14 @@ void MbitMoreDevice::setDigitalValue(int pinIndex, int value) {
 }
 
 void MbitMoreDevice::setAnalogValue(int pinIndex, int value) {
-  uBit.io.pin[pinIndex].setAnalogValue(value);
+#if MICROBIT_CODAL
+  // stable level is 0 .. 1022 in micro:bit v2,
+  int validValue = value > 1022 ? 1022 : value;
+#else // NOT MICROBIT_CODAL
+  // stable level is 0 .. 1021 in micro:bit v1.5,
+  int validValue = value > 1021 ? 1021 : value;
+#endif // NOT MICROBIT_CODAL
+  uBit.io.pin[pinIndex].setAnalogValue(validValue);
 }
 
 void MbitMoreDevice::setServoValue(int pinIndex, int angle, int range,
@@ -509,21 +540,21 @@ void MbitMoreDevice::setServoValue(int pinIndex, int angle, int range,
 }
 
 void MbitMoreDevice::setPinModeTouch(int pinIndex) {
-  uBit.io.pin[pinIndex].isTouched(); // Configure to touch mode then the return
-                                     // value is not used.
+  uBit.io.pin[pinIndex].isTouched(); // Configure to touch mode then the
+                                     // return value is not used.
 }
 
-/**
- * Notify shared data to Scratch3
- */
-void MbitMoreDevice::notifySharedData() {
-  // for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
-  //   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
-  // }
-  // moreService->notifySharedData(
-  //     (uint8_t *)&sharedBuffer,
-  //     sizeof(sharedBuffer) / sizeof(sharedBuffer[0]));
-}
+// /**
+//  * Notify shared data to Scratch3
+//  */
+// void MbitMoreDevice::notifySharedData() {
+// for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
+//   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
+// }
+// moreService->notifySharedData(
+//     (uint8_t *)&sharedBuffer,
+//     sizeof(sharedBuffer) / sizeof(sharedBuffer[0]));
+// }
 
 /**
  * @brief Display text on LED.
@@ -545,11 +576,12 @@ void MbitMoreDevice::displayText(char *text, int delay) {
  */
 void MbitMoreDevice::updateSensors(uint8_t *data) {
   uint32_t digitalLevels = 0;
-  for (size_t i = 0; i < sizeof(gpio) / sizeof(gpio[0]); i++) {
-    if (uBit.io.pin[gpio[i]].isDigital()) {
-      if (uBit.io.pin[gpio[i]].isInput()) {
+  for (size_t i = 0; i < sizeof(gpioPin) / sizeof(gpioPin[0]); i++) {
+    if (uBit.io.pin[gpioPin[i]].isDigital()) {
+      if (uBit.io.pin[gpioPin[i]].isInput()) {
         digitalLevels =
-            digitalLevels | (uBit.io.pin[gpio[i]].getDigitalValue() << gpio[i]);
+            digitalLevels |
+            (uBit.io.pin[gpioPin[i]].getDigitalValue() << gpioPin[i]);
       }
     }
   }
@@ -667,7 +699,7 @@ void MbitMoreDevice::setSharedData(int index, int value) {
   // value (-32768 to 32767) is sent as int16_t little-endian.
   int16_t data = (int16_t)value;
   sharedData[index] = data;
-  notifySharedData();
+  // notifySharedData();
 }
 
 /**
@@ -678,18 +710,18 @@ int MbitMoreDevice::getSharedData(int index) {
   return (int)(sharedData[index]);
 }
 
-/**
- * Write shared data characteristics.
- */
-void MbitMoreDevice::writeSharedData() {
-  // for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
-  //   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
-  // }
+// /**
+//  * Write shared data characteristics.
+//  */
+// void MbitMoreDevice::writeSharedData() {
+// for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
+//   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
+// }
 
-  // moreService->writeSharedData((uint8_t *)&sharedBuffer,
-  //                              sizeof(sharedBuffer) /
-  //                              sizeof(sharedBuffer[0]));
-}
+// moreService->writeSharedData((uint8_t *)&sharedBuffer,
+//                              sizeof(sharedBuffer) /
+//                              sizeof(sharedBuffer[0]));
+// }
 
 void MbitMoreDevice::displayFriendlyName() {
   ManagedString version(" -M 0.6.0- ");
