@@ -53,9 +53,13 @@ int median(int size, int *data) {
  */
 MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
   // Reset compass
-  if (uBit.buttonA.isPressed()) { // buttonAB is already used in v2.
+#if MICROBIT_CODAL
+  // On microbit-v2, re-calibration destract compass heading.
+#else // NOT MICROBIT_CODAL
+  if (uBit.buttonA.isPressed()) {
     uBit.compass.clearCalibration();
   }
+#endif // NOT MICROBIT_CODAL
 
   // Compass must be calibrated before starting bluetooth service.
   if (!uBit.compass.isCalibrated()) {
