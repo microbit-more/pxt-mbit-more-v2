@@ -8,18 +8,34 @@
 #include "MbitMoreDevice.h"
 
 /**
+ * @brief Compute average value for the int array.
+ *
+ * @param data Array to compute average.
+ * @param dataSize Length of the array.
+ * @return average value.
+ */
+int average(int *data, int dataSize) {
+  int sum = 0;
+  int i;
+  for (i = 0; i < dataSize - 1; i++) {
+    sum += data[i];
+  }
+  return sum / dataSize;
+}
+
+/**
  * @brief Compute median value for the array.
  *
- * @param size Length of the array.
  * @param data Array to compute median.
- * @return int Median value.
+ * @param dataSize Length of the array.
+ * @return Median value.
  */
-int median(int size, int *data) {
+int median(int *data, int dataSize) {
   int temp;
   int i, j;
   // the following two loops sort the array x in ascending order
-  for (i = 0; i < size - 1; i++) {
-    for (j = i + 1; j < size; j++) {
+  for (i = 0; i < dataSize - 1; i++) {
+    for (j = i + 1; j < dataSize; j++) {
       if (data[j] < data[i]) {
         // swap elements
         temp = data[i];
@@ -28,14 +44,7 @@ int median(int size, int *data) {
       }
     }
   }
-  if (size % 2 == 0) {
-    // if there is an even number of elements, return mean of the two elements
-    // in the middle
-    return ((data[size / 2] + data[size / 2 - 1]) / 2);
-  } else {
-    // else return the element in the middle
-    return data[size / 2];
-  }
+  return data[dataSize / 2];
 }
 
 /**
@@ -669,11 +678,11 @@ void MbitMoreDevice::updateAnalogIn(uint8_t *data, size_t pinIndex) {
     uBit.io.pin[pinIndex].setPull(PinMode::PullNone);
 #endif // NOT MICROBIT_CODAL
 
-    // median filter
+    // filter
     for (size_t i = 0; i < ANALOG_IN_SAMPLES_SIZE; i++) {
       analogInSamples[pinIndex][i] = uBit.io.pin[pinIndex].getAnalogValue();
     }
-    uint16_t value = median(ANALOG_IN_SAMPLES_SIZE, analogInSamples[pinIndex]);
+    uint16_t value = median(analogInSamples[pinIndex], ANALOG_IN_SAMPLES_SIZE);
 
     // analog value (0 to 1023) is sent as uint16_t little-endian.
     memcpy(&(data[0]), &value, 2);
@@ -682,17 +691,17 @@ void MbitMoreDevice::updateAnalogIn(uint8_t *data, size_t pinIndex) {
 }
 
 /**
- * @brief Sample current light level and return median.
+ * @brief Sample current light level and return filtered value.
  *
- * @return int Median filterd light level.
+ * @return int Filtered light level.
  */
 int MbitMoreDevice::sampleLigthLevel() {
-  lightLevelSamples[lightLevelSamplesLast] = uBit.display.readLightLevel();
   lightLevelSamplesLast++;
   if (lightLevelSamplesLast == LIGHT_LEVEL_SAMPLES_SIZE) {
     lightLevelSamplesLast = 0;
   }
-  return median(LIGHT_LEVEL_SAMPLES_SIZE, lightLevelSamples);
+  lightLevelSamples[lightLevelSamplesLast] = uBit.display.readLightLevel();
+  return average(lightLevelSamples, LIGHT_LEVEL_SAMPLES_SIZE);
 }
 
 /**

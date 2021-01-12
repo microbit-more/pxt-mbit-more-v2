@@ -17,8 +17,13 @@ class MbitMoreServiceDAL;
 using MbitMoreService = MbitMoreServiceDAL;
 #endif // NOT MICROBIT_CODAL
 
+#if MICROBIT_CODAL
 #define LIGHT_LEVEL_SAMPLES_SIZE 11
 #define ANALOG_IN_SAMPLES_SIZE 5
+#else // NOT MICROBIT_CODAL
+#define LIGHT_LEVEL_SAMPLES_SIZE 5
+#define ANALOG_IN_SAMPLES_SIZE 5
+#endif // NOT MICROBIT_CODAL
 
 /**
  * Class definition for the Scratch basic Service.
@@ -175,9 +180,9 @@ public:
   void updateAnalogIn(uint8_t *data, size_t pinIndex);
 
   /**
-   * @brief Sample current light level and return median.
+   * @brief Sample current light level and return filtered value.
    *
-   * @return int Median filterd light level.
+   * @return int Filtered light level.
    */
   int sampleLigthLevel();
 
