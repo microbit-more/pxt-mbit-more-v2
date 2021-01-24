@@ -6,7 +6,6 @@
 #define MM_CH_BUFFER_SIZE_SENSORS 7
 #define MM_CH_BUFFER_SIZE_DIRECTION 18
 #define MM_CH_BUFFER_SIZE_ANALOG_IN 2
-#define MM_CH_BUFFER_SIZE_SHARED_DATA 5
 
 enum MbitMoreCommand // 3 bits (0x00..0x07)
 {

@@ -111,17 +111,18 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
       this, &MbitMoreServiceDAL::onReadAnalogIn);
   analogInP1Ch->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
-  analogInP2Ch = new GattCharacteristic(
-      MBIT_MORE_CH_ANALOG_IN_P2, (uint8_t *)&analogInP2ChBuffer,
-      MM_CH_BUFFER_SIZE_ANALOG_IN, MM_CH_BUFFER_SIZE_ANALOG_IN,
-      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
-  analogInP2Ch->setReadAuthorizationCallback(
-      this, &MbitMoreServiceDAL::onReadAnalogIn);
-  analogInP2Ch->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+  // *** cut this service to reduce memory ***
+  // analogInP2Ch = new GattCharacteristic(
+  //     MBIT_MORE_CH_ANALOG_IN_P2, (uint8_t *)&analogInP2ChBuffer,
+  //     MM_CH_BUFFER_SIZE_ANALOG_IN, MM_CH_BUFFER_SIZE_ANALOG_IN,
+  //     GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+  // analogInP2Ch->setReadAuthorizationCallback(
+  //     this, &MbitMoreServiceDAL::onReadAnalogIn);
+  // analogInP2Ch->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
   sharedDataCh = new GattCharacteristic(
       MBIT_MORE_CH_SHARED_DATA, (uint8_t *)&sharedDataChBuffer,
-      MM_CH_BUFFER_SIZE_SHARED_DATA, MM_CH_BUFFER_SIZE_SHARED_DATA,
+      MM_CH_BUFFER_SIZE_NOTIFY, MM_CH_BUFFER_SIZE_NOTIFY,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
   sharedDataCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
@@ -133,7 +134,7 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
 
   GattCharacteristic *mbitMoreChs[] = {
       commandCh,    sensorsCh,    directionCh,  pinEventCh,  actionEventCh,
-      analogInP0Ch, analogInP1Ch, analogInP2Ch, sharedDataCh};
+      analogInP0Ch, analogInP1Ch, sharedDataCh};
 
   GattService mbitMoreService(MBIT_MORE_SERVICE, mbitMoreChs,
                               sizeof(mbitMoreChs) /
@@ -169,10 +170,11 @@ void MbitMoreServiceDAL::onReadAnalogIn(
     authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
     authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
   } else if (authParams->handle == analogInP2Ch->getValueHandle()) {
-    mbitMore->updateAnalogIn(analogInP2ChBuffer, 2);
-    authParams->data = (uint8_t *)&analogInP2ChBuffer;
-    authParams->offset = 0;
-    authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
+    // *** cut this service to reduce memory ***
+    // mbitMore->updateAnalogIn(analogInP2ChBuffer, 2);
+    // authParams->data = (uint8_t *)&analogInP2ChBuffer;
+    // authParams->offset = 0;
+    // authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
     authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
   }
 }
@@ -196,22 +198,16 @@ void MbitMoreServiceDAL::notifyActionEvent() {
  * @brief Notify pin event.
  */
 void MbitMoreServiceDAL::notifyPinEvent() {
-  uBit.ble->gattServer().notify(pinEventCh->getValueHandle(),
-                                pinEventChBuffer, MM_CH_BUFFER_SIZE_NOTIFY);
+  uBit.ble->gattServer().notify(pinEventCh->getValueHandle(), pinEventChBuffer,
+                                MM_CH_BUFFER_SIZE_NOTIFY);
 }
 
 /**
  * Notify shared data to Scratch3
  */
 void MbitMoreServiceDAL::notifySharedData() {
-  // for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
-  //   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
-  // }
-  // sharedBuffer[DATA_FORMAT_INDEX] = MbitMoreDataFormat::SHARED_DATA;
-  // uBit.ble->gattServer().notify(sharedDataCh->getValueHandle(),
-  //                               (uint8_t *)&sharedBuffer,
-  //                               sizeof(sharedBuffer) /
-  //                               sizeof(sharedBuffer[0]));
+  uBit.ble->gattServer().notify(sharedDataCh->getValueHandle(),
+                                sharedDataChBuffer, MM_CH_BUFFER_SIZE_NOTIFY);
 }
 
 /**
@@ -224,10 +220,7 @@ void MbitMoreServiceDAL::notify() {}
  * shared data (0, 1, 2, 3)
  */
 void MbitMoreServiceDAL::setSharedData(int index, int value) {
-  // value (-32768 to 32767) is sent as int16_t little-endian.
-  // int16_t data = (int16_t)value;
-  // sharedData[index] = data;
-  // notifySharedData();
+  mbitMore->setSharedData(index, value);
 }
 
 /**

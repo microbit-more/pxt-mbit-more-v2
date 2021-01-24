@@ -651,9 +651,13 @@ int MbitMoreDevice::sampleLigthLevel() {
  */
 void MbitMoreDevice::setSharedData(int index, int value) {
   // value (-32768 to 32767) is sent as int16_t little-endian.
-  int16_t data = (int16_t)value;
-  sharedData[index] = data;
-  // notifySharedData();
+  sharedData[index] = (int16_t)value;
+  uint8_t *data = moreService->sharedDataChBuffer;
+  for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
+    memcpy(&(data[(i * 2)]), &sharedData[i], 2);
+  }
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::SHARED_DATA;
+  moreService->notifySharedData();
 }
 
 /**
@@ -663,19 +667,6 @@ void MbitMoreDevice::setSharedData(int index, int value) {
 int MbitMoreDevice::getSharedData(int index) {
   return (int)(sharedData[index]);
 }
-
-// /**
-//  * Write shared data characteristics.
-//  */
-// void MbitMoreDevice::writeSharedData() {
-// for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
-//   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
-// }
-
-// moreService->writeSharedData((uint8_t *)&sharedBuffer,
-//                              sizeof(sharedBuffer) /
-//                              sizeof(sharedBuffer[0]));
-// }
 
 void MbitMoreDevice::displayFriendlyName() {
   ManagedString version(" -M 0.6.0- ");

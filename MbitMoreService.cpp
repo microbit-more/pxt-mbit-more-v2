@@ -87,8 +87,8 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
 
   CreateCharacteristic(
       mbitmore_cIdx_SHARED_DATA, charUUID[mbitmore_cIdx_SHARED_DATA],
-      (uint8_t *)(sharedDataChBuffer), MM_CH_BUFFER_SIZE_SHARED_DATA,
-      MM_CH_BUFFER_SIZE_SHARED_DATA, microbit_propREAD | microbit_propNOTIFY);
+      (uint8_t *)(sharedDataChBuffer), MM_CH_BUFFER_SIZE_NOTIFY,
+      MM_CH_BUFFER_SIZE_NOTIFY, microbit_propREAD | microbit_propNOTIFY);
 
   // // Stop advertising.
   // uBit.ble->stopAdvertising();
@@ -175,6 +175,8 @@ void MbitMoreService::idleCallback() {
  * @param length Length of the data.
  */
 void MbitMoreService::notifyBasicData(uint8_t *data, uint16_t length) {
+  if (!getConnected())
+    return;
   // notifyChrValue(mbbs_cIdxTX, data, length);
 }
 
@@ -182,6 +184,8 @@ void MbitMoreService::notifyBasicData(uint8_t *data, uint16_t length) {
  * @brief Notify action event.
  */
 void MbitMoreService::notifyActionEvent() {
+  if (!getConnected())
+    return;
   notifyChrValue(mbitmore_cIdx_ACTION_EVENT, actionEventChBuffer,
                  MM_CH_BUFFER_SIZE_NOTIFY);
 }
@@ -190,6 +194,8 @@ void MbitMoreService::notifyActionEvent() {
  * @brief Notify pin event.
  */
 void MbitMoreService::notifyPinEvent() {
+  if (!getConnected())
+    return;
   notifyChrValue(mbitmore_cIdx_PIN_EVENT, pinEventChBuffer,
                  MM_CH_BUFFER_SIZE_NOTIFY);
 }
@@ -198,12 +204,10 @@ void MbitMoreService::notifyPinEvent() {
  * Notify shared data to Scratch3
  */
 void MbitMoreService::notifySharedData() {
-  // for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
-  //   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
-  // }
-  // moreService->notifySharedData(
-  //     (uint8_t *)&sharedBuffer,
-  //     sizeof(sharedBuffer) / sizeof(sharedBuffer[0]));
+  if (!getConnected())
+    return;
+  notifyChrValue(mbitmore_cIdx_SHARED_DATA, sharedDataChBuffer,
+                 MM_CH_BUFFER_SIZE_NOTIFY);
 }
 
 /**
@@ -226,10 +230,7 @@ void MbitMoreService::update() {
  * shared data (0, 1, 2, 3)
  */
 void MbitMoreService::setSharedData(int index, int value) {
-  // value (-32768 to 32767) is sent as int16_t little-endian.
-  // int16_t data = (int16_t)value;
-  // sharedData[index] = data;
-  // notifySharedData();
+  mbitMore->setSharedData(index, value);
 }
 
 /**
@@ -237,7 +238,7 @@ void MbitMoreService::setSharedData(int index, int value) {
  * shared data (0, 1, 2, 3)
  */
 int MbitMoreService::getSharedData(int index) {
-  // return (int)(sharedData[index]);
+  return mbitMore->getSharedData(index);
 }
 
 #endif // CONFIG_ENABLED(DEVICE_BLE)

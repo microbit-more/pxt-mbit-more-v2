@@ -99,7 +99,7 @@ public:
   /**
    * Shared data
    */
-  int16_t sharedData[16];
+  int16_t sharedData[4];
 
   /**
    * Protocol of microbit more.

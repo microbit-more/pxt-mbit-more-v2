@@ -97,7 +97,7 @@ public:
   uint8_t analogInP2ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
 
   // Buffer of characteristic for sending shared data.
-  uint8_t sharedDataChBuffer[MM_CH_BUFFER_SIZE_SHARED_DATA] = {0};
+  uint8_t sharedDataChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
 
 private:
   /**
