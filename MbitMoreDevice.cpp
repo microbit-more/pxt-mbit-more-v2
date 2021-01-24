@@ -220,7 +220,7 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
         uBit.io.pin[pinIndex].setServoValue(angle, range, center);
       }
     } else if (pinCommand == MbitMorePinCommand::SET_EVENT) {
-      listenPinEventOn((int)data[2], (int)data[1]);
+      listenPinEventOn((int)data[1], (int)data[2]);
     }
   } else if (command == MbitMoreCommand::CMD_SHARED_DATA) {
     // value is read as int16_t little-endian.
@@ -260,40 +260,9 @@ void MbitMoreDevice::displayShadowPixels() {
  * Remove listener if the event type is MICROBIT_PIN_EVENT_NONE.
  */
 void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
-  int componentID;  // ID of the MicroBit Component that generated the event.
-  switch (pinIndex) // Index of pin to set event.
-  {
-  case 0:
-    componentID = MICROBIT_ID_IO_P0;
-    break;
-  case 1:
-    componentID = MICROBIT_ID_IO_P1;
-    break;
-  case 2:
-    componentID = MICROBIT_ID_IO_P2;
-    break;
-  case 8:
-    componentID = MICROBIT_ID_IO_P8;
-    break;
-  case 12:
-    componentID = MICROBIT_ID_IO_P12;
-    break;
-  case 13:
-    componentID = MICROBIT_ID_IO_P13;
-    break;
-  case 14:
-    componentID = MICROBIT_ID_IO_P14;
-    break;
-  case 15:
-    componentID = MICROBIT_ID_IO_P15;
-    break;
-  case 16:
-    componentID = MICROBIT_ID_IO_P16;
-    break;
+  int componentID = pinIndex + 100; // conventional scheme to convert from pin
+                                    // index to componentID in v1 and v2.
 
-  default:
-    return;
-  }
   if (eventType == MbitMorePinEventType::NONE) {
     uBit.messageBus.ignore(componentID, MICROBIT_EVT_ANY, this,
                            &MbitMoreDevice::onPinEvent);
@@ -317,40 +286,10 @@ void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
  */
 void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
   uint8_t *data = moreService->pinEventChBuffer;
-  // pinIndex is sent as uint8_t.
-  switch (evt.source) // ID of the MicroBit Component (uint16_t).
-  {
-  case MICROBIT_ID_IO_P0:
-    data[0] = 0;
-    break;
-  case MICROBIT_ID_IO_P1:
-    data[0] = 1;
-    break;
-  case MICROBIT_ID_IO_P2:
-    data[0] = 2;
-    break;
-  case MICROBIT_ID_IO_P8:
-    data[0] = 8;
-    break;
-  case MICROBIT_ID_IO_P12:
-    data[0] = 12;
-    break;
-  case MICROBIT_ID_IO_P13:
-    data[0] = 13;
-    break;
-  case MICROBIT_ID_IO_P14:
-    data[0] = 14;
-    break;
-  case MICROBIT_ID_IO_P15:
-    data[0] = 15;
-    break;
-  case MICROBIT_ID_IO_P16:
-    data[0] = 16;
-    break;
 
-  default:
-    break;
-  }
+  // pinIndex is sent as uint8_t.
+  data[0] = evt.source - 100; // conventional scheme to convert from componentID
+                              // to pin index in v1 and v2.
 
   // event ID is sent as uint8_t.
   switch (evt.value) {
@@ -368,6 +307,8 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
     break;
 
   default:
+    // send event whatever for dev.
+    data[1] = evt.value;
     break;
   }
 
