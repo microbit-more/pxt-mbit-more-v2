@@ -1,5 +1,6 @@
 namespace MbitMore {
-  let sharedData: number[] = [0, 0, 0, 0];
+  // dummy for sim
+  let sharedData: number[] = [0, 0, 0, 0, 0, 0, 0, 0];
 
   /**
   * Starts BLE services for Scratch Microbit-More extension.
@@ -24,7 +25,7 @@ namespace MbitMore {
   /**
    * Get value of the shared data.
    */
-  //% blockId=MbitMore_getMbitMoreSharedData block="value of shared %index"
+  //% blockId=MbitMore_getMbitMoreSharedData block="shared %index"
   //% shim=MbitMore::getMbitMoreSharedData
   export function getSharedData(index: SharedDataIndex): number {
     return sharedData[index];

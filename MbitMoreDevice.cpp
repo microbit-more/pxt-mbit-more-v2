@@ -112,6 +112,10 @@ void MbitMoreDevice::initialConfiguration() {
     setPullMode(initialPullUp[i], PinMode::PullUp);
 #endif // NOT MICROBIT_CODAL
   }
+  // initialize shared data to zero
+  for (size_t i = 0; i < SHARED_DATA_SIZE; i++) {
+    sharedData[i] = 0;
+  }
   uBit.display.stopAnimation(); // To stop display friendly name.
   uBit.display.print("M");
 }
@@ -223,10 +227,9 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
       listenPinEventOn((int)data[1], (int)data[2]);
     }
   } else if (command == MbitMoreCommand::CMD_SHARED_DATA) {
-    // value is read as int16_t little-endian.
-    int16_t value;
-    memcpy(&value, &(data[2]), 2);
-    sharedData[data[1]] = value;
+    size_t i = (data[1] < SHARED_DATA_SIZE) ? data[1] : SHARED_DATA_SIZE - 1;
+    // value is read as int32_t little-endian.
+    memcpy(&(sharedData[i]), &(data[2]), 4);
   }
 }
 
@@ -498,18 +501,6 @@ void MbitMoreDevice::setPinModeTouch(int pinIndex) {
                                      // return value is not used.
 }
 
-// /**
-//  * Notify shared data to Scratch3
-//  */
-// void MbitMoreDevice::notifySharedData() {
-// for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
-//   memcpy(&(sharedBuffer[(i * 2)]), &sharedData[i], 2);
-// }
-// moreService->notifySharedData(
-//     (uint8_t *)&sharedBuffer,
-//     sizeof(sharedBuffer) / sizeof(sharedBuffer[0]));
-// }
-
 /**
  * @brief Display text on LED.
  *
@@ -650,19 +641,17 @@ int MbitMoreDevice::sampleLigthLevel() {
  * shared data (0, 1, 2, 3)
  */
 void MbitMoreDevice::setSharedData(int index, int value) {
-  // value (-32768 to 32767) is sent as int16_t little-endian.
-  sharedData[index] = (int16_t)value;
+  // value is sent as int32_t little-endian.
+  sharedData[index] = (int32_t)value;
   uint8_t *data = moreService->sharedDataChBuffer;
-  for (size_t i = 0; i < sizeof(sharedData) / sizeof(sharedData[0]); i++) {
-    memcpy(&(data[(i * 2)]), &sharedData[i], 2);
-  }
+  data[0] = index;
+  memcpy(&(data[1]), &sharedData[index], 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::SHARED_DATA;
   moreService->notifySharedData();
 }
 
 /**
  * Get value of a shared data.
- * shared data (0, 1, 2, 3)
  */
 int MbitMoreDevice::getSharedData(int index) {
   return (int)(sharedData[index]);

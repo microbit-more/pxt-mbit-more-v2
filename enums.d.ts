@@ -111,14 +111,22 @@
 
     declare const enum SharedDataIndex
     {
-    //% block="data0"
-    DATA0 = 0,
-    //% block="data1"
-    DATA1 = 1,
-    //% block="data2"
-    DATA2 = 2,
-    //% block="data3"
-    DATA3 = 3,
+    //% block="Data0"
+    Data0 = 0,
+    //% block="Data1"
+    Data1 = 1,
+    //% block="Data2"
+    Data2 = 2,
+    //% block="Data3"
+    Data3 = 3,
+    //% block="Data4"
+    Data4 = 4,
+    //% block="Data5"
+    Data5 = 5,
+    //% block="Data6"
+    Data6 = 6,
+    //% block="Data7"
+    Data7 = 7,
     }
 declare namespace MbitMore {
 }

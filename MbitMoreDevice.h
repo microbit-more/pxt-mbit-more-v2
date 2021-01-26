@@ -25,6 +25,8 @@ using MbitMoreService = MbitMoreServiceDAL;
 #define ANALOG_IN_SAMPLES_SIZE 5
 #endif // NOT MICROBIT_CODAL
 
+#define SHARED_DATA_SIZE 8
+
 /**
  * Class definition for the Scratch basic Service.
  * Provides a BLE service for default extension of micro:bit in Scratch3.
@@ -99,7 +101,7 @@ public:
   /**
    * Shared data
    */
-  int16_t sharedData[4];
+  int32_t sharedData[SHARED_DATA_SIZE];
 
   /**
    * Protocol of microbit more.
