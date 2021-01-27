@@ -43,9 +43,11 @@ const uint8_t MBIT_MORE_CH_ANALOG_IN_P0[] = {0xa6, 0x2d, 0x01, 0x20, 0x1b, 0x34,
 const uint8_t MBIT_MORE_CH_ANALOG_IN_P1[] = {0xa6, 0x2d, 0x01, 0x21, 0x1b, 0x34,
                                              0x40, 0x92, 0x8d, 0xee, 0x41, 0x51,
                                              0xf6, 0x3b, 0x28, 0x65};
-const uint8_t MBIT_MORE_CH_ANALOG_IN_P2[] = {0xa6, 0x2d, 0x01, 0x22, 0x1b, 0x34,
-                                             0x40, 0x92, 0x8d, 0xee, 0x41, 0x51,
-                                             0xf6, 0x3b, 0x28, 0x65};
+// *** cut this service to reduce memory ***
+// const uint8_t MBIT_MORE_CH_ANALOG_IN_P2[] = {0xa6, 0x2d, 0x01, 0x22, 0x1b,
+// 0x34,
+//                                              0x40, 0x92, 0x8d, 0xee, 0x41,
+//                                              0x51, 0xf6, 0x3b, 0x28, 0x65};
 const uint8_t MBIT_MORE_CH_SHARED_DATA[] = {0xa6, 0x2d, 0x01, 0x30, 0x1b, 0x34,
                                             0x40, 0x92, 0x8d, 0xee, 0x41, 0x51,
                                             0xf6, 0x3b, 0x28, 0x65};
@@ -127,14 +129,18 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
   sharedDataCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
-  // sensorsCh = digitalIn[4], lightLevel[1], temperature[1], microphone[1]
-  // directionCh = acceleration[10], magnet[8]
-  // pinEventCh = pinEvent
-  // actionEventCh = buttonEvent, gestureEvent
+  /*
+  sensorsCh = digitalIn[4], lightLevel[1], temperature[1], microphone[1]
+  directionCh = acceleration[10], magnet[8]
+  pinEventCh = pinEvent
+  actionEventCh = buttonEvent, gestureEvent
+  analogInP0Ch, analogInP1Ch, analogInP2Ch
+  sharedDataCh
+  */
 
   GattCharacteristic *mbitMoreChs[] = {
-      commandCh,    sensorsCh,    directionCh,  pinEventCh,  actionEventCh,
-      analogInP0Ch, analogInP1Ch, sharedDataCh};
+      commandCh,     sensorsCh,    directionCh,  pinEventCh,
+      actionEventCh, analogInP0Ch, analogInP1Ch, sharedDataCh};
 
   GattService mbitMoreService(MBIT_MORE_SERVICE, mbitMoreChs,
                               sizeof(mbitMoreChs) /
@@ -169,13 +175,13 @@ void MbitMoreServiceDAL::onReadAnalogIn(
     authParams->offset = 0;
     authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
     authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
-  } else if (authParams->handle == analogInP2Ch->getValueHandle()) {
     // *** cut this service to reduce memory ***
-    // mbitMore->updateAnalogIn(analogInP2ChBuffer, 2);
-    // authParams->data = (uint8_t *)&analogInP2ChBuffer;
-    // authParams->offset = 0;
-    // authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
-    authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
+    // } else if (authParams->handle == analogInP2Ch->getValueHandle()) {
+    //   mbitMore->updateAnalogIn(analogInP2ChBuffer, 2);
+    //   authParams->data = (uint8_t *)&analogInP2ChBuffer;
+    //   authParams->offset = 0;
+    //   authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
+    //   authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
   }
 }
 
