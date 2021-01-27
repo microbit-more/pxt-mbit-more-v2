@@ -99,9 +99,10 @@ public:
   int analogInSamples[3][ANALOG_IN_SAMPLES_SIZE] = {{0}};
 
   /**
-   * Shared data
+   * @brief shared data with Scratch
+   * 
    */
-  int32_t sharedData[SHARED_DATA_SIZE];
+  float sharedData[SHARED_DATA_SIZE];
 
   /**
    * Protocol of microbit more.
@@ -189,14 +190,17 @@ public:
   int sampleLigthLevel();
 
   /**
-   * Set value to Slots.
+   * @brief Set the Shared Data
+   * 
+   * @param index index of the data
+   * @param value value of the data
    */
-  void setSharedData(int index, int value);
+  void setSharedData(int index, float value);
 
   /**
    * Get value to Slots.
    */
-  int getSharedData(int index);
+  float getSharedData(int index);
 
   void onBLEConnected(MicroBitEvent _e);
 

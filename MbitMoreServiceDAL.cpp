@@ -216,19 +216,23 @@ void MbitMoreServiceDAL::notifySharedData() {
 void MbitMoreServiceDAL::notify() {}
 
 /**
- * Set value to shared data.
- * shared data (0, 1, 2, 3)
+ * @brief Set value to Shared Data
+ *
+ * @param index index of the data
+ * @param value value of the data
  */
-void MbitMoreServiceDAL::setSharedData(int index, int value) {
+void MbitMoreServiceDAL::setSharedData(int index, float value) {
   mbitMore->setSharedData(index, value);
 }
 
 /**
- * Get value of a shared data.
- * shared data (0, 1, 2, 3)
+ * @brief Get value of the Shared Data
+ *
+ * @param index index of the data
+ * @return float the value of the data
  */
-int MbitMoreServiceDAL::getSharedData(int index) {
-  return (int)(mbitMore->sharedData[index]);
+float MbitMoreServiceDAL::getSharedData(int index) {
+  return mbitMore->sharedData[index];
 }
 
 void MbitMoreServiceDAL::onBLEConnected(MicroBitEvent _e) {

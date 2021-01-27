@@ -109,14 +109,20 @@ public:
   void update();
 
   /**
-   * Set value to Slots.
+   * @brief Set value to Shared Data
+   *
+   * @param index index of the data
+   * @param value value of the data
    */
-  void setSharedData(int index, int value);
+  void setSharedData(int index, float value);
 
   /**
-   * Get value to Slots.
+   * @brief Get value of the Shared Data
+   *
+   * @param index index of the data
+   * @return float the value of the data
    */
-  int getSharedData(int index);
+  float getSharedData(int index);
 
 private:
   /**

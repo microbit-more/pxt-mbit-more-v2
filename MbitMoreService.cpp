@@ -226,18 +226,22 @@ void MbitMoreService::update() {
 }
 
 /**
- * Set value to shared data.
- * shared data (0, 1, 2, 3)
+ * @brief Set value to Shared Data
+ *
+ * @param index index of the data
+ * @param value value of the data
  */
-void MbitMoreService::setSharedData(int index, int value) {
+void MbitMoreService::setSharedData(int index, float value) {
   mbitMore->setSharedData(index, value);
 }
 
 /**
- * Get value of a shared data.
- * shared data (0, 1, 2, 3)
+ * @brief Get value of the Shared Data
+ *
+ * @param index index of the data
+ * @return float the value of the data
  */
-int MbitMoreService::getSharedData(int index) {
+float MbitMoreService::getSharedData(int index) {
   return mbitMore->getSharedData(index);
 }
 

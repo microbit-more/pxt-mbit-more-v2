@@ -114,7 +114,7 @@ void MbitMoreDevice::initialConfiguration() {
   }
   // initialize shared data to zero
   for (size_t i = 0; i < SHARED_DATA_SIZE; i++) {
-    sharedData[i] = 0;
+    sharedData[i] = 0.0;
   }
   uBit.display.stopAnimation(); // To stop display friendly name.
   uBit.display.print("M");
@@ -228,7 +228,7 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
     }
   } else if (command == MbitMoreCommand::CMD_SHARED_DATA) {
     size_t i = (data[1] < SHARED_DATA_SIZE) ? data[1] : SHARED_DATA_SIZE - 1;
-    // value is read as int32_t little-endian.
+    // value is read as float32_t little-endian.
     memcpy(&(sharedData[i]), &(data[2]), 4);
   }
 }
@@ -637,12 +637,14 @@ int MbitMoreDevice::sampleLigthLevel() {
 }
 
 /**
- * Set value to shared data.
- * shared data (0, 1, 2, 3)
+ * @brief Set value to Shared Data
+ *
+ * @param index index of the data
+ * @param value value of the data
  */
-void MbitMoreDevice::setSharedData(int index, int value) {
+void MbitMoreDevice::setSharedData(int index, float value) {
   // value is sent as int32_t little-endian.
-  sharedData[index] = (int32_t)value;
+  sharedData[index] = value;
   uint8_t *data = moreService->sharedDataChBuffer;
   data[0] = index;
   memcpy(&(data[1]), &sharedData[index], 4);
@@ -651,10 +653,13 @@ void MbitMoreDevice::setSharedData(int index, int value) {
 }
 
 /**
- * Get value of a shared data.
+ * @brief Get value of the Shared Data
+ *
+ * @param index index of the data
+ * @return float the value of the data
  */
-int MbitMoreDevice::getSharedData(int index) {
-  return (int)(sharedData[index]);
+float MbitMoreDevice::getSharedData(int index) {
+  return (float)(sharedData[index]);
 }
 
 void MbitMoreDevice::displayFriendlyName() {

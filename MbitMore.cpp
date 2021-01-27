@@ -67,7 +67,7 @@ namespace MbitMore {
    * Set shared data value.
    */
   //%
-  void setMbitMoreSharedData(SharedDataIndex index, int value) {
+  void setMbitMoreSharedData(SharedDataIndex index, float value) {
     if (NULL == _pService)
       return;
 
@@ -78,7 +78,7 @@ namespace MbitMore {
    * Get shared data value.
    */
   //%
-  int getMbitMoreSharedData(SharedDataIndex index) {
+  float getMbitMoreSharedData(SharedDataIndex index) {
     if (NULL == _pService)
       return 0;
 
