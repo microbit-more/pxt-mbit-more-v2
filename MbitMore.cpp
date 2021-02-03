@@ -1,27 +1,12 @@
 #include "pxt.h"
 
+#include "MicroBit.h"
+#include "MicroBitConfig.h"
+
+#include "MbitMoreCommon.h"
+
 #define UPDATE_PERIOD 11
 #define NOTIFY_PERIOD 101
-
-enum SharedDataIndex
-{
-  //% block="Data0"
-  Data0 = 0,
-  //% block="Data1"
-  Data1 = 1,
-  //% block="Data2"
-  Data2 = 2,
-  //% block="Data3"
-  Data3 = 3,
-  //% block="Data4"
-  Data4 = 4,
-  //% block="Data5"
-  Data5 = 5,
-  //% block="Data6"
-  Data6 = 6,
-  //% block="Data7"
-  Data7 = 7,
-};
 
 #if MICROBIT_CODAL
 #include "MbitMoreService.h"
@@ -63,25 +48,85 @@ namespace MbitMore {
     create_fiber(notifyScratch);
   }
 
-  /**
-   * Set shared data value.
-   */
-  //%
-  void setMbitMoreSharedData(SharedDataIndex index, float value) {
-    if (NULL == _pService)
-      return;
-
-    _pService->setSharedData((int)index, value);
-  }
+  String temp;
 
   /**
-   * Get shared data value.
+   * Events can have arguments before the handler
    */
   //%
-  float getMbitMoreSharedData(SharedDataIndex index) {
+  int call_registerWaitingMessage(String messageLabel) {
+#if MICROBIT_CODAL
     if (NULL == _pService)
       return 0;
 
-    return _pService->getSharedData((int)index);
+    int messageID = _pService->registerWaitingMessage(MSTR(messageLabel));
+    return messageID;
+#else // NOT MICROBIT_CODAL
+    return 0;
+#endif // NOT MICROBIT_CODAL
   }
+
+  /**
+   * @brief Get type of value for the message ID
+   *
+   * @param messageID
+   * @return content type
+   */
+  //%
+  MbitMoreMessageType call_messageType(int messageID) {
+#if MICROBIT_CODAL
+    return _pService->messageType(messageID);
+#else // NOT MICROBIT_CODAL
+    return MbitMoreMessageType::MM_MSG_NUMBER;
+#endif // NOT MICROBIT_CODAL
+  }
+
+  //%
+  float call_messageContentAsNumber(int messageID) {
+#if MICROBIT_CODAL
+    return _pService->messageContentAsNumber(messageID);
+#else // NOT MICROBIT_CODAL
+    return 0.0;
+#endif // NOT MICROBIT_CODAL
+  }
+
+  //%
+  String call_messageContentAsText(int messageID) {
+#if MICROBIT_CODAL
+    return PSTR(_pService->messageContentAsText(messageID));
+#else // NOT MICROBIT_CODAL
+    return String("");
+#endif // NOT MICROBIT_CODAL
+  }
+
+  /**
+   * Send a labeled message with content in float.
+   * @param label - label of the message
+   * @param content - number for content
+   */
+  //%
+  void call_sendMessageWithNumber(String messageLabel, float messageContent) {
+#if MICROBIT_CODAL
+    if (NULL == _pService)
+      return;
+
+    _pService->sendMessageWithNumber(MSTR(messageLabel), messageContent);
+#endif // MICROBIT_CODAL
+  }
+
+  /**
+   * Send a labeled message with content in string.
+   * @param label - label of the message
+   * @param content - string for content
+   */
+  //%
+  void call_sendMessageWithText(String messageLabel, String messageContent) {
+#if MICROBIT_CODAL
+    if (NULL == _pService)
+      return;
+
+    _pService->sendMessageWithText(MSTR(messageLabel), MSTR(messageContent));
+#endif // MICROBIT_CODAL
+  }
+
 } // namespace MbitMore

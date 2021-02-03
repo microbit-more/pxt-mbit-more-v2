@@ -1,8 +1,6 @@
 // tests go here; this will not be compiled when this package is used as an extension.
 MbitMore.startService()
-input.onButtonPressed(Button.A, function () {
-  MbitMore.setSharedData(SharedDataIndex.Data7, MbitMore.getSharedData(SharedDataIndex.Data0))
-})
-input.onButtonPressed(Button.B, function () {
-  MbitMore.setSharedData(SharedDataIndex.Data0, MbitMore.getSharedData(SharedDataIndex.Data7))
+MbitMore.onMessage("label-01", function (content) {
+  MbitMore.sendMessage("label-01", content);
+  basic.showString("label-01 = " + (content))
 })

@@ -1,12 +1,25 @@
 // Auto-generated. Do not edit.
 
 
+    /**
+     * Data type of message content.
+     */
+
+    declare const enum MbitMoreMessageType
+    {
+    //% block="number"
+    MM_MSG_NUMBER = 0,
+    //% block="text"
+    MM_MSG_TEXT = 1,
+    }
+
+
     declare const enum MbitMoreCommand
     {
     CMD_CONFIG = 0x00,
     CMD_PIN = 0x01,
     CMD_DISPLAY = 0x02,
-    CMD_SHARED_DATA = 0x03,
+    CMD_MESSAGE = 0x03,
     }
 
 
@@ -53,7 +66,8 @@
     {
     PIN_EVENT = 0x10,
     ACTION_EVENT = 0x11,
-    SHARED_DATA = 0x13,
+    MESSAGE_NUMBER = 0x13,
+    MESSAGE_TEXT = 0x14,
     }
 
 
@@ -106,27 +120,6 @@
     FALL = 3,
     PULSE_HIGH = 4,
     PULSE_LOW = 5,
-    }
-
-
-    declare const enum SharedDataIndex
-    {
-    //% block="Data0"
-    Data0 = 0,
-    //% block="Data1"
-    Data1 = 1,
-    //% block="Data2"
-    Data2 = 2,
-    //% block="Data3"
-    Data3 = 3,
-    //% block="Data4"
-    Data4 = 4,
-    //% block="Data5"
-    Data5 = 5,
-    //% block="Data6"
-    Data6 = 6,
-    //% block="Data7"
-    Data7 = 7,
     }
 declare namespace MbitMore {
 }

@@ -25,7 +25,12 @@ using MbitMoreService = MbitMoreServiceDAL;
 #define ANALOG_IN_SAMPLES_SIZE 5
 #endif // NOT MICROBIT_CODAL
 
-#define SHARED_DATA_SIZE 8
+#if MICROBIT_CODAL
+#define MBIT_MORE_WAITING_MESSAGE_LENGTH 16
+#define MBIT_MORE_WAITING_MESSAGE_NOT_FOUND 0xff
+#define MBIT_MORE_MESSAGE_LABEL_SIZE 8
+#define MBIT_MORE_MESSAGE_CONTENT_SIZE 11
+#endif // MICROBIT_CODAL
 
 /**
  * Class definition for the Scratch basic Service.
@@ -93,16 +98,24 @@ public:
    */
   size_t lightLevelSamplesLast = 0;
 
+#if MICROBIT_CODAL
+  /**
+   * @brief Message in MbitMore
+   * 
+   */
+  typedef struct {
+    char label[MBIT_MORE_MESSAGE_LABEL_SIZE];        /** label of the message */
+    MbitMoreMessageType type;                        /** type of the content */
+    uint8_t content[MBIT_MORE_MESSAGE_CONTENT_SIZE + 1]; /** content of the message */
+  } MbitMoreMessage;
+
+  MbitMoreMessage receivedMessages[MBIT_MORE_WAITING_MESSAGE_LENGTH] = {{{0}}};
+#endif // MICROBIT_CODAL
+
   /**
    * Samples of Light Level.
    */
   int analogInSamples[3][ANALOG_IN_SAMPLES_SIZE] = {{0}};
-
-  /**
-   * @brief shared data with Scratch
-   * 
-   */
-  float sharedData[SHARED_DATA_SIZE];
 
   /**
    * Protocol of microbit more.
@@ -189,18 +202,64 @@ public:
    */
   int sampleLigthLevel();
 
+#if MICROBIT_CODAL
   /**
-   * @brief Set the Shared Data
+   * @brief Return message ID for the label
    * 
-   * @param index index of the data
-   * @param value value of the data
+   * @param messageLabelChar message label
+   * @return int 
    */
-  void setSharedData(int index, float value);
+  int findWaitingMessageID(const char *messageLabel);
 
   /**
-   * Get value to Slots.
+   * @brief Register message label and retrun message ID.
+   *
+   * @param messageLabel
+   * @return int ID for the message label
    */
-  float getSharedData(int index);
+  int registerWaitingMessage(ManagedString messageLabel);
+
+  /**
+   * @brief Get type of content for the message ID
+   *
+   * @param messageID
+   * @return content type
+   */
+  MbitMoreMessageType messageType(int messageID);
+
+  /**
+   * @brief Return content of the message as number
+   *
+   * @param messageID
+   * @return content of the message
+   */
+  float messageContentAsNumber(int messageID);
+
+  /**
+   * @brief Return content of the message as string
+   *
+   * @param messageID
+   * @return content of the message
+   */
+  ManagedString messageContentAsText(int messageID);
+
+  /**
+   * @brief Send a labeled message with content in float.
+   * 
+   * @param messageLabel 
+   * @param messageContent 
+   */
+  void sendMessageWithNumber(ManagedString messageLabel, float messageContent);
+
+  /**
+   * @brief Send a labeled message with content in string.
+   * 
+   * @param messageLabel 
+   * @param messageContent 
+   */
+  void sendMessageWithText(ManagedString messageLabel, ManagedString messageContent);
+
+#endif // MICROBIT_CODAL
 
   void onBLEConnected(MicroBitEvent _e);
 

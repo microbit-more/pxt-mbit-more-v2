@@ -1,6 +1,9 @@
 
 #include "pxt.h"
 
+#include "MicroBit.h"
+#include "MicroBitConfig.h"
+
 /**
  * Class definition for the Scratch MicroBit More Service.
  * Provides a BLE service to remotely controll Micro:bit from Scratch3.
@@ -45,6 +48,17 @@ int median(int *data, int dataSize) {
     }
   }
   return data[dataSize / 2];
+}
+
+/**
+ * @brief Copy ManagedString to char array with max size.
+ * 
+ * @param dst char array as destination
+ * @param mstr string as source
+ * @param maxLength max size to copy
+ */
+void copyManagedString(char *dst, ManagedString mstr, size_t maxLength) {
+  memcpy(dst, mstr.toCharArray(), ((size_t)mstr.length() < maxLength ? mstr.length() : maxLength));
 }
 
 /**
@@ -112,10 +126,6 @@ void MbitMoreDevice::initialConfiguration() {
     setPullMode(initialPullUp[i], PinMode::PullUp);
 #endif // NOT MICROBIT_CODAL
   }
-  // initialize shared data to zero
-  for (size_t i = 0; i < SHARED_DATA_SIZE; i++) {
-    sharedData[i] = 0.0;
-  }
   uBit.display.stopAnimation(); // To stop display friendly name.
   uBit.display.print("M");
 }
@@ -132,7 +142,7 @@ void MbitMoreDevice::releaseConfiguration() {
     setPullMode(gpioPin[i], PullMode::None);
   }
 #else // NOT MICROBIT_CODAL
-// Error 020 (no free memory)
+//// Error 020 (no free memory)
 // for (size_t i = 0; i < (sizeof(gpioPin) / sizeof(gpioPin[0])); i++) {
 //   setPullMode(gpioPin[i], PinMode::PullNone);
 // }
@@ -226,10 +236,17 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
     } else if (pinCommand == MbitMorePinCommand::SET_EVENT) {
       listenPinEventOn((int)data[1], (int)data[2]);
     }
-  } else if (command == MbitMoreCommand::CMD_SHARED_DATA) {
-    size_t i = (data[1] < SHARED_DATA_SIZE) ? data[1] : SHARED_DATA_SIZE - 1;
-    // value is read as float32_t little-endian.
-    memcpy(&(sharedData[i]), &(data[2]), 4);
+#if MICROBIT_CODAL
+  } else if (command == MbitMoreCommand::CMD_MESSAGE) {
+    int messageID = findWaitingMessageID((char *)(&data[1]));
+    if (messageID != MBIT_MORE_WAITING_MESSAGE_NOT_FOUND) {
+      receivedMessages[messageID].type = (MbitMoreMessageType)(data[0] & 0b11111);
+      int contentStart = 1 + MBIT_MORE_MESSAGE_LABEL_SIZE;
+      memset(receivedMessages[messageID].content, 0, MBIT_MORE_MESSAGE_CONTENT_SIZE);
+      memcpy(receivedMessages[messageID].content, &data[contentStart], length - contentStart);
+      MicroBitEvent evt(MBIT_MORE_MESSAGE, messageID);
+    }
+#endif // MICROBIT_CODAL
   }
 }
 
@@ -636,31 +653,116 @@ int MbitMoreDevice::sampleLigthLevel() {
   return average(lightLevelSamples, LIGHT_LEVEL_SAMPLES_SIZE);
 }
 
+#if MICROBIT_CODAL
 /**
- * @brief Set value to Shared Data
- *
- * @param index index of the data
- * @param value value of the data
+ * @brief Return message ID for the label
+ * 
+ * @param messageLabelChar message label
+ * @return int 
  */
-void MbitMoreDevice::setSharedData(int index, float value) {
-  // value is sent as int32_t little-endian.
-  sharedData[index] = value;
-  uint8_t *data = moreService->sharedDataChBuffer;
-  data[0] = index;
-  memcpy(&(data[1]), &sharedData[index], 4);
-  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::SHARED_DATA;
-  moreService->notifySharedData();
+int MbitMoreDevice::findWaitingMessageID(const char *messageLabelChar) {
+  for (int i = 0; i < MBIT_MORE_WAITING_MESSAGE_LENGTH; i++) {
+    if (receivedMessages[i].label[0] == 0)
+      continue;
+    if (strncmp(receivedMessages[i].label, messageLabelChar, MBIT_MORE_MESSAGE_LABEL_SIZE)) {
+      return i;
+    }
+  }
+  return MBIT_MORE_WAITING_MESSAGE_NOT_FOUND;
 }
 
 /**
- * @brief Get value of the Shared Data
+ * @brief Register message label retrun message ID.
  *
- * @param index index of the data
- * @return float the value of the data
+ * @param messageLabel
+ * @return int ID for the message label
  */
-float MbitMoreDevice::getSharedData(int index) {
-  return (float)(sharedData[index]);
+int MbitMoreDevice::registerWaitingMessage(ManagedString messageLabel) {
+  int id = findWaitingMessageID(messageLabel.toCharArray());
+  if (id == MBIT_MORE_WAITING_MESSAGE_NOT_FOUND) {
+    // find blank message ID and resister it
+    for (int i = 0; i < MBIT_MORE_WAITING_MESSAGE_LENGTH; i++) {
+      if (receivedMessages[i].label[0] == 0) {
+        id = i;
+        copyManagedString(
+            (char *)(receivedMessages[id].label),
+            messageLabel,
+            MBIT_MORE_MESSAGE_LABEL_SIZE);
+        break;
+      }
+    }
+  }
+  return id;
 }
+
+/**
+* @brief Get type of content for the message ID
+*
+* @param messageID
+* @return message type
+*/
+MbitMoreMessageType MbitMoreDevice::messageType(int messageID) {
+  return receivedMessages[messageID].type;
+}
+
+/**
+ * @brief Return content of the message as number
+ *
+ * @param messageID
+ * @return content of the message
+ */
+float MbitMoreDevice::messageContentAsNumber(int messageID) {
+  float content;
+  memcpy(&content, receivedMessages[messageID].content, 4);
+  return content;
+}
+
+/**
+ * @brief Return content of the message as string
+ *
+ * @param messageID
+ * @return content of the message
+ */
+ManagedString MbitMoreDevice::messageContentAsText(int messageID) {
+  return ManagedString((char *)(receivedMessages[messageID].content));
+}
+
+/**
+ * @brief Send a labeled message with content in float.
+ * 
+ * @param messageLabel 
+ * @param messageContent 
+ */
+void MbitMoreDevice::sendMessageWithNumber(ManagedString messageLabel, float messageContent) {
+  uint8_t *data = moreService->messageChBuffer;
+  memset(data, 0, MM_CH_BUFFER_SIZE_NOTIFY);
+  copyManagedString((char *)(&data[0]), messageLabel, MBIT_MORE_MESSAGE_LABEL_SIZE);
+  memcpy(&data[MBIT_MORE_MESSAGE_LABEL_SIZE], &messageContent, 4);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::MESSAGE_NUMBER;
+  moreService->notifyMessage();
+}
+
+/**
+ * @brief Send a labeled message with content in string.
+ * 
+ * @param messageLabel 
+ * @param messageContent 
+ */
+void MbitMoreDevice::sendMessageWithText(ManagedString messageLabel, ManagedString messageContent) {
+  uint8_t *data = moreService->messageChBuffer;
+  memset(data, 0, MM_CH_BUFFER_SIZE_NOTIFY);
+  copyManagedString(
+      (char *)(&data[0]),
+      messageLabel,
+      MBIT_MORE_MESSAGE_LABEL_SIZE);
+  copyManagedString(
+      (char *)(&data[MBIT_MORE_MESSAGE_LABEL_SIZE]),
+      messageContent,
+      MBIT_MORE_MESSAGE_CONTENT_SIZE);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::MESSAGE_TEXT;
+  moreService->notifyMessage();
+}
+#endif // MICROBIT_CODAL
 
 void MbitMoreDevice::displayFriendlyName() {
   ManagedString version(" -M 0.6.0- ");

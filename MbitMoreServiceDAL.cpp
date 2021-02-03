@@ -1,8 +1,9 @@
 #include "pxt.h"
 
-#if !MICROBIT_CODAL
-
+#include "MicroBit.h"
 #include "MicroBitConfig.h"
+
+#if !MICROBIT_CODAL
 
 #include "MicroBitButton.h"
 
@@ -43,14 +44,7 @@ const uint8_t MBIT_MORE_CH_ANALOG_IN_P0[] = {0xa6, 0x2d, 0x01, 0x20, 0x1b, 0x34,
 const uint8_t MBIT_MORE_CH_ANALOG_IN_P1[] = {0xa6, 0x2d, 0x01, 0x21, 0x1b, 0x34,
                                              0x40, 0x92, 0x8d, 0xee, 0x41, 0x51,
                                              0xf6, 0x3b, 0x28, 0x65};
-// *** cut this service to reduce memory ***
-// const uint8_t MBIT_MORE_CH_ANALOG_IN_P2[] = {0xa6, 0x2d, 0x01, 0x22, 0x1b,
-// 0x34,
-//                                              0x40, 0x92, 0x8d, 0xee, 0x41,
-//                                              0x51, 0xf6, 0x3b, 0x28, 0x65};
-const uint8_t MBIT_MORE_CH_SHARED_DATA[] = {0xa6, 0x2d, 0x01, 0x30, 0x1b, 0x34,
-                                            0x40, 0x92, 0x8d, 0xee, 0x41, 0x51,
-                                            0xf6, 0x3b, 0x28, 0x65};
+const uint8_t MBIT_MORE_CH_ANALOG_IN_P2[] = {0xa6, 0x2d, 0x01, 0x22, 0x1b, 0x34, 0x40, 0x92, 0x8d, 0xee, 0x41, 0x51, 0xf6, 0x3b, 0x28, 0x65};
 
 /**
  * Class definition for the Scratch MicroBit More Service.
@@ -113,21 +107,13 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
       this, &MbitMoreServiceDAL::onReadAnalogIn);
   analogInP1Ch->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
-  // *** cut this service to reduce memory ***
-  // analogInP2Ch = new GattCharacteristic(
-  //     MBIT_MORE_CH_ANALOG_IN_P2, (uint8_t *)&analogInP2ChBuffer,
-  //     MM_CH_BUFFER_SIZE_ANALOG_IN, MM_CH_BUFFER_SIZE_ANALOG_IN,
-  //     GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
-  // analogInP2Ch->setReadAuthorizationCallback(
-  //     this, &MbitMoreServiceDAL::onReadAnalogIn);
-  // analogInP2Ch->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
-
-  sharedDataCh = new GattCharacteristic(
-      MBIT_MORE_CH_SHARED_DATA, (uint8_t *)&sharedDataChBuffer,
-      MM_CH_BUFFER_SIZE_NOTIFY, MM_CH_BUFFER_SIZE_NOTIFY,
-      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
-          GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
-  sharedDataCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
+  analogInP2Ch = new GattCharacteristic(
+      MBIT_MORE_CH_ANALOG_IN_P2, (uint8_t *)&analogInP2ChBuffer,
+      MM_CH_BUFFER_SIZE_ANALOG_IN, MM_CH_BUFFER_SIZE_ANALOG_IN,
+      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+  analogInP2Ch->setReadAuthorizationCallback(
+      this, &MbitMoreServiceDAL::onReadAnalogIn);
+  analogInP2Ch->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
   /*
   sensorsCh = digitalIn[4], lightLevel[1], temperature[1], microphone[1]
@@ -135,12 +121,18 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
   pinEventCh = pinEvent
   actionEventCh = buttonEvent, gestureEvent
   analogInP0Ch, analogInP1Ch, analogInP2Ch
-  sharedDataCh
   */
 
   GattCharacteristic *mbitMoreChs[] = {
-      commandCh,     sensorsCh,    directionCh,  pinEventCh,
-      actionEventCh, analogInP0Ch, analogInP1Ch, sharedDataCh};
+      commandCh,
+      sensorsCh,
+      directionCh,
+      pinEventCh,
+      actionEventCh,
+      analogInP0Ch,
+      analogInP1Ch,
+      analogInP2Ch,
+  };
 
   GattService mbitMoreService(MBIT_MORE_SERVICE, mbitMoreChs,
                               sizeof(mbitMoreChs) /
@@ -175,13 +167,12 @@ void MbitMoreServiceDAL::onReadAnalogIn(
     authParams->offset = 0;
     authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
     authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
-    // *** cut this service to reduce memory ***
-    // } else if (authParams->handle == analogInP2Ch->getValueHandle()) {
-    //   mbitMore->updateAnalogIn(analogInP2ChBuffer, 2);
-    //   authParams->data = (uint8_t *)&analogInP2ChBuffer;
-    //   authParams->offset = 0;
-    //   authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
-    //   authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
+  } else if (authParams->handle == analogInP2Ch->getValueHandle()) {
+    mbitMore->updateAnalogIn(analogInP2ChBuffer, 2);
+    authParams->data = (uint8_t *)&analogInP2ChBuffer;
+    authParams->offset = 0;
+    authParams->len = MM_CH_BUFFER_SIZE_ANALOG_IN;
+    authParams->authorizationReply = AUTH_CALLBACK_REPLY_SUCCESS;
   }
 }
 
@@ -209,37 +200,9 @@ void MbitMoreServiceDAL::notifyPinEvent() {
 }
 
 /**
- * Notify shared data to Scratch3
- */
-void MbitMoreServiceDAL::notifySharedData() {
-  uBit.ble->gattServer().notify(sharedDataCh->getValueHandle(),
-                                sharedDataChBuffer, MM_CH_BUFFER_SIZE_NOTIFY);
-}
-
-/**
  * Notify data to Scratch3
  */
 void MbitMoreServiceDAL::notify() {}
-
-/**
- * @brief Set value to Shared Data
- *
- * @param index index of the data
- * @param value value of the data
- */
-void MbitMoreServiceDAL::setSharedData(int index, float value) {
-  mbitMore->setSharedData(index, value);
-}
-
-/**
- * @brief Get value of the Shared Data
- *
- * @param index index of the data
- * @return float the value of the data
- */
-float MbitMoreServiceDAL::getSharedData(int index) {
-  return mbitMore->sharedData[index];
-}
 
 void MbitMoreServiceDAL::onBLEConnected(MicroBitEvent _e) {
   mbitMore->initialConfiguration();

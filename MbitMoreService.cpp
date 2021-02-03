@@ -30,7 +30,7 @@ const uint16_t MbitMoreService::charUUID[mbitmore_cIdx_COUNT] = {
     0x0120, // ANALOG_IN_P0
     0x0121, // ANALOG_IN_P1
     0x0122, // ANALOG_IN_P2
-    0x0130  // SHARED_DATA
+    0x0130  // MESSAGE
 };
 
 /**
@@ -86,8 +86,8 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
       MM_CH_BUFFER_SIZE_ANALOG_IN, microbit_propREAD | microbit_propREADAUTH);
 
   CreateCharacteristic(
-      mbitmore_cIdx_SHARED_DATA, charUUID[mbitmore_cIdx_SHARED_DATA],
-      (uint8_t *)(sharedDataChBuffer), MM_CH_BUFFER_SIZE_NOTIFY,
+      mbitmore_cIdx_MESSAGE, charUUID[mbitmore_cIdx_MESSAGE],
+      (uint8_t *)(messageChBuffer), MM_CH_BUFFER_SIZE_NOTIFY,
       MM_CH_BUFFER_SIZE_NOTIFY, microbit_propREAD | microbit_propNOTIFY);
 
   // // Stop advertising.
@@ -201,13 +201,12 @@ void MbitMoreService::notifyPinEvent() {
 }
 
 /**
- * Notify shared data to Scratch3
+ * Notify message to Scratch3
  */
-void MbitMoreService::notifySharedData() {
+void MbitMoreService::notifyMessage() {
   if (!getConnected())
     return;
-  notifyChrValue(mbitmore_cIdx_SHARED_DATA, sharedDataChBuffer,
-                 MM_CH_BUFFER_SIZE_NOTIFY);
+  notifyChrValue(mbitmore_cIdx_MESSAGE, messageChBuffer, MM_CH_BUFFER_SIZE_NOTIFY);
 }
 
 /**
@@ -226,23 +225,63 @@ void MbitMoreService::update() {
 }
 
 /**
- * @brief Set value to Shared Data
+ * @brief Register message label and retrun message ID.
  *
- * @param index index of the data
- * @param value value of the data
+ * @param messageLabel
+ * @return int ID for the message label
  */
-void MbitMoreService::setSharedData(int index, float value) {
-  mbitMore->setSharedData(index, value);
+int MbitMoreService::registerWaitingMessage(ManagedString messageLabel) {
+  return mbitMore->registerWaitingMessage(messageLabel);
 }
 
 /**
- * @brief Get value of the Shared Data
+ * @brief Get type of content for the message ID
  *
- * @param index index of the data
- * @return float the value of the data
+ * @param messageID
+ * @return type of content [number | string]
  */
-float MbitMoreService::getSharedData(int index) {
-  return mbitMore->getSharedData(index);
+MbitMoreMessageType MbitMoreService::messageType(int messageID) {
+  return mbitMore->messageType(messageID);
+}
+
+/**
+ * @brief Return content of the message as number
+ *
+ * @param messageID
+ * @return content of the message
+ */
+float MbitMoreService::messageContentAsNumber(int messageID) {
+  return mbitMore->messageContentAsNumber(messageID);
+}
+
+/**
+ * @brief Return content of the message as string
+ *
+ * @param messageID
+ * @return content of the message
+ */
+ManagedString MbitMoreService::messageContentAsText(int messageID) {
+  return mbitMore->messageContentAsText(messageID);
+}
+
+/**
+ * @brief Send a labeled message with content in float.
+ * 
+ * @param messageLabel 
+ * @param messageContent 
+ */
+void MbitMoreService::sendMessageWithNumber(ManagedString messageLabel, float messageContent) {
+  mbitMore->sendMessageWithNumber(messageLabel, messageContent);
+}
+
+/**
+ * @brief Send a labeled message with content in string.
+ * 
+ * @param messageLabel 
+ * @param messageContent 
+ */
+void MbitMoreService::sendMessageWithText(ManagedString messageLabel, ManagedString messageContent) {
+  mbitMore->sendMessageWithText(messageLabel, messageContent);
 }
 
 #endif // CONFIG_ENABLED(DEVICE_BLE)

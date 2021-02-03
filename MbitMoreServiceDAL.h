@@ -1,18 +1,18 @@
 #include "pxt.h"
 
+#include "MicroBit.h"
+#include "MicroBitConfig.h"
+
 #if !MICROBIT_CODAL
 
 #ifndef MBIT_MORE_SERVICE_DAL_H
 #define MBIT_MORE_SERVICE_DAL_H
-
-#include "MicroBit.h"
 
 #include "MbitMoreCommon.h"
 #include "MbitMoreDevice.h"
 
 // // Forward declaration
 class MbitMoreDevice;
-
 
 /**
  * Class definition for a MicroBitMore Service.
@@ -37,24 +37,6 @@ public:
    * @brief Notify action event.
    */
   void notifyPinEvent();
-
-  void notifySharedData();
-
-/**
- * @brief Set value to Shared Data
- * 
- * @param index index of the data
- * @param value value of the data
- */
-  void setSharedData(int index, float value);
-
-  /**
-   * @brief Get value of the Shared Data
-   * 
-   * @param index index of the data
-   * @return float the value of the data
-   */
-  float getSharedData(int index);
 
   /**
    * Callback. Invoked when AnalogIn is read via BLE.
@@ -102,9 +84,6 @@ public:
   // Buffer of characteristic for sending analog input values of P2.
   uint8_t analogInP2ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
 
-  // Buffer of characteristic for sending shared data.
-  uint8_t sharedDataChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
-
 private:
   /**
    * @brief micro:bit runtime object.
@@ -126,7 +105,6 @@ private:
   GattCharacteristic *analogInP0Ch;
   GattCharacteristic *analogInP1Ch;
   GattCharacteristic *analogInP2Ch;
-  GattCharacteristic *sharedDataCh;
 };
 
 #endif // MBIT_MORE_SERVICE_DAL_H

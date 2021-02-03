@@ -49,8 +49,8 @@ public:
   // Buffer of characteristic for sending analog input values of P2.
   uint8_t analogInP2ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
 
-  // Buffer of characteristic for sending shared data.
-  uint8_t sharedDataChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
+  // Buffer of characteristic for sending message.
+  uint8_t messageChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
 
   /**
    * Constructor.
@@ -102,27 +102,59 @@ public:
    */
   void notifyPinEvent();
 
-  void notifySharedData();
+  void notifyMessage();
 
   void notify();
 
   void update();
 
   /**
-   * @brief Set value to Shared Data
+   * @brief Register message label and retrun message ID.
    *
-   * @param index index of the data
-   * @param value value of the data
+   * @param messageLabel
+   * @return int ID for the message label
    */
-  void setSharedData(int index, float value);
+  int registerWaitingMessage(ManagedString messageLabel);
 
   /**
-   * @brief Get value of the Shared Data
+   * @brief Get type of content for the message ID
    *
-   * @param index index of the data
-   * @return float the value of the data
+   * @param messageID
+   * @return type of content [number | string]
    */
-  float getSharedData(int index);
+  MbitMoreMessageType messageType(int messageID);
+
+  /**
+   * @brief Return content of the message as number
+   *
+   * @param messageID
+   * @return content of the message
+   */
+  float messageContentAsNumber(int messageID);
+
+  /**
+   * @brief Return content of the message as string
+   *
+   * @param messageID
+   * @return content of the message
+   */
+  ManagedString messageContentAsText(int messageID);
+
+  /**
+   * @brief Send a labeled message with content in float.
+   * 
+   * @param messageLabel 
+   * @param messageContent 
+   */
+  void sendMessageWithNumber(ManagedString messageLabel, float messageContent);
+
+  /**
+   * @brief Send a labeled message with content in string.
+   * 
+   * @param messageLabel 
+   * @param messageContent 
+   */
+  void sendMessageWithText(ManagedString messageLabel, ManagedString messageContent);
 
 private:
   /**
@@ -148,7 +180,7 @@ private:
     mbitmore_cIdx_ANALOG_IN_P0,
     mbitmore_cIdx_ANALOG_IN_P1,
     mbitmore_cIdx_ANALOG_IN_P2,
-    mbitmore_cIdx_SHARED_DATA,
+    mbitmore_cIdx_MESSAGE,
     mbitmore_cIdx_COUNT
   } mbitmore_cIdx;
 
