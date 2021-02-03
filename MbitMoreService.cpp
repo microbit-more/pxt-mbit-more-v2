@@ -17,9 +17,7 @@
 #include "MbitMoreService.h"
 #include "MicroBitButton.h"
 
-const uint8_t MbitMoreService::baseUUID[16] = {
-    0xa6, 0x2d, 0x57, 0x4e, 0x1b, 0x34, 0x40, 0x92,
-    0x8d, 0xee, 0x41, 0x51, 0xf6, 0x3b, 0x28, 0x65};
+const uint8_t MbitMoreService::baseUUID[16] = {0xa6, 0x2d, 0x57, 0x4e, 0x1b, 0x34, 0x40, 0x92, 0x8d, 0xee, 0x41, 0x51, 0xf6, 0x3b, 0x28, 0x65};
 const uint16_t MbitMoreService::serviceUUID = 0x574e;
 const uint16_t MbitMoreService::charUUID[mbitmore_cIdx_COUNT] = {
     0x0100, // COMMAND
@@ -166,18 +164,6 @@ void MbitMoreService::idleCallback() {
   } else {
     mbitMore->displayFriendlyName();
   }
-}
-
-/**
- * @brief Notify data of the basic extension.
- *
- * @param data Data to notify.
- * @param length Length of the data.
- */
-void MbitMoreService::notifyBasicData(uint8_t *data, uint16_t length) {
-  if (!getConnected())
-    return;
-  // notifyChrValue(mbbs_cIdxTX, data, length);
 }
 
 /**

@@ -85,14 +85,6 @@ public:
   virtual void idleCallback();
 
   /**
-   * @brief Notify data of the basic extension.
-   *
-   * @param data Data to notify.
-   * @param length Length of the data.
-   */
-  void notifyBasicData(uint8_t *data, uint16_t length);
-
-  /**
    * @brief Notify action event.
    */
   void notifyActionEvent();
