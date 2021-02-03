@@ -104,8 +104,8 @@ public:
    * 
    */
   typedef struct {
-    char label[MBIT_MORE_MESSAGE_LABEL_SIZE];        /** label of the message */
-    MbitMoreMessageType type;                        /** type of the content */
+    char label[MBIT_MORE_MESSAGE_LABEL_SIZE];            /** label of the message */
+    MbitMoreMessageType type;                            /** type of the content */
     uint8_t content[MBIT_MORE_MESSAGE_CONTENT_SIZE + 1]; /** content of the message */
   } MbitMoreMessage;
 
@@ -116,6 +116,10 @@ public:
    * Samples of Light Level.
    */
   int analogInSamples[3][ANALOG_IN_SAMPLES_SIZE] = {{0}};
+
+#if MICROBIT_CODAL
+  float soundLevel = 0.0;
+#endif // MICROBIT_CODAL
 
   /**
    * Protocol of microbit more.
@@ -258,6 +262,13 @@ public:
    * @param messageContent 
    */
   void sendMessageWithText(ManagedString messageLabel, ManagedString messageContent);
+
+  /**
+   * @brief Set sound loudness level.
+   * 
+   * @param level
+   */
+  void setSoundLevel(float level);
 
 #endif // MICROBIT_CODAL
 

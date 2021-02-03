@@ -566,6 +566,7 @@ void MbitMoreDevice::updateSensors(uint8_t *data) {
   data[5] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
 #if MICROBIT_CODAL
   // data[6] = uBit.microphone.soundLevel(); // This is not implemented yet.
+  data[6] = soundLevel;
 #endif // MICROBIT_CODAL
 }
 
@@ -761,6 +762,15 @@ void MbitMoreDevice::sendMessageWithText(ManagedString messageLabel, ManagedStri
       MBIT_MORE_MESSAGE_CONTENT_SIZE);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::MESSAGE_TEXT;
   moreService->notifyMessage();
+}
+
+/**
+   * @brief Set sound loudness level.
+   * 
+   * @param level
+   */
+void MbitMoreDevice::setSoundLevel(float level) {
+  soundLevel = level;
 }
 #endif // MICROBIT_CODAL
 

@@ -271,5 +271,14 @@ void MbitMoreService::sendMessageWithText(ManagedString messageLabel, ManagedStr
   mbitMore->sendMessageWithText(messageLabel, messageContent);
 }
 
+/**
+   * @brief Set sound loudness level.
+   * 
+   * @param level
+   */
+void MbitMoreService::setSoundLevel(float level) {
+  mbitMore->setSoundLevel(level);
+}
+
 #endif // CONFIG_ENABLED(DEVICE_BLE)
 #endif // MICROBIT_CODAL

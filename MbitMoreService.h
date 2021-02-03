@@ -148,6 +148,13 @@ public:
    */
   void sendMessageWithText(ManagedString messageLabel, ManagedString messageContent);
 
+  /**
+   * @brief Set sound loudness level.
+   * 
+   * @param level
+   */
+  void setSoundLevel(float level);
+
 private:
   /**
    * @brief micro:bit runtime object.
