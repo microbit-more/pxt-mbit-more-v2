@@ -126,12 +126,6 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
   // Setup callbacks for events.
   uBit.ble->onDataWritten(this, &MbitMoreServiceDAL::onDataWritten);
 
-  uBit.messageBus.listen(MICROBIT_ID_BLE, MICROBIT_BLE_EVT_CONNECTED, this,
-                         &MbitMoreServiceDAL::onBLEConnected,
-                         MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
-  uBit.messageBus.listen(MICROBIT_ID_BLE, MICROBIT_BLE_EVT_DISCONNECTED, this,
-                         &MbitMoreServiceDAL::onBLEDisconnected,
-                         MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
 }
 
 /**
@@ -187,14 +181,6 @@ void MbitMoreServiceDAL::notifyPinEvent() {
  * Notify data to Scratch3
  */
 void MbitMoreServiceDAL::notify() {}
-
-void MbitMoreServiceDAL::onBLEConnected(MicroBitEvent _e) {
-  mbitMore->initialConfiguration();
-}
-
-void MbitMoreServiceDAL::onBLEDisconnected(MicroBitEvent _e) {
-  mbitMore->releaseConfiguration();
-}
 
 /**
  * Update sensors.

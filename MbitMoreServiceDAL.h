@@ -48,16 +48,6 @@ public:
    */
   void onDataWritten(const GattWriteCallbackParams *params);
 
-  /**
-   * Invocked when the bluetooth connected.
-   */
-  void onBLEConnected(MicroBitEvent e);
-
-  /**
-   * Invocked when the bluetooth disconnected.
-   */
-  void onBLEDisconnected(MicroBitEvent e);
-
   void update();
 
   // Buffer of characteristic for receiving commands.

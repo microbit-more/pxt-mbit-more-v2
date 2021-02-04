@@ -118,14 +118,12 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
  * Invoked when BLE connects.
  */
 void MbitMoreService::onConnect(const microbit_ble_evt_t *p_ble_evt) {
-  mbitMore->initialConfiguration();
 }
 
 /**
  * Invoked when BLE disconnects.
  */
 void MbitMoreService::onDisconnect(const microbit_ble_evt_t *p_ble_evt) {
-  mbitMore->releaseConfiguration();
 }
 
 /**

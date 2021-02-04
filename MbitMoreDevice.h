@@ -140,13 +140,7 @@ public:
    * @brief Set pin configuration for initial.
    *
    */
-  void initialConfiguration();
-
-  /**
-   * @brief Set pin configuration for release.
-   *
-   */
-  void releaseConfiguration();
+  void initializeConfig();
 
   /**
    * @brief Call when a command was received.

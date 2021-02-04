@@ -127,7 +127,7 @@ MbitMoreDevice::~MbitMoreDevice() {
  * @brief Set pin configuration for initial.
  *
  */
-void MbitMoreDevice::initialConfiguration() {
+void MbitMoreDevice::initializeConfig() {
   // P0,P1,P2 are pull-up as standerd extension.
   for (size_t i = 0; i < (sizeof(initialPullUp) / sizeof(initialPullUp[0]));
        i++) {
@@ -141,26 +141,8 @@ void MbitMoreDevice::initialConfiguration() {
   uBit.display.print("M");
 }
 
-/**
- * @brief Set pin configuration for release.
- *
- */
-void MbitMoreDevice::releaseConfiguration() {
-  uBit.display.stopAnimation();
-  // All GPIO is digital input pull-none mode.
-#if MICROBIT_CODAL
-  for (size_t i = 0; i < (sizeof(gpioPin) / sizeof(gpioPin[0])); i++) {
-    setPullMode(gpioPin[i], PullMode::None);
-  }
-#else // NOT MICROBIT_CODAL
-//// Error 020 (no free memory)
-// for (size_t i = 0; i < (sizeof(gpioPin) / sizeof(gpioPin[0])); i++) {
-//   setPullMode(gpioPin[i], PinMode::PullNone);
-// }
-#endif // NOT MICROBIT_CODAL
-}
-
 void MbitMoreDevice::onBLEConnected(MicroBitEvent _e) {
+  initializeConfig();
 }
 
 void MbitMoreDevice::onBLEDisconnected(MicroBitEvent _e) {
