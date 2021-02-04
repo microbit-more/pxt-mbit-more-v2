@@ -41,22 +41,23 @@ namespace MbitMore {
     const int micValue = level->getValue();
     const int scaled = max(MICROPHONE_MIN, min(micValue, MICROPHONE_MAX)) - MICROPHONE_MIN;
     return min(0xff, scaled * 0xff / (MICROPHONE_MAX - MICROPHONE_MIN));
-#else
+#else // NOT MICROBIT_CODAL
     target_panic(PANIC_VARIANT_NOT_SUPPORTED);
     return 0;
-#endif
+#endif // NOT MICROBIT_CODAL
   }
 
   void update() {
     while (NULL != _pService) {
       _pService->update();
 #if MICROBIT_CODAL
-      _pService->setSoundLevel(soundLevel());
+      if (_pService->isMicInUse()) {
+        _pService->setSoundLevel(soundLevel());
+      }
 #endif // MICROBIT_CODAL
       fiber_sleep(UPDATE_PERIOD);
     }
   }
-
 
   void notifyScratch() {
     while (NULL != _pService) {

@@ -117,4 +117,13 @@ enum MbitMorePinEvent
   PULSE_LOW = 5
 };
 
+/**
+ * @brief Enum for sub-command about configurations.
+ * 
+ */
+enum MbitMoreConfig
+{
+  MIC = 0x01, // microphone
+};
+
 #endif // MBIT_MORE_COMMON_H

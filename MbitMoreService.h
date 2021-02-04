@@ -149,6 +149,14 @@ public:
   void sendMessageWithText(ManagedString messageLabel, ManagedString messageContent);
 
   /**
+   * @brief Whether the on-board microphon is in use.
+   * 
+   * @return true  when use
+   * @return false when not use
+   */
+  bool isMicInUse();
+
+  /**
    * @brief Set sound loudness level.
    * 
    * @param level

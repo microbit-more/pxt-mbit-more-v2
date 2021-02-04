@@ -121,6 +121,17 @@
     PULSE_HIGH = 4,
     PULSE_LOW = 5,
     }
+
+
+    /**
+     * @brief Enum for sub-command about configurations.
+     * 
+     */
+
+    declare const enum MbitMoreConfig
+    {
+    MIC = 0x01,
+    }
 declare namespace MbitMore {
 }
 

@@ -98,6 +98,17 @@ MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
   uBit.messageBus.listen(MICROBIT_ID_GESTURE, MICROBIT_EVT_ANY, this,
                          &MbitMoreDevice::onGestureChanged,
                          MESSAGE_BUS_LISTENER_IMMEDIATE);
+
+  uBit.messageBus.listen(
+      MICROBIT_ID_BLE,
+      MICROBIT_BLE_EVT_CONNECTED,
+      this,
+      &MbitMoreDevice::onBLEConnected);
+  uBit.messageBus.listen(
+      MICROBIT_ID_BLE,
+      MICROBIT_BLE_EVT_DISCONNECTED,
+      this,
+      &MbitMoreDevice::onBLEDisconnected);
 }
 
 MbitMoreDevice::~MbitMoreDevice() {
@@ -147,6 +158,13 @@ void MbitMoreDevice::releaseConfiguration() {
 //   setPullMode(gpioPin[i], PinMode::PullNone);
 // }
 #endif // NOT MICROBIT_CODAL
+}
+
+void MbitMoreDevice::onBLEConnected(MicroBitEvent _e) {
+}
+
+void MbitMoreDevice::onBLEDisconnected(MicroBitEvent _e) {
+  uBit.reset(); // reset to off microphone and its LED.
 }
 
 /**
@@ -245,6 +263,11 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
       memset(receivedMessages[messageID].content, 0, MBIT_MORE_MESSAGE_CONTENT_SIZE);
       memcpy(receivedMessages[messageID].content, &data[contentStart], length - contentStart);
       MicroBitEvent evt(MBIT_MORE_MESSAGE, messageID);
+    }
+  } else if (command == MbitMoreCommand::CMD_CONFIG) {
+    const int config = data[0] & 0b11111;
+    if (config == MbitMoreConfig::MIC) {
+      micInUse = ((data[1] == 1) ? true : false);
     }
 #endif // MICROBIT_CODAL
   }
@@ -762,6 +785,16 @@ void MbitMoreDevice::sendMessageWithText(ManagedString messageLabel, ManagedStri
       MBIT_MORE_MESSAGE_CONTENT_SIZE);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::MESSAGE_TEXT;
   moreService->notifyMessage();
+}
+
+/**
+ * @brief Whether the on-board microphon is in use.
+ * 
+ * @return true  when use
+ * @return false when not use
+ */
+bool MbitMoreDevice::isMicInUse() {
+  return micInUse;
 }
 
 /**

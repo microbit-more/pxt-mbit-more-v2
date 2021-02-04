@@ -118,6 +118,7 @@ public:
   int analogInSamples[3][ANALOG_IN_SAMPLES_SIZE] = {{0}};
 
 #if MICROBIT_CODAL
+  bool micInUse = false;
   float soundLevel = 0.0;
 #endif // MICROBIT_CODAL
 
@@ -262,6 +263,14 @@ public:
    * @param messageContent 
    */
   void sendMessageWithText(ManagedString messageLabel, ManagedString messageContent);
+
+  /**
+   * @brief Whether the on-board microphon is in use.
+   * 
+   * @return true  when use
+   * @return false when not use
+   */
+  bool isMicInUse();
 
   /**
    * @brief Set sound loudness level.
