@@ -549,11 +549,11 @@ void MbitMoreDevice::displayText(char *text, int delay) {
 }
 
 /**
- * @brief Get data of the sensors.
+ * @brief Update GPIO and sensors state.
  *
  * @param data Buffer for BLE characteristics.
  */
-void MbitMoreDevice::updateSensors(uint8_t *data) {
+void MbitMoreDevice::updateState(uint8_t *data) {
   uint32_t digitalLevels = 0;
   for (size_t i = 0; i < sizeof(gpioPin) / sizeof(gpioPin[0]); i++) {
     if (uBit.io.pin[gpioPin[i]].isDigital()) {
@@ -586,11 +586,11 @@ void MbitMoreDevice::updateSensors(uint8_t *data) {
 }
 
 /**
- * @brief Update data of direction.
+ * @brief Update data of motion.
  *
  * @param data Buffer for BLE characteristics.
  */
-void MbitMoreDevice::updateDirection(uint8_t *data) {
+void MbitMoreDevice::updateMotion(uint8_t *data) {
   // Accelerometer
   int16_t rot;
   // Pitch (radians / 1000) is sent as int16_t little-endian [0..1].

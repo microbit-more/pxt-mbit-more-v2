@@ -53,11 +53,11 @@ public:
   // Buffer of characteristic for receiving commands.
   uint8_t commandChBuffer[MM_CH_BUFFER_SIZE_MAX] = {0};
 
-  // Buffer of characteristic for sending data of sensors.
-  uint8_t sensorsChBuffer[MM_CH_BUFFER_SIZE_SENSORS] = {0};
+  // Buffer of characteristic for sending data of GPIO and sensors state.
+  uint8_t stateChBuffer[MM_CH_BUFFER_SIZE_STATE] = {0};
 
-  // Buffer of characteristic for sending data about direction.
-  uint8_t directionChBuffer[MM_CH_BUFFER_SIZE_DIRECTION] = {0};
+  // Buffer of characteristic for sending data about motion.
+  uint8_t motionChBuffer[MM_CH_BUFFER_SIZE_MOTION] = {0};
 
   // Buffer of characteristic for sending pin events.
   uint8_t pinEventChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
@@ -88,7 +88,7 @@ private:
   MbitMoreDevice *mbitMore;
 
   GattCharacteristic *commandCh;
-  GattCharacteristic *sensorsCh;
+  GattCharacteristic *stateCh;
   GattCharacteristic *directionCh;
   GattCharacteristic *pinEventCh;
   GattCharacteristic *actionEventCh;

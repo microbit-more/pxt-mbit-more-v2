@@ -169,18 +169,18 @@ public:
   void displayText(char *text, int delay);
 
   /**
-   * @brief Update data of sensors.
+   * @brief Update GPIO and sensors state.
    *
    * @param data Buffer for BLE characteristics.
    */
-  void updateSensors(uint8_t *data);
+  void updateState(uint8_t *data);
 
   /**
-   * @brief Update data of direction.
+   * @brief Update data of motion.
    *
    * @param data Buffer for BLE characteristics.
    */
-  void updateDirection(uint8_t *data);
+  void updateMotion(uint8_t *data);
 
   /**
    * @brief Get data of analog input of the pin.

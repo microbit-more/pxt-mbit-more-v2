@@ -16,8 +16,8 @@ enum MbitMoreMessageType
 
 #define MM_CH_BUFFER_SIZE_MAX 20
 #define MM_CH_BUFFER_SIZE_NOTIFY 20
-#define MM_CH_BUFFER_SIZE_SENSORS 7
-#define MM_CH_BUFFER_SIZE_DIRECTION 18
+#define MM_CH_BUFFER_SIZE_STATE 7
+#define MM_CH_BUFFER_SIZE_MOTION 18
 #define MM_CH_BUFFER_SIZE_ANALOG_IN 2
 
 enum MbitMoreCommand // 3 bits (0x00..0x07)

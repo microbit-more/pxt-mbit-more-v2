@@ -22,7 +22,7 @@ const uint8_t MbitMoreService::baseUUID[16] = {0x0b, 0x50, 0xf3, 0xe4, 0x60, 0x7
 const uint16_t MbitMoreService::serviceUUID = 0xf3e4;
 const uint16_t MbitMoreService::charUUID[mbitmore_cIdx_COUNT] = {
     0x0100, // COMMAND
-    0x0101, // SENSORS
+    0x0101, // STATE
     0x0102, // DIRECTION
     0x0110, // PIN_EVENT
     0x0111, // ACTION_EVENT
@@ -55,19 +55,19 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
       microbit_propWRITE | microbit_propWRITE_WITHOUT);
 
   CreateCharacteristic(
-      mbitmore_cIdx_SENSORS,
-      charUUID[mbitmore_cIdx_SENSORS],
-      (uint8_t *)(sensorsChBuffer),
-      MM_CH_BUFFER_SIZE_SENSORS,
-      MM_CH_BUFFER_SIZE_SENSORS,
+      mbitmore_cIdx_STATE,
+      charUUID[mbitmore_cIdx_STATE],
+      (uint8_t *)(stateChBuffer),
+      MM_CH_BUFFER_SIZE_STATE,
+      MM_CH_BUFFER_SIZE_STATE,
       microbit_propREAD);
 
   CreateCharacteristic(
       mbitmore_cIdx_DIRECTION,
       charUUID[mbitmore_cIdx_DIRECTION],
-      (uint8_t *)(directionChBuffer),
-      MM_CH_BUFFER_SIZE_DIRECTION,
-      MM_CH_BUFFER_SIZE_DIRECTION,
+      (uint8_t *)(motionChBuffer),
+      MM_CH_BUFFER_SIZE_MOTION,
+      MM_CH_BUFFER_SIZE_MOTION,
       microbit_propREAD);
 
   CreateCharacteristic(
@@ -229,12 +229,12 @@ void MbitMoreService::notifyMessage() {
 void MbitMoreService::notify() {}
 
 /**
- * Update sensors.
+ * Update all sensors.
  */
 void MbitMoreService::update() {
   if (getConnected()) {
-    mbitMore->updateSensors(sensorsChBuffer);
-    mbitMore->updateDirection(directionChBuffer);
+    mbitMore->updateState(stateChBuffer);
+    mbitMore->updateMotion(motionChBuffer);
   }
 }
 
