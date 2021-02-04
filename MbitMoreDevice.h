@@ -130,11 +130,7 @@ public:
   /**
    * Current mode of all pins.
    */
-#if MICROBIT_CODAL
-  PullMode pullMode[sizeof(gpioPin) / sizeof(gpioPin[0])];
-#else // MICROBIT_CODAL
-  PinMode pullMode[sizeof(gpioPin) / sizeof(gpioPin[0])];
-#endif // NOT MICROBIT_CODAL
+  MbitMorePullMode pullMode[sizeof(gpioPin) / sizeof(gpioPin[0])];
 
   /**
    * @brief Set pin configuration for initial.
@@ -287,13 +283,16 @@ public:
   void displayFriendlyName();
 
 private:
+
   void listenPinEventOn(int pinIndex, int eventType);
 
-#if MICROBIT_CODAL
-  void setPullMode(int pinIndex, PullMode pull);
-#else // MICROBIT_CODAL
-  void setPullMode(int pinIndex, PinMode pull);
-#endif // NOT MICROBIT_CODAL
+  /**
+   * @brief Set pull-mode.
+   * 
+   * @param pinIndex index to set
+   * @param pull pull-mode to set
+   */
+  void setPullMode(int pinIndex, MbitMorePullMode pull);
 
   void setDigitalValue(int pinIndex, int value);
   void setAnalogValue(int pinIndex, int value);

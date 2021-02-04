@@ -131,11 +131,7 @@ void MbitMoreDevice::initializeConfig() {
   // P0,P1,P2 are pull-up as standerd extension.
   for (size_t i = 0; i < (sizeof(initialPullUp) / sizeof(initialPullUp[0]));
        i++) {
-#if MICROBIT_CODAL
-    setPullMode(initialPullUp[i], PullMode::Up);
-#else // NOT MICROBIT_CODAL
-    setPullMode(initialPullUp[i], PinMode::PullUp);
-#endif // NOT MICROBIT_CODAL
+    setPullMode(initialPullUp[i], MbitMorePullMode::Up);
   }
   uBit.display.stopAnimation(); // To stop display friendly name.
   uBit.display.print("M");
@@ -175,37 +171,7 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
   } else if (command == MbitMoreCommand::CMD_PIN) {
     const int pinCommand = data[0] & 0b11111;
     if (pinCommand == MbitMorePinCommand::SET_PULL) {
-#if MICROBIT_CODAL
-      switch (data[2]) {
-      case MbitMorePullMode::None:
-        setPullMode(data[1], PullMode::None);
-        break;
-      case MbitMorePullMode::Up:
-        setPullMode(data[1], PullMode::Up);
-        break;
-      case MbitMorePullMode::Down:
-        setPullMode(data[1], PullMode::Down);
-        break;
-
-      default:
-        break;
-      }
-#else // NOT MICROBIT_CODAL
-      switch (data[2]) {
-      case MbitMorePullMode::None:
-        setPullMode(data[1], PinMode::PullNone);
-        break;
-      case MbitMorePullMode::Up:
-        setPullMode(data[1], PinMode::PullUp);
-        break;
-      case MbitMorePullMode::Down:
-        setPullMode(data[1], PinMode::PullDown);
-        break;
-
-      default:
-        break;
-      }
-#endif // NOT MICROBIT_CODAL
+      setPullMode(data[1], (MbitMorePullMode)data[2]);
     } else if (pinCommand == MbitMorePinCommand::SET_TOUCH) {
       setPinModeTouch(data[1]);
     } else if (pinCommand == MbitMorePinCommand::SET_OUTPUT) {
@@ -489,13 +455,45 @@ int MbitMoreDevice::convertToTilt(float radians) {
   return (int)(tilt * 1000.0f);
 }
 
-#if MICROBIT_CODAL
-void MbitMoreDevice::setPullMode(int pinIndex, PullMode pull) {
-#else // NOT MICROBIT_CODAL
-void MbitMoreDevice::setPullMode(int pinIndex, PinMode pull) {
-#endif // NOT MICROBIT_CODAL
-  uBit.io.pin[pinIndex].getDigitalValue(pull);
+/**
+ * @brief Set pull-mode.
+ * 
+ * @param pinIndex index to set
+ * @param pull pull-mode to set
+ */
+void MbitMoreDevice::setPullMode(int pinIndex, MbitMorePullMode pull) {
   pullMode[pinIndex] = pull;
+#if MICROBIT_CODAL
+  switch (pull) {
+  case MbitMorePullMode::None:
+    uBit.io.pin[pinIndex].getDigitalValue(PullMode::None);
+    break;
+  case MbitMorePullMode::Up:
+    uBit.io.pin[pinIndex].getDigitalValue(PullMode::Up);
+    break;
+  case MbitMorePullMode::Down:
+    uBit.io.pin[pinIndex].getDigitalValue(PullMode::Down);
+    break;
+
+  default:
+    break;
+  }
+#else // NOT MICROBIT_CODAL
+  switch (pull) {
+  case MbitMorePullMode::None:
+    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullNone);
+    break;
+  case MbitMorePullMode::Up:
+    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullUp);
+    break;
+  case MbitMorePullMode::Down:
+    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullDown);
+    break;
+
+  default:
+    break;
+  }
+#endif // NOT MICROBIT_CODAL
 }
 
 void MbitMoreDevice::setDigitalValue(int pinIndex, int value) {
