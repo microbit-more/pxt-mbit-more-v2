@@ -46,48 +46,77 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
   CreateService(serviceUUID);
 
   // Add each of our characteristics.
-  CreateCharacteristic(mbitmore_cIdx_COMMAND, charUUID[mbitmore_cIdx_COMMAND],
-                       (uint8_t *)(commandChBuffer), 0, MM_CH_BUFFER_SIZE_MAX,
-                       microbit_propWRITE | microbit_propWRITE_WITHOUT);
-
-  CreateCharacteristic(mbitmore_cIdx_SENSORS, charUUID[mbitmore_cIdx_SENSORS],
-                       (uint8_t *)(sensorsChBuffer), MM_CH_BUFFER_SIZE_SENSORS,
-                       MM_CH_BUFFER_SIZE_SENSORS, microbit_propREAD);
+  CreateCharacteristic(
+      mbitmore_cIdx_COMMAND,
+      charUUID[mbitmore_cIdx_COMMAND],
+      (uint8_t *)(commandChBuffer),
+      0,
+      MM_CH_BUFFER_SIZE_MAX,
+      microbit_propWRITE | microbit_propWRITE_WITHOUT);
 
   CreateCharacteristic(
-      mbitmore_cIdx_DIRECTION, charUUID[mbitmore_cIdx_DIRECTION],
-      (uint8_t *)(directionChBuffer), MM_CH_BUFFER_SIZE_DIRECTION,
-      MM_CH_BUFFER_SIZE_DIRECTION, microbit_propREAD);
+      mbitmore_cIdx_SENSORS,
+      charUUID[mbitmore_cIdx_SENSORS],
+      (uint8_t *)(sensorsChBuffer),
+      MM_CH_BUFFER_SIZE_SENSORS,
+      MM_CH_BUFFER_SIZE_SENSORS,
+      microbit_propREAD);
 
   CreateCharacteristic(
-      mbitmore_cIdx_PIN_EVENT, charUUID[mbitmore_cIdx_PIN_EVENT],
-      (uint8_t *)(pinEventChBuffer), MM_CH_BUFFER_SIZE_NOTIFY,
-      MM_CH_BUFFER_SIZE_NOTIFY, microbit_propREAD | microbit_propNOTIFY);
+      mbitmore_cIdx_DIRECTION,
+      charUUID[mbitmore_cIdx_DIRECTION],
+      (uint8_t *)(directionChBuffer),
+      MM_CH_BUFFER_SIZE_DIRECTION,
+      MM_CH_BUFFER_SIZE_DIRECTION,
+      microbit_propREAD);
 
   CreateCharacteristic(
-      mbitmore_cIdx_ACTION_EVENT, charUUID[mbitmore_cIdx_ACTION_EVENT],
-      (uint8_t *)(actionEventChBuffer), MM_CH_BUFFER_SIZE_NOTIFY,
-      MM_CH_BUFFER_SIZE_NOTIFY, microbit_propREAD | microbit_propNOTIFY);
+      mbitmore_cIdx_PIN_EVENT,
+      charUUID[mbitmore_cIdx_PIN_EVENT],
+      (uint8_t *)(pinEventChBuffer),
+      MM_CH_BUFFER_SIZE_NOTIFY,
+      MM_CH_BUFFER_SIZE_NOTIFY,
+      microbit_propREAD | microbit_propNOTIFY);
 
   CreateCharacteristic(
-      mbitmore_cIdx_ANALOG_IN_P0, charUUID[mbitmore_cIdx_ANALOG_IN_P0],
-      (uint8_t *)(analogInP0ChBuffer), MM_CH_BUFFER_SIZE_ANALOG_IN,
-      MM_CH_BUFFER_SIZE_ANALOG_IN, microbit_propREAD | microbit_propREADAUTH);
+      mbitmore_cIdx_ACTION_EVENT,
+      charUUID[mbitmore_cIdx_ACTION_EVENT],
+      (uint8_t *)(actionEventChBuffer),
+      MM_CH_BUFFER_SIZE_NOTIFY,
+      MM_CH_BUFFER_SIZE_NOTIFY,
+      microbit_propREAD | microbit_propNOTIFY);
 
   CreateCharacteristic(
-      mbitmore_cIdx_ANALOG_IN_P1, charUUID[mbitmore_cIdx_ANALOG_IN_P1],
-      (uint8_t *)(analogInP1ChBuffer), MM_CH_BUFFER_SIZE_ANALOG_IN,
-      MM_CH_BUFFER_SIZE_ANALOG_IN, microbit_propREAD | microbit_propREADAUTH);
+      mbitmore_cIdx_ANALOG_IN_P0,
+      charUUID[mbitmore_cIdx_ANALOG_IN_P0],
+      (uint8_t *)(analogInP0ChBuffer),
+      MM_CH_BUFFER_SIZE_ANALOG_IN,
+      MM_CH_BUFFER_SIZE_ANALOG_IN,
+      microbit_propREAD | microbit_propREADAUTH);
 
   CreateCharacteristic(
-      mbitmore_cIdx_ANALOG_IN_P2, charUUID[mbitmore_cIdx_ANALOG_IN_P2],
-      (uint8_t *)(analogInP2ChBuffer), MM_CH_BUFFER_SIZE_ANALOG_IN,
-      MM_CH_BUFFER_SIZE_ANALOG_IN, microbit_propREAD | microbit_propREADAUTH);
+      mbitmore_cIdx_ANALOG_IN_P1,
+      charUUID[mbitmore_cIdx_ANALOG_IN_P1],
+      (uint8_t *)(analogInP1ChBuffer),
+      MM_CH_BUFFER_SIZE_ANALOG_IN,
+      MM_CH_BUFFER_SIZE_ANALOG_IN,
+      microbit_propREAD | microbit_propREADAUTH);
 
   CreateCharacteristic(
-      mbitmore_cIdx_MESSAGE, charUUID[mbitmore_cIdx_MESSAGE],
-      (uint8_t *)(messageChBuffer), MM_CH_BUFFER_SIZE_NOTIFY,
-      MM_CH_BUFFER_SIZE_NOTIFY, microbit_propREAD | microbit_propNOTIFY);
+      mbitmore_cIdx_ANALOG_IN_P2,
+      charUUID[mbitmore_cIdx_ANALOG_IN_P2],
+      (uint8_t *)(analogInP2ChBuffer),
+      MM_CH_BUFFER_SIZE_ANALOG_IN,
+      MM_CH_BUFFER_SIZE_ANALOG_IN,
+      microbit_propREAD | microbit_propREADAUTH);
+
+  CreateCharacteristic(
+      mbitmore_cIdx_MESSAGE,
+      charUUID[mbitmore_cIdx_MESSAGE],
+      (uint8_t *)(messageChBuffer),
+      MM_CH_BUFFER_SIZE_NOTIFY,
+      MM_CH_BUFFER_SIZE_NOTIFY,
+      microbit_propREAD | microbit_propNOTIFY);
 
   // // Stop advertising.
   // uBit.ble->stopAdvertising();

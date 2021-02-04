@@ -89,26 +89,36 @@ MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
     uBit.compass.calibrate();
   }
 
-  uBit.messageBus.listen(MICROBIT_ID_BUTTON_A, MICROBIT_EVT_ANY, this,
-                         &MbitMoreDevice::onButtonChanged,
-                         MESSAGE_BUS_LISTENER_IMMEDIATE);
-  uBit.messageBus.listen(MICROBIT_ID_BUTTON_B, MICROBIT_EVT_ANY, this,
-                         &MbitMoreDevice::onButtonChanged,
-                         MESSAGE_BUS_LISTENER_IMMEDIATE);
-  uBit.messageBus.listen(MICROBIT_ID_GESTURE, MICROBIT_EVT_ANY, this,
-                         &MbitMoreDevice::onGestureChanged,
-                         MESSAGE_BUS_LISTENER_IMMEDIATE);
+  uBit.messageBus.listen(
+      MICROBIT_ID_BUTTON_A, MICROBIT_EVT_ANY,
+      this,
+      &MbitMoreDevice::onButtonChanged,
+      MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+  uBit.messageBus.listen(
+      MICROBIT_ID_BUTTON_B,
+      MICROBIT_EVT_ANY,
+      this,
+      &MbitMoreDevice::onButtonChanged,
+      MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+  uBit.messageBus.listen(
+      MICROBIT_ID_GESTURE,
+      MICROBIT_EVT_ANY,
+      this,
+      &MbitMoreDevice::onGestureChanged,
+      MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
 
   uBit.messageBus.listen(
       MICROBIT_ID_BLE,
       MICROBIT_BLE_EVT_CONNECTED,
       this,
-      &MbitMoreDevice::onBLEConnected);
+      &MbitMoreDevice::onBLEConnected,
+      MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
   uBit.messageBus.listen(
       MICROBIT_ID_BLE,
       MICROBIT_BLE_EVT_DISCONNECTED,
       this,
-      &MbitMoreDevice::onBLEDisconnected);
+      &MbitMoreDevice::onBLEDisconnected,
+      MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
 }
 
 MbitMoreDevice::~MbitMoreDevice() {
@@ -129,8 +139,7 @@ MbitMoreDevice::~MbitMoreDevice() {
  */
 void MbitMoreDevice::initializeConfig() {
   // P0,P1,P2 are pull-up as standerd extension.
-  for (size_t i = 0; i < (sizeof(initialPullUp) / sizeof(initialPullUp[0]));
-       i++) {
+  for (size_t i = 0; i < (sizeof(initialPullUp) / sizeof(initialPullUp[0])); i++) {
     setPullMode(initialPullUp[i], MbitMorePullMode::Up);
   }
   uBit.display.stopAnimation(); // To stop display friendly name.
@@ -255,13 +264,18 @@ void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
                                     // index to componentID in v1 and v2.
 
   if (eventType == MbitMorePinEventType::NONE) {
-    uBit.messageBus.ignore(componentID, MICROBIT_EVT_ANY, this,
-                           &MbitMoreDevice::onPinEvent);
+    uBit.messageBus.ignore(
+        componentID,
+        MICROBIT_EVT_ANY,
+        this,
+        &MbitMoreDevice::onPinEvent);
     uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_NONE);
   } else {
-    uBit.messageBus.listen(componentID, MICROBIT_EVT_ANY, this,
-                           &MbitMoreDevice::onPinEvent,
-                           MESSAGE_BUS_LISTENER_DROP_IF_BUSY);
+    uBit.messageBus.listen(
+        componentID, MICROBIT_EVT_ANY,
+        this,
+        &MbitMoreDevice::onPinEvent,
+        MESSAGE_BUS_LISTENER_DROP_IF_BUSY);
     if (eventType == MbitMorePinEventType::ON_EDGE) {
       uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_EDGE);
     } else if (eventType == MbitMorePinEventType::ON_PULSE) {
@@ -553,11 +567,9 @@ void MbitMoreDevice::updateSensors(uint8_t *data) {
   // DAL can not read the buttons state as digital input. (CODAL can do that)
 #if MICROBIT_CODAL
   digitalLevels =
-      digitalLevels | (uBit.io.pin[MBIT_MORE_BUTTON_PIN_A].getDigitalValue()
-                       << MBIT_MORE_BUTTON_PIN_A);
+      digitalLevels | ((uBit.io.pin[MBIT_MORE_BUTTON_PIN_A].getDigitalValue() << MBIT_MORE_BUTTON_PIN_A));
   digitalLevels =
-      digitalLevels | (uBit.io.pin[MBIT_MORE_BUTTON_PIN_B].getDigitalValue()
-                       << MBIT_MORE_BUTTON_PIN_B);
+      digitalLevels | ((uBit.io.pin[MBIT_MORE_BUTTON_PIN_B].getDigitalValue() << MBIT_MORE_BUTTON_PIN_B));
 #else // NOT MICROBIT_CODAL
   digitalLevels =
       digitalLevels | (!uBit.buttonA.isPressed() << MBIT_MORE_BUTTON_PIN_A);
