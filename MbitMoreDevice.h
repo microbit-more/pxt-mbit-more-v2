@@ -32,6 +32,16 @@ using MbitMoreService = MbitMoreServiceDAL;
 #define MBIT_MORE_MESSAGE_CONTENT_SIZE 11
 #endif // MICROBIT_CODAL
 
+enum MbitMoreButtonID
+{
+  P0 = 24,
+  P1 = 25,
+  P2 = 26,
+  A = 27,
+  B = 28,
+  LOGO = 29, // Pin number of logo is not corresponded with micro:bit pin assign.
+};
+
 /**
  * Class definition for the Scratch basic Service.
  * Provides a BLE service for default extension of micro:bit in Scratch3.
@@ -283,7 +293,6 @@ public:
   void displayFriendlyName();
 
 private:
-
   void listenPinEventOn(int pinIndex, int eventType);
 
   /**

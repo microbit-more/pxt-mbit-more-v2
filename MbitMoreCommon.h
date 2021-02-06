@@ -124,6 +124,7 @@ enum MbitMorePinEvent
 enum MbitMoreConfig
 {
   MIC = 0x01, // microphone
+  TOUCH = 0x02
 };
 
 #endif // MBIT_MORE_COMMON_H
