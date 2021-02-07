@@ -188,8 +188,6 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
     const int pinCommand = data[0] & 0b11111;
     if (pinCommand == MbitMorePinCommand::SET_PULL) {
       setPullMode(data[1], (MbitMorePullMode)data[2]);
-    } else if (pinCommand == MbitMorePinCommand::SET_TOUCH) {
-      setPinModeTouch(data[1]);
     } else if (pinCommand == MbitMorePinCommand::SET_OUTPUT) {
       setDigitalValue(data[1], data[2]);
     } else if (pinCommand == MbitMorePinCommand::SET_PWM) {
@@ -217,6 +215,15 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
       }
     } else if (pinCommand == MbitMorePinCommand::SET_EVENT) {
       listenPinEventOn((int)data[1], (int)data[2]);
+    }
+  } else if (command == MbitMoreCommand::CMD_AUDIO) {
+    int audioCommand = data[0] & 0b11111;
+    if (audioCommand == MbitMoreAudioCommand::PLAY_TONE) {
+      uint16_t frequency;
+      memcpy(&frequency, &(data[1]), 2);
+      playTone(frequency, data[3]);
+    } else if (audioCommand == MbitMoreAudioCommand::STOP_TONE) {
+      stopTone();
     }
 #if MICROBIT_CODAL
   } else if (command == MbitMoreCommand::CMD_MESSAGE) {
@@ -602,11 +609,6 @@ void MbitMoreDevice::setServoValue(int pinIndex, int angle, int range,
   uBit.io.pin[pinIndex].setServoValue(angle, range, center);
 }
 
-void MbitMoreDevice::setPinModeTouch(int pinIndex) {
-  uBit.io.pin[pinIndex].isTouched(); // Configure to touch mode then the
-                                     // return value is not used.
-}
-
 /**
  * @brief Display text on LED.
  *
@@ -744,6 +746,54 @@ int MbitMoreDevice::sampleLigthLevel() {
   }
   lightLevelSamples[lightLevelSamplesLast] = uBit.display.readLightLevel();
   return average(lightLevelSamples, LIGHT_LEVEL_SAMPLES_SIZE);
+}
+
+/**
+ * @brief Set PMW signal to the pin for play tone.
+ * 
+ * @param speakerPin pin to play
+ * @param frequency frequency of the tone[Hz]
+ * @param volume laudness of the sound [0..255]
+ */
+void MbitMoreDevice::playTone(int frequency, int volume) {
+#if MICROBIT_CODAL
+  MicroBitPin speakerPin = uBit.io.speaker;
+#else
+  MicroBitPin speakerPin = uBit.io.pin[0];
+#endif
+  if (frequency <= 0 || volume == 0) {
+    speakerPin.setAnalogValue(0);
+  } else {
+    int v = 1 << (volume >> 5);
+    speakerPin.setAnalogValue(v);
+    speakerPin.setAnalogPeriodUs(1000000 / frequency);
+  }
+
+  // #if MICROBIT_CODAL
+  //   MicroBitPin speakerPin = uBit.io.speaker;
+  // #else // NOT MICROBIT_CODAL
+  //   MicroBitPin speakerPin = uBit.io.pin[0];
+  // #endif // NOT MICROBIT_CODAL
+  //   if (frequency <= 0 || volume == 0) {
+  //     speakerPin.setAnalogValue(0);
+  //   } else {
+  //     int v = 1 << (volume >> 5); // [2..14]
+  //     speakerPin.setAnalogValue(v);
+  //     speakerPin.setAnalogPeriodUs(1000000 / frequency);
+  //   }
+}
+
+/**
+ * @brief Stop playing tone.
+ * 
+ */
+void MbitMoreDevice::stopTone() {
+#if MICROBIT_CODAL
+  MicroBitPin speakerPin = uBit.io.speaker;
+#else // NOT MICROBIT_CODAL
+  MicroBitPin speakerPin = uBit.io.pin[0];
+#endif // NOT MICROBIT_CODAL
+  speakerPin.setAnalogValue(0);
 }
 
 #if MICROBIT_CODAL

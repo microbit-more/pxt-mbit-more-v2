@@ -207,6 +207,20 @@ public:
    */
   int sampleLigthLevel();
 
+  /**
+   * @brief Set PMW signal to the speaker pin for play tone.
+   * 
+   * @param frequency frequency of the tone[Hz]
+   * @param volume laudness of the sound [0..255]
+   */
+  void playTone(int frequency, int volume);
+
+  /**
+   * @brief Stop playing tone.
+   * 
+   */
+  void stopTone();
+
 #if MICROBIT_CODAL
   /**
    * @brief Return message ID for the label
@@ -306,7 +320,6 @@ private:
   void setDigitalValue(int pinIndex, int value);
   void setAnalogValue(int pinIndex, int value);
   void setServoValue(int pinIndex, int angle, int range, int center);
-  void setPinModeTouch(int pinIndex);
 
   void composeBasicData(uint8_t *buff);
 

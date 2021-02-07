@@ -19,7 +19,8 @@
     CMD_CONFIG = 0x00,
     CMD_PIN = 0x01,
     CMD_DISPLAY = 0x02,
-    CMD_MESSAGE = 0x03,
+    CMD_AUDIO = 0x03,
+    CMD_MESSAGE = 0x04,
     }
 
 
@@ -30,7 +31,6 @@
     SET_SERVO = 0x03,
     SET_PULL = 0x04,
     SET_EVENT = 0x05,
-    SET_TOUCH = 0x06,
     }
 
 
@@ -132,6 +132,18 @@
     {
     MIC = 0x01,
     TOUCH = 0x02,
+    }
+
+
+    /**
+     * @brief Enum for sub-commands about audio.
+     * 
+     */
+
+    declare const enum MbitMoreAudioCommand
+    {
+    STOP_TONE = 0x00,
+    PLAY_TONE = 0x01,
     }
 
 
