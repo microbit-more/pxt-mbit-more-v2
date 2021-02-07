@@ -210,10 +210,10 @@ public:
   /**
    * @brief Set PMW signal to the speaker pin for play tone.
    * 
-   * @param frequency frequency of the tone[Hz]
+   * @param period  PWM period (1000000 / frequency)[us]
    * @param volume laudness of the sound [0..255]
    */
-  void playTone(int frequency, int volume);
+  void playTone(int period, int volume);
 
   /**
    * @brief Stop playing tone.

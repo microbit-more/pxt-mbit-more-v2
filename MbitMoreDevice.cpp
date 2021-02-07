@@ -219,9 +219,9 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
   } else if (command == MbitMoreCommand::CMD_AUDIO) {
     int audioCommand = data[0] & 0b11111;
     if (audioCommand == MbitMoreAudioCommand::PLAY_TONE) {
-      uint16_t frequency;
-      memcpy(&frequency, &(data[1]), 2);
-      playTone(frequency, data[3]);
+      uint32_t period;
+      memcpy(&period, &(data[1]), 4);
+      playTone(period, data[5]);
     } else if (audioCommand == MbitMoreAudioCommand::STOP_TONE) {
       stopTone();
     }
@@ -751,36 +751,22 @@ int MbitMoreDevice::sampleLigthLevel() {
 /**
  * @brief Set PMW signal to the pin for play tone.
  * 
- * @param speakerPin pin to play
- * @param frequency frequency of the tone[Hz]
+ * @param period  PWM period (1000000 / frequency)[us]
  * @param volume laudness of the sound [0..255]
  */
-void MbitMoreDevice::playTone(int frequency, int volume) {
+void MbitMoreDevice::playTone(int period, int volume) {
 #if MICROBIT_CODAL
   MicroBitPin speakerPin = uBit.io.speaker;
-#else
+#else // NOT MICROBIT_CODAL
   MicroBitPin speakerPin = uBit.io.pin[0];
-#endif
-  if (frequency <= 0 || volume == 0) {
+#endif // NOT MICROBIT_CODAL
+  if (period <= 0 || volume == 0) {
     speakerPin.setAnalogValue(0);
   } else {
-    int v = 1 << (volume >> 5);
+    int v = 1 << (volume >> 5); // [2..14]
     speakerPin.setAnalogValue(v);
-    speakerPin.setAnalogPeriodUs(1000000 / frequency);
+    speakerPin.setAnalogPeriodUs(period);
   }
-
-  // #if MICROBIT_CODAL
-  //   MicroBitPin speakerPin = uBit.io.speaker;
-  // #else // NOT MICROBIT_CODAL
-  //   MicroBitPin speakerPin = uBit.io.pin[0];
-  // #endif // NOT MICROBIT_CODAL
-  //   if (frequency <= 0 || volume == 0) {
-  //     speakerPin.setAnalogValue(0);
-  //   } else {
-  //     int v = 1 << (volume >> 5); // [2..14]
-  //     speakerPin.setAnalogValue(v);
-  //     speakerPin.setAnalogPeriodUs(1000000 / frequency);
-  //   }
 }
 
 /**
