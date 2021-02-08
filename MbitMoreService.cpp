@@ -298,24 +298,6 @@ void MbitMoreService::sendMessageWithText(ManagedString messageLabel, ManagedStr
   mbitMore->sendMessageWithText(messageLabel, messageContent);
 }
 
-/**
- * @brief Whether the on-board microphon is in use.
- * 
- * @return true  when use
- * @return false when not use
- */
-bool MbitMoreService::isMicInUse() {
-  return mbitMore->isMicInUse();
-}
-
-/**
- * @brief Set sound loudness level.
- * 
- * @param level
- */
-void MbitMoreService::setSoundLevel(float level) {
-  mbitMore->setSoundLevel(level);
-}
 
 #endif // CONFIG_ENABLED(DEVICE_BLE)
 #endif // MICROBIT_CODAL

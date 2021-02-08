@@ -1,19 +1,5 @@
 #include "pxt.h"
 
-#if MICROBIT_CODAL
-#include "LevelDetector.h"
-#include "LevelDetectorSPL.h"
-#endif // MICROBIT_CODAL
-
-#define MICROPHONE_MIN 52.0f
-#define MICROPHONE_MAX 120.0f
-
-namespace pxt {
-#if MICROBIT_CODAL
-  codal::LevelDetectorSPL *getMicrophoneLevel();
-#endif // MICROBIT_CODAL
-} // namespace pxt
-
 #include "MicroBit.h"
 #include "MicroBitConfig.h"
 
@@ -33,28 +19,9 @@ using MbitMoreService = MbitMoreServiceDAL;
 namespace MbitMore {
   MbitMoreService *_pService = NULL;
 
-  int soundLevel() {
-#if MICROBIT_CODAL
-    auto level = pxt::getMicrophoneLevel();
-    if (NULL == level)
-      return 0;
-    const int micValue = level->getValue();
-    const int scaled = max(MICROPHONE_MIN, min(micValue, MICROPHONE_MAX)) - MICROPHONE_MIN;
-    return min(0xff, scaled * 0xff / (MICROPHONE_MAX - MICROPHONE_MIN));
-#else // NOT MICROBIT_CODAL
-    target_panic(PANIC_VARIANT_NOT_SUPPORTED);
-    return 0;
-#endif // NOT MICROBIT_CODAL
-  }
-
   void update() {
     while (NULL != _pService) {
       _pService->update();
-#if MICROBIT_CODAL
-      if (_pService->isMicInUse()) {
-        _pService->setSoundLevel(soundLevel());
-      }
-#endif // MICROBIT_CODAL
       fiber_sleep(UPDATE_PERIOD);
     }
   }

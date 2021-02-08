@@ -4,6 +4,34 @@
 #include "MicroBit.h"
 #include "MicroBitConfig.h"
 
+#if MICROBIT_CODAL
+#include "LevelDetector.h"
+#include "LevelDetectorSPL.h"
+#endif // MICROBIT_CODAL
+
+#define MICROPHONE_MIN 52.0f
+#define MICROPHONE_MAX 120.0f
+
+namespace pxt {
+#if MICROBIT_CODAL
+  codal::LevelDetectorSPL *getMicrophoneLevel();
+#endif // MICROBIT_CODAL
+} // namespace pxt
+
+int getMicLevel() {
+#if MICROBIT_CODAL
+  auto level = pxt::getMicrophoneLevel();
+  if (NULL == level)
+    return 0;
+  const int micValue = level->getValue();
+  const int scaled = max(MICROPHONE_MIN, min(micValue, MICROPHONE_MAX)) - MICROPHONE_MIN;
+  return min(0xff, scaled * 0xff / (MICROPHONE_MAX - MICROPHONE_MIN));
+#else // NOT MICROBIT_CODAL
+  target_panic(PANIC_VARIANT_NOT_SUPPORTED);
+  return 0;
+#endif // NOT MICROBIT_CODAL
+}
+
 /**
  * Class definition for the Scratch MicroBit More Service.
  * Provides a BLE service to remotely controll Micro:bit from Scratch3.
@@ -659,8 +687,9 @@ void MbitMoreDevice::updateState(uint8_t *data) {
   data[4] = sampleLigthLevel();
   data[5] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
 #if MICROBIT_CODAL
-  // data[6] = uBit.microphone.soundLevel(); // This is not implemented yet.
-  data[6] = soundLevel;
+  if (micInUse) {
+    data[6] = getMicLevel();
+  }
 #endif // MICROBIT_CODAL
 }
 
@@ -892,24 +921,6 @@ void MbitMoreDevice::sendMessageWithText(ManagedString messageLabel, ManagedStri
   moreService->notifyMessage();
 }
 
-/**
- * @brief Whether the on-board microphon is in use.
- * 
- * @return true  when use
- * @return false when not use
- */
-bool MbitMoreDevice::isMicInUse() {
-  return micInUse;
-}
-
-/**
-   * @brief Set sound loudness level.
-   * 
-   * @param level
-   */
-void MbitMoreDevice::setSoundLevel(float level) {
-  soundLevel = level;
-}
 #endif // MICROBIT_CODAL
 
 void MbitMoreDevice::displayFriendlyName() {
