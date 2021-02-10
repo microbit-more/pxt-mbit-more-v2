@@ -104,9 +104,10 @@ public:
    * @brief Register message label and retrun message ID.
    *
    * @param messageLabel
+   * @param messageType
    * @return int ID for the message label
    */
-  int registerWaitingMessage(ManagedString messageLabel);
+  int registerWaitingMessage(ManagedString messageLabel, MbitMoreMessageType messageType);
 
   /**
    * @brief Get type of content for the message ID

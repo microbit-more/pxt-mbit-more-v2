@@ -10,7 +10,7 @@
 
 #if MICROBIT_CODAL
 #include "MbitMoreService.h"
-#else // MICROBIT_CODAL
+#else // NOT MICROBIT_CODAL
 #include "MbitMoreServiceDAL.h"
 using MbitMoreService = MbitMoreServiceDAL;
 #endif // NOT MICROBIT_CODAL
@@ -18,6 +18,10 @@ using MbitMoreService = MbitMoreServiceDAL;
 //% color=#FF9900 weight=95 icon="\uf1b0"
 namespace MbitMore {
   MbitMoreService *_pService = NULL;
+#if MICROBIT_CODAL
+#else // NOT MICROBIT_CODAL
+  int dummyMessageID = 0;
+#endif // NOT MICROBIT_CODAL
 
   void update() {
     while (NULL != _pService) {
@@ -52,30 +56,15 @@ namespace MbitMore {
    * Events can have arguments before the handler
    */
   //%
-  int call_registerWaitingMessage(String messageLabel) {
+  int call_registerWaitingMessage(String messageLabel, MbitMoreMessageType messageType) {
 #if MICROBIT_CODAL
     if (NULL == _pService)
-      return 0;
+      startMbitMoreService();
 
-    int messageID = _pService->registerWaitingMessage(MSTR(messageLabel));
+    int messageID = _pService->registerWaitingMessage(MSTR(messageLabel), messageType);
     return messageID;
 #else // NOT MICROBIT_CODAL
-    return 0;
-#endif // NOT MICROBIT_CODAL
-  }
-
-  /**
-   * @brief Get type of value for the message ID
-   *
-   * @param messageID
-   * @return content type
-   */
-  //%
-  MbitMoreMessageType call_messageType(int messageID) {
-#if MICROBIT_CODAL
-    return _pService->messageType(messageID);
-#else // NOT MICROBIT_CODAL
-    return MbitMoreMessageType::MM_MSG_NUMBER;
+    return ++dummyMessageID; // dummy
 #endif // NOT MICROBIT_CODAL
   }
 
@@ -84,7 +73,7 @@ namespace MbitMore {
 #if MICROBIT_CODAL
     return _pService->messageContentAsNumber(messageID);
 #else // NOT MICROBIT_CODAL
-    return 0.0;
+    return 0.0; // dummy
 #endif // NOT MICROBIT_CODAL
   }
 
@@ -93,7 +82,7 @@ namespace MbitMore {
 #if MICROBIT_CODAL
     return PSTR(_pService->messageContentAsText(messageID));
 #else // NOT MICROBIT_CODAL
-    return String("");
+    return String(""); // dummy
 #endif // NOT MICROBIT_CODAL
   }
 

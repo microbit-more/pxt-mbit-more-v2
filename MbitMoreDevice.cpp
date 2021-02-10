@@ -9,28 +9,27 @@
 #include "LevelDetectorSPL.h"
 #endif // MICROBIT_CODAL
 
+#if MICROBIT_CODAL
 #define MICROPHONE_MIN 52.0f
 #define MICROPHONE_MAX 120.0f
-
-namespace pxt {
-#if MICROBIT_CODAL
-  codal::LevelDetectorSPL *getMicrophoneLevel();
 #endif // MICROBIT_CODAL
-} // namespace pxt
 
-int getMicLevel() {
 #if MICROBIT_CODAL
+namespace pxt {
+  codal::LevelDetectorSPL *getMicrophoneLevel();
+} // namespace pxt
+#endif // MICROBIT_CODAL
+
+#if MICROBIT_CODAL
+int getMicLevel() {
   auto level = pxt::getMicrophoneLevel();
   if (NULL == level)
     return 0;
   const int micValue = level->getValue();
   const int scaled = max(MICROPHONE_MIN, min(micValue, MICROPHONE_MAX)) - MICROPHONE_MIN;
   return min(0xff, scaled * 0xff / (MICROPHONE_MAX - MICROPHONE_MIN));
-#else // NOT MICROBIT_CODAL
-  target_panic(PANIC_VARIANT_NOT_SUPPORTED);
-  return 0;
-#endif // NOT MICROBIT_CODAL
 }
+#endif // MICROBIT_CODAL
 
 /**
  * Class definition for the Scratch MicroBit More Service.
@@ -133,7 +132,7 @@ MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
       this,
       &MbitMoreDevice::onButtonChanged,
       MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
-#endif // NOT MICROBIT_CODAL
+#endif // MICROBIT_CODAL
 
   uBit.messageBus.listen(
       MICROBIT_ID_GESTURE,
@@ -255,13 +254,13 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
     }
 #if MICROBIT_CODAL
   } else if (command == MbitMoreCommand::CMD_MESSAGE) {
-    int messageID = findWaitingMessageID((char *)(&data[1]));
-    if (messageID != MBIT_MORE_WAITING_MESSAGE_NOT_FOUND) {
-      receivedMessages[messageID].type = (MbitMoreMessageType)(data[0] & 0b11111);
+    MbitMoreMessageType messageType = (MbitMoreMessageType)(data[0] & 0b11111);
+    int index = findWaitingMessageIndex((char *)(&data[1]), messageType);
+    if (index != MBIT_MORE_WAITING_MESSAGE_NOT_FOUND) {
       int contentStart = 1 + MBIT_MORE_MESSAGE_LABEL_SIZE;
-      memset(receivedMessages[messageID].content, 0, MBIT_MORE_MESSAGE_CONTENT_SIZE);
-      memcpy(receivedMessages[messageID].content, &data[contentStart], length - contentStart);
-      MicroBitEvent evt(MBIT_MORE_MESSAGE, messageID);
+      memset(receivedMessages[index].content, 0, MBIT_MORE_MESSAGE_CONTENT_SIZE);
+      memcpy(receivedMessages[index].content, &data[contentStart], length - contentStart);
+      MicroBitEvent evt(MBIT_MORE_MESSAGE, index + 1);
     }
 #endif // MICROBIT_CODAL
   } else if (command == MbitMoreCommand::CMD_CONFIG) {
@@ -285,7 +284,7 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
 #if MICROBIT_CODAL
           uBit.io.pin[pinIndex].isTouched();
           // uBit.io.pin[pinIndex].isTouched(TouchMode::Capacitative); // does not work?
-#else // MICROBIT_CODAL
+#else // NOT MICROBIT_CODAL
           uBit.io.pin[pinIndex].isTouched();
 #endif // NOT MICROBIT_CODAL
         } else {
@@ -445,7 +444,7 @@ void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
   case MICROBIT_ID_LOGO:
     data[1] = MbitMoreButtonID::LOGO;
     break;
-#endif // NOT MICROBIT_CODAL
+#endif // MICROBIT_CODAL
 
   default:
     // send as an edge-pins
@@ -816,14 +815,19 @@ void MbitMoreDevice::stopTone() {
  * @brief Return message ID for the label
  * 
  * @param messageLabelChar message label
+ * @param messageType
  * @return int 
  */
-int MbitMoreDevice::findWaitingMessageID(const char *messageLabelChar) {
+int MbitMoreDevice::findWaitingMessageIndex(const char *messageLabelChar, MbitMoreMessageType messageType) {
   for (int i = 0; i < MBIT_MORE_WAITING_MESSAGE_LENGTH; i++) {
     if (receivedMessages[i].label[0] == 0)
       continue;
-    if (strncmp(receivedMessages[i].label, messageLabelChar, MBIT_MORE_MESSAGE_LABEL_SIZE)) {
-      return i;
+    if (receivedMessages[i].type == messageType) {
+      if (0 == strncmp(receivedMessages[i].label,
+                       messageLabelChar,
+                       MBIT_MORE_MESSAGE_LABEL_SIZE)) {
+        return i;
+      }
     }
   }
   return MBIT_MORE_WAITING_MESSAGE_NOT_FOUND;
@@ -833,24 +837,26 @@ int MbitMoreDevice::findWaitingMessageID(const char *messageLabelChar) {
  * @brief Register message label retrun message ID.
  *
  * @param messageLabel
- * @return int ID for the message label
+ * @param messageType
+ * @return int ID for the message label or return 0 if it was not registered.
  */
-int MbitMoreDevice::registerWaitingMessage(ManagedString messageLabel) {
-  int id = findWaitingMessageID(messageLabel.toCharArray());
-  if (id == MBIT_MORE_WAITING_MESSAGE_NOT_FOUND) {
+int MbitMoreDevice::registerWaitingMessage(ManagedString messageLabel, MbitMoreMessageType messageType) {
+  int index = findWaitingMessageIndex(messageLabel.toCharArray(), messageType);
+  if (index == MBIT_MORE_WAITING_MESSAGE_NOT_FOUND) {
     // find blank message ID and resister it
     for (int i = 0; i < MBIT_MORE_WAITING_MESSAGE_LENGTH; i++) {
       if (receivedMessages[i].label[0] == 0) {
-        id = i;
-        copyManagedString(
-            (char *)(receivedMessages[id].label),
-            messageLabel,
+        index = i;
+        receivedMessages[index].type = messageType;
+        strncpy(
+            receivedMessages[index].label,
+            messageLabel.toCharArray(),
             MBIT_MORE_MESSAGE_LABEL_SIZE);
-        break;
+        return index + 1; // It is used for event value and avoid ID is 0 (for accept any events).
       }
     }
   }
-  return id;
+  return 0;
 }
 
 /**
@@ -860,7 +866,7 @@ int MbitMoreDevice::registerWaitingMessage(ManagedString messageLabel) {
 * @return message type
 */
 MbitMoreMessageType MbitMoreDevice::messageType(int messageID) {
-  return receivedMessages[messageID].type;
+  return receivedMessages[messageID - 1].type;
 }
 
 /**
@@ -871,7 +877,7 @@ MbitMoreMessageType MbitMoreDevice::messageType(int messageID) {
  */
 float MbitMoreDevice::messageContentAsNumber(int messageID) {
   float content;
-  memcpy(&content, receivedMessages[messageID].content, 4);
+  memcpy(&content, receivedMessages[messageID - 1].content, 4);
   return content;
 }
 
@@ -882,7 +888,7 @@ float MbitMoreDevice::messageContentAsNumber(int messageID) {
  * @return content of the message
  */
 ManagedString MbitMoreDevice::messageContentAsText(int messageID) {
-  return ManagedString((char *)(receivedMessages[messageID].content));
+  return ManagedString((char *)(receivedMessages[messageID - 1].content));
 }
 
 /**

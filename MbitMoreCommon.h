@@ -9,9 +9,9 @@
 enum MbitMoreMessageType
 {
   //% block="number"
-  MM_MSG_NUMBER = 0,
+  MM_MSG_NUMBER = 1,
   //% block="text"
-  MM_MSG_TEXT = 1,
+  MM_MSG_TEXT = 2,
 };
 
 #define MM_CH_BUFFER_SIZE_MAX 20

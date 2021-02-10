@@ -242,10 +242,11 @@ void MbitMoreService::update() {
  * @brief Register message label and retrun message ID.
  *
  * @param messageLabel
+ * @param messageType
  * @return int ID for the message label
  */
-int MbitMoreService::registerWaitingMessage(ManagedString messageLabel) {
-  return mbitMore->registerWaitingMessage(messageLabel);
+int MbitMoreService::registerWaitingMessage(ManagedString messageLabel, MbitMoreMessageType messageType) {
+  return mbitMore->registerWaitingMessage(messageLabel, messageType);
 }
 
 /**

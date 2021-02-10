@@ -15,16 +15,7 @@ declare namespace MbitMore {
      * Events can have arguments before the handler
      */
     //% shim=MbitMore::call_registerWaitingMessage
-    function call_registerWaitingMessage(messageLabel: string): int32;
-
-    /**
-     * @brief Get type of value for the message ID
-     *
-     * @param messageID
-     * @return content type
-     */
-    //% shim=MbitMore::call_messageType
-    function call_messageType(messageID: int32): MbitMoreMessageType;
+    function call_registerWaitingMessage(messageLabel: string, messageType: MbitMoreMessageType): int32;
 
     /**
      * Send a labeled message with content in float.
