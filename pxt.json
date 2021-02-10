@@ -1,5 +1,5 @@
 {
-    "name": "pxt-mbit-more",
+    "name": "pxt-mbit-more-v2",
     "description": "",
     "dependencies": {
         "core": "*",
