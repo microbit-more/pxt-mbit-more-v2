@@ -300,6 +300,5 @@ void MbitMoreService::sendMessageWithText(ManagedString messageLabel, ManagedStr
   mbitMore->sendMessageWithText(messageLabel, messageContent);
 }
 
-
 #endif // CONFIG_ENABLED(DEVICE_BLE)
 #endif // MICROBIT_CODAL

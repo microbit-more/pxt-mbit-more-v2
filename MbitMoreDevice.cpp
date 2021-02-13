@@ -27,12 +27,6 @@ int getMicLevel() {
 #endif // MICROBIT_CODAL
 
 /**
- * Class definition for the Scratch MicroBit More Service.
- * Provides a BLE service to remotely controll Micro:bit from Scratch3.
- */
-#include "MbitMoreDevice.h"
-
-/**
  * @brief Compute average value for the int array.
  *
  * @param data Array to compute average.
@@ -87,6 +81,8 @@ void copyManagedString(char *dst, ManagedString mstr, size_t maxLength) {
  * Position of data format in a value holder.
  */
 #define MBIT_MORE_DATA_FORMAT_INDEX 19
+
+#include "MbitMoreDevice.h"
 
 /**
  * Constructor.
@@ -187,12 +183,22 @@ void MbitMoreDevice::updateVersionData() {
   data[1] = MbitMoreProtocol::MBIT_MORE_V2;
 }
 
+/**
+ * @brief Invoked when BLE connected.
+ * 
+ * @param _e event which has connection data
+ */
 void MbitMoreDevice::onBLEConnected(MicroBitEvent _e) {
   initializeConfig();
   uBit.display.stopAnimation(); // To stop display friendly name.
   uBit.display.print("M");
 }
 
+/**
+ * @brief Invoked when BLE disconnected.
+ * 
+ * @param _e event which has disconnection data
+ */
 void MbitMoreDevice::onBLEDisconnected(MicroBitEvent _e) {
   uBit.reset(); // reset to off microphone and its LED.
 }
@@ -331,318 +337,6 @@ void MbitMoreDevice::displayShadowPixels() {
       uBit.display.image.setPixelValue(x, y, shadowPixcels[y][x]);
     }
   }
-}
-
-/**
- * Make it listen events of the event type on the pin.
- * Remove listener if the event type is MICROBIT_PIN_EVENT_NONE.
- */
-void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
-  int componentID = pinIndex + 100; // conventional scheme to convert from pin
-                                    // index to componentID in v1 and v2.
-
-  if (eventType == MbitMorePinEventType::NONE) {
-    uBit.messageBus.ignore(
-        componentID,
-        MICROBIT_EVT_ANY,
-        this,
-        &MbitMoreDevice::onPinEvent);
-    uBit.messageBus.ignore(
-        componentID,
-        MICROBIT_EVT_ANY,
-        this,
-        &MbitMoreDevice::onButtonChanged);
-    uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_NONE);
-  } else {
-    if (eventType == MbitMorePinEventType::ON_EDGE) {
-      uBit.messageBus.listen(
-          componentID,
-          MICROBIT_EVT_ANY,
-          this,
-          &MbitMoreDevice::onPinEvent,
-          MESSAGE_BUS_LISTENER_DROP_IF_BUSY);
-      uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_EDGE);
-    } else if (eventType == MbitMorePinEventType::ON_PULSE) {
-      uBit.messageBus.listen(
-          componentID,
-          MICROBIT_EVT_ANY,
-          this,
-          &MbitMoreDevice::onPinEvent,
-          MESSAGE_BUS_LISTENER_DROP_IF_BUSY);
-      uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
-    } else if (eventType == MbitMorePinEventType::ON_TOUCH) {
-      uBit.messageBus.listen(
-          componentID,
-          MICROBIT_EVT_ANY,
-          this,
-          &MbitMoreDevice::onButtonChanged,
-          MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
-      uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_TOUCH);
-    }
-  }
-}
-
-/**
- * Callback. Invoked when a pin event sent.
- */
-void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
-  uint8_t *data = moreService->pinEventChBuffer;
-
-  // pinIndex is sent as uint8_t.
-  data[0] = evt.source - 100; // conventional scheme to convert from componentID
-                              // to pin index in v1 and v2.
-
-  // event ID is sent as uint8_t.
-  switch (evt.value) {
-  case MICROBIT_PIN_EVT_RISE:
-    data[1] = MbitMorePinEvent::RISE;
-    break;
-  case MICROBIT_PIN_EVT_FALL:
-    data[1] = MbitMorePinEvent::FALL;
-    break;
-  case MICROBIT_PIN_EVT_PULSE_HI:
-    data[1] = MbitMorePinEvent::PULSE_HIGH;
-    break;
-  case MICROBIT_PIN_EVT_PULSE_LO:
-    data[1] = MbitMorePinEvent::PULSE_LOW;
-    break;
-
-  default:
-    // send event whatever for dev.
-    data[1] = evt.value;
-    break;
-  }
-
-  // event timestamp is sent as uint32_t little-endian
-  // coerced from uint64_t value.
-  uint32_t timestamp = (uint32_t)evt.timestamp;
-  memcpy(&(data[2]), &timestamp, 4);
-  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::PIN_EVENT;
-  moreService->notifyPinEvent();
-}
-
-/**
- * Button update callback
- */
-void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
-  uint8_t *data = moreService->actionEventChBuffer;
-  data[0] = MbitMoreActionEvent::BUTTON;
-  // Component ID that generated the event.
-  switch (evt.source) {
-  case MICROBIT_ID_BUTTON_A:
-    data[1] = MbitMoreButtonID::A;
-    break;
-
-  case MICROBIT_ID_BUTTON_B:
-    data[1] = MbitMoreButtonID::B;
-    break;
-
-  case MICROBIT_ID_IO_P0:
-    data[1] = MbitMoreButtonID::P0;
-    break;
-
-  case MICROBIT_ID_IO_P1:
-    data[1] = MbitMoreButtonID::P1;
-    break;
-
-  case MICROBIT_ID_IO_P2:
-    data[1] = MbitMoreButtonID::P2;
-    break;
-
-#if MICROBIT_CODAL
-  case MICROBIT_ID_LOGO:
-    data[1] = MbitMoreButtonID::LOGO;
-    break;
-#endif // MICROBIT_CODAL
-
-  default:
-    // send as an edge-pins
-    data[1] = evt.source - 100;
-    break;
-  }
-  // Event ID.
-  switch (evt.value) {
-  case MICROBIT_BUTTON_EVT_DOWN:
-    data[2] = MbitMoreButtonEvent::DOWN;
-    break;
-
-  case MICROBIT_BUTTON_EVT_UP:
-    data[2] = MbitMoreButtonEvent::UP;
-    break;
-
-  case MICROBIT_BUTTON_EVT_CLICK:
-    data[2] = MbitMoreButtonEvent::CLICK;
-    break;
-
-  case MICROBIT_BUTTON_EVT_LONG_CLICK:
-    data[2] = MbitMoreButtonEvent::LONG_CLICK;
-    break;
-
-  case MICROBIT_BUTTON_EVT_HOLD:
-    data[2] = MbitMoreButtonEvent::HOLD;
-    break;
-
-  case MICROBIT_BUTTON_EVT_DOUBLE_CLICK:
-    data[2] = MbitMoreButtonEvent::DOUBLE_CLICK;
-    break;
-
-  default:
-    data[2] = evt.value;
-    break;
-  }
-  // Timestamp of the event.
-  memcpy(&(data[3]), &evt.timestamp, 4);
-  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
-  moreService->notifyActionEvent();
-}
-
-void MbitMoreDevice::onGestureChanged(MicroBitEvent evt) {
-  uint8_t *data = moreService->actionEventChBuffer;
-  data[0] = MbitMoreActionEvent::GESTURE;
-  switch (evt.value) {
-  case MICROBIT_ACCELEROMETER_EVT_TILT_UP:
-    data[1] = MbitMoreGestureEvent::TILT_UP;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_TILT_DOWN:
-    data[1] = MbitMoreGestureEvent::TILT_DOWN;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_TILT_LEFT:
-    data[1] = MbitMoreGestureEvent::TILT_LEFT;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_TILT_RIGHT:
-    data[1] = MbitMoreGestureEvent::TILT_RIGHT;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_FACE_UP:
-    data[1] = MbitMoreGestureEvent::FACE_UP;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_FACE_DOWN:
-    data[1] = MbitMoreGestureEvent::FACE_DOWN;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_FREEFALL:
-    data[1] = MbitMoreGestureEvent::FREEFALL;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_3G:
-    data[1] = MbitMoreGestureEvent::G3;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_6G:
-    data[1] = MbitMoreGestureEvent::G6;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_8G:
-    data[1] = MbitMoreGestureEvent::G8;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_SHAKE:
-    data[1] = MbitMoreGestureEvent::SHAKE;
-    break;
-
-  default:
-    data[1] = evt.value;
-    break;
-  }
-  // Timestamp of the event.
-  memcpy(&(data[2]), &evt.timestamp, 4);
-  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
-  moreService->notifyActionEvent();
-}
-
-/**
- * Normalize angle in upside down.
- */
-int MbitMoreDevice::normalizeCompassHeading(int heading) {
-  if (uBit.accelerometer.getZ() > 0) {
-    if (heading <= 180) {
-      heading = 180 - heading;
-    } else {
-      heading = 360 - (heading - 180);
-    }
-  }
-  return heading;
-}
-
-/**
- * Convert roll/pitch radians to Scratch extension value (-1000 to 1000).
- */
-int MbitMoreDevice::convertToTilt(float radians) {
-  float degrees = (360.0f * radians) / (2.0f * PI);
-  float tilt = degrees * 1.0f / 90.0f;
-  if (degrees > 0) {
-    if (tilt > 1.0f)
-      tilt = 2.0f - tilt;
-  } else {
-    if (tilt < -1.0f)
-      tilt = -2.0f - tilt;
-  }
-  return (int)(tilt * 1000.0f);
-}
-
-/**
- * @brief Set pull-mode.
- * 
- * @param pinIndex index to set
- * @param pull pull-mode to set
- */
-void MbitMoreDevice::setPullMode(int pinIndex, MbitMorePullMode pull) {
-  pullMode[pinIndex] = pull;
-#if MICROBIT_CODAL
-  switch (pull) {
-  case MbitMorePullMode::None:
-    uBit.io.pin[pinIndex].getDigitalValue(PullMode::None);
-    break;
-  case MbitMorePullMode::Up:
-    uBit.io.pin[pinIndex].getDigitalValue(PullMode::Up);
-    break;
-  case MbitMorePullMode::Down:
-    uBit.io.pin[pinIndex].getDigitalValue(PullMode::Down);
-    break;
-
-  default:
-    break;
-  }
-#else // NOT MICROBIT_CODAL
-  switch (pull) {
-  case MbitMorePullMode::None:
-    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullNone);
-    break;
-  case MbitMorePullMode::Up:
-    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullUp);
-    break;
-  case MbitMorePullMode::Down:
-    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullDown);
-    break;
-
-  default:
-    break;
-  }
-#endif // NOT MICROBIT_CODAL
-}
-
-void MbitMoreDevice::setDigitalValue(int pinIndex, int value) {
-  uBit.io.pin[pinIndex].setDigitalValue(value);
-}
-
-void MbitMoreDevice::setAnalogValue(int pinIndex, int value) {
-#if MICROBIT_CODAL
-  // stable level is 0 .. 1022 in micro:bit v2,
-  int validValue = value > 1022 ? 1022 : value;
-#else // NOT MICROBIT_CODAL
-  // stable level is 0 .. 1021 in micro:bit v1.5,
-  int validValue = value > 1021 ? 1021 : value;
-#endif // NOT MICROBIT_CODAL
-  uBit.io.pin[pinIndex].setAnalogValue(validValue);
-}
-
-void MbitMoreDevice::setServoValue(int pinIndex, int angle, int range,
-                                   int center) {
-  uBit.io.pin[pinIndex].setServoValue(angle, range, center);
 }
 
 /**
@@ -938,6 +632,340 @@ void MbitMoreDevice::sendMessageWithText(ManagedString messageLabel, ManagedStri
 
 #endif // MICROBIT_CODAL
 
+/**
+ * @brief Listen pin events on the pin.
+ * Make it listen events of the event type on the pin.
+ * Remove listener if the event type is MICROBIT_PIN_EVENT_NONE.
+ * 
+ * @param pinIndex index in edge pins
+ * @param eventType type of events
+ */
+void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
+  int componentID = pinIndex + 100; // conventional scheme to convert from pin
+                                    // index to componentID in v1 and v2.
+
+  if (eventType == MbitMorePinEventType::NONE) {
+    uBit.messageBus.ignore(
+        componentID,
+        MICROBIT_EVT_ANY,
+        this,
+        &MbitMoreDevice::onPinEvent);
+    uBit.messageBus.ignore(
+        componentID,
+        MICROBIT_EVT_ANY,
+        this,
+        &MbitMoreDevice::onButtonChanged);
+    uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_NONE);
+  } else {
+    if (eventType == MbitMorePinEventType::ON_EDGE) {
+      uBit.messageBus.listen(
+          componentID,
+          MICROBIT_EVT_ANY,
+          this,
+          &MbitMoreDevice::onPinEvent,
+          MESSAGE_BUS_LISTENER_DROP_IF_BUSY);
+      uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_EDGE);
+    } else if (eventType == MbitMorePinEventType::ON_PULSE) {
+      uBit.messageBus.listen(
+          componentID,
+          MICROBIT_EVT_ANY,
+          this,
+          &MbitMoreDevice::onPinEvent,
+          MESSAGE_BUS_LISTENER_DROP_IF_BUSY);
+      uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
+    } else if (eventType == MbitMorePinEventType::ON_TOUCH) {
+      uBit.messageBus.listen(
+          componentID,
+          MICROBIT_EVT_ANY,
+          this,
+          &MbitMoreDevice::onButtonChanged,
+          MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+      uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_TOUCH);
+    }
+  }
+}
+
+/**
+ * Callback. Invoked when a pin event sent.
+ */
+void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
+  uint8_t *data = moreService->pinEventChBuffer;
+
+  // pinIndex is sent as uint8_t.
+  data[0] = evt.source - 100; // conventional scheme to convert from componentID
+                              // to pin index in v1 and v2.
+
+  // event ID is sent as uint8_t.
+  switch (evt.value) {
+  case MICROBIT_PIN_EVT_RISE:
+    data[1] = MbitMorePinEvent::RISE;
+    break;
+  case MICROBIT_PIN_EVT_FALL:
+    data[1] = MbitMorePinEvent::FALL;
+    break;
+  case MICROBIT_PIN_EVT_PULSE_HI:
+    data[1] = MbitMorePinEvent::PULSE_HIGH;
+    break;
+  case MICROBIT_PIN_EVT_PULSE_LO:
+    data[1] = MbitMorePinEvent::PULSE_LOW;
+    break;
+
+  default:
+    // send event whatever for dev.
+    data[1] = evt.value;
+    break;
+  }
+
+  // event timestamp is sent as uint32_t little-endian
+  // coerced from uint64_t value.
+  uint32_t timestamp = (uint32_t)evt.timestamp;
+  memcpy(&(data[2]), &timestamp, 4);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::PIN_EVENT;
+  moreService->notifyPinEvent();
+}
+
+/**
+ * @brief Invoked when button state changed.
+ * 
+ * @param evt event which has button states
+ */
+void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
+  uint8_t *data = moreService->actionEventChBuffer;
+  data[0] = MbitMoreActionEvent::BUTTON;
+  // Component ID that generated the event.
+  switch (evt.source) {
+  case MICROBIT_ID_BUTTON_A:
+    data[1] = MbitMoreButtonID::A;
+    break;
+
+  case MICROBIT_ID_BUTTON_B:
+    data[1] = MbitMoreButtonID::B;
+    break;
+
+  case MICROBIT_ID_IO_P0:
+    data[1] = MbitMoreButtonID::P0;
+    break;
+
+  case MICROBIT_ID_IO_P1:
+    data[1] = MbitMoreButtonID::P1;
+    break;
+
+  case MICROBIT_ID_IO_P2:
+    data[1] = MbitMoreButtonID::P2;
+    break;
+
+#if MICROBIT_CODAL
+  case MICROBIT_ID_LOGO:
+    data[1] = MbitMoreButtonID::LOGO;
+    break;
+#endif // MICROBIT_CODAL
+
+  default:
+    // send as an edge-pins
+    data[1] = evt.source - 100;
+    break;
+  }
+  // Event ID.
+  switch (evt.value) {
+  case MICROBIT_BUTTON_EVT_DOWN:
+    data[2] = MbitMoreButtonEvent::DOWN;
+    break;
+
+  case MICROBIT_BUTTON_EVT_UP:
+    data[2] = MbitMoreButtonEvent::UP;
+    break;
+
+  case MICROBIT_BUTTON_EVT_CLICK:
+    data[2] = MbitMoreButtonEvent::CLICK;
+    break;
+
+  case MICROBIT_BUTTON_EVT_LONG_CLICK:
+    data[2] = MbitMoreButtonEvent::LONG_CLICK;
+    break;
+
+  case MICROBIT_BUTTON_EVT_HOLD:
+    data[2] = MbitMoreButtonEvent::HOLD;
+    break;
+
+  case MICROBIT_BUTTON_EVT_DOUBLE_CLICK:
+    data[2] = MbitMoreButtonEvent::DOUBLE_CLICK;
+    break;
+
+  default:
+    data[2] = evt.value;
+    break;
+  }
+  // Timestamp of the event.
+  memcpy(&(data[3]), &evt.timestamp, 4);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
+  moreService->notifyActionEvent();
+}
+
+/**
+ * @brief Invoked when gesture state changed.
+ * 
+ * @param evt event which has gesture states.
+ */
+void MbitMoreDevice::onGestureChanged(MicroBitEvent evt) {
+  uint8_t *data = moreService->actionEventChBuffer;
+  data[0] = MbitMoreActionEvent::GESTURE;
+  switch (evt.value) {
+  case MICROBIT_ACCELEROMETER_EVT_TILT_UP:
+    data[1] = MbitMoreGestureEvent::TILT_UP;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_TILT_DOWN:
+    data[1] = MbitMoreGestureEvent::TILT_DOWN;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_TILT_LEFT:
+    data[1] = MbitMoreGestureEvent::TILT_LEFT;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_TILT_RIGHT:
+    data[1] = MbitMoreGestureEvent::TILT_RIGHT;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_FACE_UP:
+    data[1] = MbitMoreGestureEvent::FACE_UP;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_FACE_DOWN:
+    data[1] = MbitMoreGestureEvent::FACE_DOWN;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_FREEFALL:
+    data[1] = MbitMoreGestureEvent::FREEFALL;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_3G:
+    data[1] = MbitMoreGestureEvent::G3;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_6G:
+    data[1] = MbitMoreGestureEvent::G6;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_8G:
+    data[1] = MbitMoreGestureEvent::G8;
+    break;
+
+  case MICROBIT_ACCELEROMETER_EVT_SHAKE:
+    data[1] = MbitMoreGestureEvent::SHAKE;
+    break;
+
+  default:
+    data[1] = evt.value;
+    break;
+  }
+  // Timestamp of the event.
+  memcpy(&(data[2]), &evt.timestamp, 4);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
+  moreService->notifyActionEvent();
+}
+
+/**
+ * @brief Normalize angle when upside down.
+ * 
+ * @param heading value of the compass heading
+ * @return normalizes angle relative to north [degree]
+ */
+int MbitMoreDevice::normalizeCompassHeading(int heading) {
+  if (uBit.accelerometer.getZ() > 0) {
+    if (heading <= 180) {
+      heading = 180 - heading;
+    } else {
+      heading = 360 - (heading - 180);
+    }
+  }
+  return heading;
+}
+
+/**
+ * @brief Set pull-mode.
+ * 
+ * @param pinIndex index to set
+ * @param pull pull-mode to set
+ */
+void MbitMoreDevice::setPullMode(int pinIndex, MbitMorePullMode pull) {
+  pullMode[pinIndex] = pull;
+#if MICROBIT_CODAL
+  switch (pull) {
+  case MbitMorePullMode::None:
+    uBit.io.pin[pinIndex].getDigitalValue(PullMode::None);
+    break;
+  case MbitMorePullMode::Up:
+    uBit.io.pin[pinIndex].getDigitalValue(PullMode::Up);
+    break;
+  case MbitMorePullMode::Down:
+    uBit.io.pin[pinIndex].getDigitalValue(PullMode::Down);
+    break;
+
+  default:
+    break;
+  }
+#else // NOT MICROBIT_CODAL
+  switch (pull) {
+  case MbitMorePullMode::None:
+    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullNone);
+    break;
+  case MbitMorePullMode::Up:
+    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullUp);
+    break;
+  case MbitMorePullMode::Down:
+    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullDown);
+    break;
+
+  default:
+    break;
+  }
+#endif // NOT MICROBIT_CODAL
+}
+
+/**
+ * @brief Set the value on the pin as digital output.
+ * 
+ * @param pinIndex index in edge pins
+ * @param value digital value [0 | 1]
+ */
+void MbitMoreDevice::setDigitalValue(int pinIndex, int value) {
+  uBit.io.pin[pinIndex].setDigitalValue(value);
+}
+
+/**
+ * @brief Set the value on the pin as analog output (PWM).
+ * 
+ * @param pinIndex index in edge pins
+ * @param value analog value (0..1024)
+ */
+void MbitMoreDevice::setAnalogValue(int pinIndex, int value) {
+#if MICROBIT_CODAL
+  // stable level is 0 .. 1022 in micro:bit v2,
+  int validValue = value > 1022 ? 1022 : value;
+#else // NOT MICROBIT_CODAL
+  // stable level is 0 .. 1021 in micro:bit v1.5,
+  int validValue = value > 1021 ? 1021 : value;
+#endif // NOT MICROBIT_CODAL
+  uBit.io.pin[pinIndex].setAnalogValue(validValue);
+}
+
+/**
+ * @brief Set the value on the pin as servo driver.
+ * 
+ * @param pinIndex index in edge pins
+ * @param angle the level to set on the output pin, in the range 0 - 180.
+ * @param range which gives the span of possible values the i.e. the lower and upper bounds (center +/- range/2). Defaults to DEVICE_PIN_DEFAULT_SERVO_RANGE.
+ * @param center the center point from which to calculate the lower and upper bounds. Defaults to DEVICE_PIN_DEFAULT_SERVO_CENTER
+ */
+void MbitMoreDevice::setServoValue(int pinIndex, int angle, int range,
+                                   int center) {
+  uBit.io.pin[pinIndex].setServoValue(angle, range, center);
+}
+
+/**
+ * @brief Display friendly name of the micro:bit.
+ * 
+ */
 void MbitMoreDevice::displayFriendlyName() {
   ManagedString version(" -M 0.6.0- ");
   uBit.display.scrollAsync(ManagedString(microbit_friendly_name()) + version,

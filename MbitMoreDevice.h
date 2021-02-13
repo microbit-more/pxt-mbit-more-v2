@@ -67,8 +67,8 @@ enum MbitMoreProtocol
 };
 
 /**
- * Class definition for the Scratch basic Service.
- * Provides a BLE service for default extension of micro:bit in Scratch3.
+ * Class definition for main logics of Micribit More Service except bluetooth connectivity.
+ *
  */
 class MbitMoreDevice {
 private:
@@ -86,16 +86,26 @@ private:
   ~MbitMoreDevice();
 
 public:
+  // setup the class as singleton
   MbitMoreDevice(const MbitMoreDevice &) = delete;
   MbitMoreDevice &operator=(const MbitMoreDevice &) = delete;
   MbitMoreDevice(MbitMoreDevice &&) = delete;
   MbitMoreDevice &operator=(MbitMoreDevice &&) = delete;
 
+  /**
+   * @brief Get the Instance object as singleton
+   * 
+   * @return MbitMoreDevice& 
+   */
   static MbitMoreDevice &getInstance() {
     static MbitMoreDevice instance(pxt::uBit);
     return instance;
   }
 
+  /**
+   * @brief Microbit runtime
+   * 
+   */
   MicroBit &uBit;
 
   /**
@@ -112,7 +122,16 @@ public:
 
   // ---------------------
 
+  /**
+   * @brief Index of controllabel GPIO pins.
+   * 
+   */
   int gpioPin[9] = {0, 1, 2, 8, 12, 13, 14, 15, 16};
+
+  /**
+   * @brief Pins which is pull-up at connected.
+   * 
+   */
   int initialPullUp[3] = {0, 1, 2};
 
   /**
@@ -134,7 +153,7 @@ public:
 
 #if MICROBIT_CODAL
   /**
-   * @brief Message in MbitMore
+   * @brief Structure of messages in MbitMore.
    * 
    */
   typedef struct {
@@ -143,6 +162,10 @@ public:
     uint8_t content[MBIT_MORE_MESSAGE_CONTENT_SIZE + 1]; /** content of the message */
   } MbitMoreMessage;
 
+  /**
+   * @brief Received message data store from Scratch.
+   * 
+   */
   MbitMoreMessage receivedMessages[MBIT_MORE_WAITING_MESSAGE_LENGTH] = {{{0}}};
 #endif // MICROBIT_CODAL
 
@@ -152,7 +175,16 @@ public:
   int analogInSamples[3][ANALOG_IN_SAMPLES_SIZE] = {{0}};
 
 #if MICROBIT_CODAL
+  /**
+   * @brief On-board microphone is in use or not.
+   * 
+   */
   bool micInUse = false;
+
+  /**
+   * @brief Laudness on the microphone.
+   * 
+   */
   float soundLevel = 0.0;
 #endif // MICROBIT_CODAL
 
@@ -177,6 +209,20 @@ public:
    * 
    */
   void updateVersionData();
+
+  /**
+   * @brief Invoked when BLE connected.
+   * 
+   * @param _e event which has connection data
+   */
+  void onBLEConnected(MicroBitEvent _e);
+
+  /**
+   * @brief Invoked when BLE disconnected.
+   * 
+   * @param _e event which has disconnection data
+   */
+  void onBLEDisconnected(MicroBitEvent _e);
 
   /**
    * @brief Call when a command was received.
@@ -312,18 +358,26 @@ public:
 
 #endif // MICROBIT_CODAL
 
-  void onBLEConnected(MicroBitEvent _e);
-
-  void onBLEDisconnected(MicroBitEvent _e);
-
   /**
    * Callback. Invoked when a pin event sent.
    */
   void onPinEvent(MicroBitEvent evt);
 
+  /**
+   * @brief Display friendly name of the micro:bit.
+   * 
+   */
   void displayFriendlyName();
 
 private:
+  /**
+   * @brief Listen pin events on the pin.
+   * Make it listen events of the event type on the pin.
+   * Remove listener if the event type is MICROBIT_PIN_EVENT_NONE.
+   * 
+   * @param pinIndex index in edge pins
+   * @param eventType type of events
+   */
   void listenPinEventOn(int pinIndex, int eventType);
 
   /**
@@ -334,17 +388,53 @@ private:
    */
   void setPullMode(int pinIndex, MbitMorePullMode pull);
 
+  /**
+   * @brief Set the value on the pin as digital output.
+   * 
+   * @param pinIndex index in edge pins
+   * @param value digital value [0 | 1]
+   */
   void setDigitalValue(int pinIndex, int value);
+
+  /**
+   * @brief Set the value on the pin as analog output (PWM).
+   * 
+   * @param pinIndex index in edge pins
+   * @param value analog value (0..1024)
+   */
   void setAnalogValue(int pinIndex, int value);
+
+  /**
+   * @brief Set the value on the pin as servo driver.
+   * 
+   * @param pinIndex index in edge pins
+   * @param angle the level to set on the output pin, in the range 0 - 180.
+   * @param range which gives the span of possible values the i.e. the lower and upper bounds (center +/- range/2). Defaults to DEVICE_PIN_DEFAULT_SERVO_RANGE.
+   * @param center the center point from which to calculate the lower and upper bounds. Defaults to DEVICE_PIN_DEFAULT_SERVO_CENTER
+   */
   void setServoValue(int pinIndex, int angle, int range, int center);
 
-  void composeBasicData(uint8_t *buff);
+  /**
+   * @brief Invoked when button state changed.
+   * 
+   * @param evt event which has button states
+   */
+  void onButtonChanged(MicroBitEvent evt);
 
-  void onButtonChanged(MicroBitEvent);
-  void onGestureChanged(MicroBitEvent);
+  /**
+   * @brief Invoked when gesture state changed.
+   * 
+   * @param evt event which has gesture states.
+   */
+  void onGestureChanged(MicroBitEvent evt);
 
+  /**
+   * @brief Normalize angle when upside down.
+   * 
+   * @param heading value of the compass heading
+   * @return normalizes angle relative to north [degree]
+   */
   int normalizeCompassHeading(int heading);
-  int convertToTilt(float radians);
 };
 
 #endif // MBIT_MORE_DEVICE_H
