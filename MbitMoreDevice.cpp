@@ -5,22 +5,17 @@
 #include "MicroBitConfig.h"
 
 #if MICROBIT_CODAL
+// microphone sound level
 #include "LevelDetector.h"
 #include "LevelDetectorSPL.h"
-#endif // MICROBIT_CODAL
 
-#if MICROBIT_CODAL
 #define MICROPHONE_MIN 52.0f
 #define MICROPHONE_MAX 120.0f
-#endif // MICROBIT_CODAL
 
-#if MICROBIT_CODAL
 namespace pxt {
   codal::LevelDetectorSPL *getMicrophoneLevel();
 } // namespace pxt
-#endif // MICROBIT_CODAL
 
-#if MICROBIT_CODAL
 int getMicLevel() {
   auto level = pxt::getMicrophoneLevel();
   if (NULL == level)
