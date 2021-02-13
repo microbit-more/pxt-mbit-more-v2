@@ -50,9 +50,9 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
       mbitmore_cIdx_COMMAND,
       charUUID[mbitmore_cIdx_COMMAND],
       (uint8_t *)(commandChBuffer),
-      0,
       MM_CH_BUFFER_SIZE_MAX,
-      microbit_propWRITE | microbit_propWRITE_WITHOUT);
+      MM_CH_BUFFER_SIZE_MAX,
+      microbit_propWRITE | microbit_propWRITE_WITHOUT | microbit_propREAD);
 
   CreateCharacteristic(
       mbitmore_cIdx_STATE,
@@ -147,6 +147,7 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
  * Invoked when BLE connects.
  */
 void MbitMoreService::onConnect(const microbit_ble_evt_t *p_ble_evt) {
+  mbitMore->updateVersionData();
 }
 
 /**

@@ -26,6 +26,11 @@ public:
    */
   MbitMoreServiceDAL();
 
+  /**
+   * Invoked when BLE connected.
+   */
+  void onBLEConnected(MicroBitEvent _e);
+
   void notify();
 
   /**

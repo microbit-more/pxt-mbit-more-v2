@@ -48,6 +48,25 @@ enum MbitMoreButtonID
 };
 
 /**
+ * @brief Version of this micro:bit
+ * 
+ */
+enum MbitMoreHardwareVersion
+{
+  MICROBIT_V1 = 1,
+  MICROBIT_V2 = 2,
+};
+
+/**
+ * @brief Version of protocol to use
+ * 
+ */
+enum MbitMoreProtocol
+{
+  MBIT_MORE_V2 = 2,
+};
+
+/**
  * Class definition for the Scratch basic Service.
  * Provides a BLE service for default extension of micro:bit in Scratch3.
  */
@@ -152,6 +171,12 @@ public:
    *
    */
   void initializeConfig();
+
+  /**
+   * @brief Update version data on the charactaristic.
+   * 
+   */
+  void updateVersionData();
 
   /**
    * @brief Call when a command was received.

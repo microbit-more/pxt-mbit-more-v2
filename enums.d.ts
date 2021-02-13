@@ -163,6 +163,29 @@
     B = 28,
     LOGO = 29,
     }
+
+
+    /**
+     * @brief Version of this micro:bit
+     * 
+     */
+
+    declare const enum MbitMoreHardwareVersion
+    {
+    MICROBIT_V1 = 1,
+    MICROBIT_V2 = 2,
+    }
+
+
+    /**
+     * @brief Version of protocol to use
+     * 
+     */
+
+    declare const enum MbitMoreProtocol
+    {
+    MBIT_MORE_V2 = 2,
+    }
 declare namespace MbitMore {
 }
 

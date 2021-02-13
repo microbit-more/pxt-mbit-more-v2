@@ -171,12 +171,26 @@ void MbitMoreDevice::initializeConfig() {
   for (size_t i = 0; i < (sizeof(initialPullUp) / sizeof(initialPullUp[0])); i++) {
     setPullMode(initialPullUp[i], MbitMorePullMode::Up);
   }
-  uBit.display.stopAnimation(); // To stop display friendly name.
-  uBit.display.print("M");
+}
+
+/**
+ * @brief Update version data on the charactaristic.
+ * 
+ */
+void MbitMoreDevice::updateVersionData() {
+  uint8_t *data = moreService->commandChBuffer;
+#if MICROBIT_CODAL
+  data[0] = MbitMoreHardwareVersion::MICROBIT_V2;
+#else // NOT MICROBIT_CODAL
+  data[0] = MbitMoreHardwareVersion::MICROBIT_V1;
+#endif // NOT MICROBIT_CODAL
+  data[1] = MbitMoreProtocol::MBIT_MORE_V2;
 }
 
 void MbitMoreDevice::onBLEConnected(MicroBitEvent _e) {
   initializeConfig();
+  uBit.display.stopAnimation(); // To stop display friendly name.
+  uBit.display.print("M");
 }
 
 void MbitMoreDevice::onBLEDisconnected(MicroBitEvent _e) {

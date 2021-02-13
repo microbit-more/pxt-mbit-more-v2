@@ -44,9 +44,9 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
   mbitMore->moreService = this;
 
   commandCh = new GattCharacteristic(
-      MBIT_MORE_CH_COMMAND, commandChBuffer, 0, MM_CH_BUFFER_SIZE_MAX,
+      MBIT_MORE_CH_COMMAND, commandChBuffer, MM_CH_BUFFER_SIZE_MAX, MM_CH_BUFFER_SIZE_MAX,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE |
-          GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
+          GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
   commandCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
 
   stateCh = new GattCharacteristic(
@@ -118,6 +118,13 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
       analogInP2Ch,
   };
 
+  uBit.messageBus.listen(
+      MICROBIT_ID_BLE,
+      MICROBIT_BLE_EVT_CONNECTED,
+      this,
+      &MbitMoreServiceDAL::onBLEConnected,
+      MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+
   GattService mbitMoreService(MBIT_MORE_SERVICE, mbitMoreChs,
                               sizeof(mbitMoreChs) /
                                   sizeof(GattCharacteristic *));
@@ -125,7 +132,15 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
 
   // Setup callbacks for events.
   uBit.ble->onDataWritten(this, &MbitMoreServiceDAL::onDataWritten);
+}
 
+/**
+   * Invoked when BLE connected.
+   */
+void MbitMoreServiceDAL::onBLEConnected(MicroBitEvent _e) {
+  mbitMore->updateVersionData();
+  uBit.ble->gattServer().write(commandCh->getValueHandle(), commandChBuffer,
+                               MM_CH_BUFFER_SIZE_MAX);
 }
 
 /**
