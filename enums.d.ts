@@ -148,8 +148,14 @@
     }
 
 
+    /**
+     * @brief Button ID in MicrobitMore
+     * This number is used to memory offset in state data.
+     */
+
     declare const enum MbitMoreButtonID
     {
+    // GPIO array using [0..20]
     P0 = 24,
     P1 = 25,
     P2 = 26,

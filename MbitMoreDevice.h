@@ -32,14 +32,19 @@ using MbitMoreService = MbitMoreServiceDAL;
 #define MBIT_MORE_MESSAGE_CONTENT_SIZE 11
 #endif // MICROBIT_CODAL
 
+/**
+ * @brief Button ID in MicrobitMore
+ * This number is used to memory offset in state data.
+ */
 enum MbitMoreButtonID
 {
+  // GPIO array using [0..20]
   P0 = 24,
   P1 = 25,
   P2 = 26,
   A = 27,
   B = 28,
-  LOGO = 29, // Pin number of logo is not corresponded with micro:bit pin assign.
+  LOGO = 29,
 };
 
 /**
