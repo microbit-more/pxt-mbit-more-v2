@@ -895,13 +895,13 @@ void MbitMoreDevice::setPullMode(int pinIndex, MbitMorePullMode pull) {
 #if MICROBIT_CODAL
   switch (pull) {
   case MbitMorePullMode::None:
-    uBit.io.pin[pinIndex].getDigitalValue(PullMode::None);
+    uBit.io.pin[pinIndex].setPull(PullMode::None);
     break;
   case MbitMorePullMode::Up:
-    uBit.io.pin[pinIndex].getDigitalValue(PullMode::Up);
+    uBit.io.pin[pinIndex].setPull(PullMode::Up);
     break;
   case MbitMorePullMode::Down:
-    uBit.io.pin[pinIndex].getDigitalValue(PullMode::Down);
+    uBit.io.pin[pinIndex].setPull(PullMode::Down);
     break;
 
   default:
@@ -910,13 +910,13 @@ void MbitMoreDevice::setPullMode(int pinIndex, MbitMorePullMode pull) {
 #else // NOT MICROBIT_CODAL
   switch (pull) {
   case MbitMorePullMode::None:
-    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullNone);
+    uBit.io.pin[pinIndex].setPull(PinMode::PullNone);
     break;
   case MbitMorePullMode::Up:
-    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullUp);
+    uBit.io.pin[pinIndex].setPull(PinMode::PullUp);
     break;
   case MbitMorePullMode::Down:
-    uBit.io.pin[pinIndex].getDigitalValue(PinMode::PullDown);
+    uBit.io.pin[pinIndex].setPull(PinMode::PullDown);
     break;
 
   default:
