@@ -49,7 +49,7 @@ namespace MbitMore {
     _pService = new MbitMoreService();
 
     create_fiber(update);
-    create_fiber(notifyScratch);
+    // create_fiber(notifyScratch);
   }
 
   /**
