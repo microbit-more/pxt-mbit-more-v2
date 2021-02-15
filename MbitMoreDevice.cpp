@@ -189,6 +189,9 @@ void MbitMoreDevice::updateVersionData() {
  * @param _e event which has connection data
  */
 void MbitMoreDevice::onBLEConnected(MicroBitEvent _e) {
+#if MICROBIT_CODAL
+  fiber_sleep(100); // to change pull-mode in micro:bit v2
+#endif // MICROBIT_CODAL
   initializeConfig();
   uBit.display.stopAnimation(); // To stop display friendly name.
   uBit.display.print("M");
