@@ -1,5 +1,4 @@
 {
-    "editor.formatOnType": true,
     "files.autoSave": "afterDelay",
     "files.watcherExclude": {
         "**/.git/objects/**": true,
@@ -9,11 +8,15 @@
         "**/yotta_targets": true,
         "**/pxt_modules/**": true
     },
+    "files.exclude": {
+        "**/.history": true
+    },
     "files.associations": {
         "*.blocks": "html",
         "*.jres": "json"
     },
     "search.exclude": {
+        "**/.history": true,
         "**/built": true,
         "**/node_modules": true,
         "**/yotta_modules": true,

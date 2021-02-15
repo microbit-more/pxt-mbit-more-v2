@@ -1,3 +1,1 @@
-basic.forever(function () {
-	
-})
+MbitMore.startService()
