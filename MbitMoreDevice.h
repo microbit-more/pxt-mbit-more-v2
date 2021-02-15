@@ -435,6 +435,15 @@ private:
    * @return normalizes angle relative to north [degree]
    */
   int normalizeCompassHeading(int heading);
+
+  /**
+   * @brief Whether the pin is a GPIO of not.
+   * 
+   * @param pinIndex index in edge pins
+   * @return true the pin is a GPIO
+   * @return false the pin is not a GPIO
+   */
+  bool isGpio(int pinIndex);
 };
 
 #endif // MBIT_MORE_DEVICE_H

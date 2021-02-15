@@ -644,47 +644,74 @@ void MbitMoreDevice::sendMessageWithText(ManagedString messageLabel, ManagedStri
  * @param eventType type of events
  */
 void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
+  if (!isGpio(pinIndex)) {
+    return;
+  }
   int componentID = pinIndex + 100; // conventional scheme to convert from pin
                                     // index to componentID in v1 and v2.
+  uBit.messageBus.ignore(
+      componentID,
+      MICROBIT_PIN_EVT_RISE,
+      this,
+      &MbitMoreDevice::onPinEvent);
+  uBit.messageBus.ignore(
+      componentID,
+      MICROBIT_PIN_EVT_FALL,
+      this,
+      &MbitMoreDevice::onPinEvent);
+  uBit.messageBus.ignore(
+      componentID,
+      MICROBIT_PIN_EVT_PULSE_HI,
+      this,
+      &MbitMoreDevice::onPinEvent);
+  uBit.messageBus.ignore(
+      componentID,
+      MICROBIT_PIN_EVT_PULSE_LO,
+      this,
+      &MbitMoreDevice::onPinEvent);
 
-  if (eventType == MbitMorePinEventType::NONE) {
-    uBit.messageBus.ignore(
+  if (eventType == MbitMorePinEventType::ON_EDGE) {
+    uBit.messageBus.listen(
         componentID,
-        MICROBIT_EVT_ANY,
+        MICROBIT_PIN_EVT_RISE,
         this,
-        &MbitMoreDevice::onPinEvent);
-    uBit.messageBus.ignore(
+        &MbitMoreDevice::onPinEvent,
+        MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+    uBit.messageBus.listen(
         componentID,
-        MICROBIT_EVT_ANY,
+        MICROBIT_PIN_EVT_FALL,
         this,
-        &MbitMoreDevice::onButtonChanged);
+        &MbitMoreDevice::onPinEvent,
+        MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+    uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_EDGE);
+  } else if (eventType == MbitMorePinEventType::ON_PULSE) {
+    uBit.messageBus.listen(
+        componentID,
+        MICROBIT_PIN_EVT_PULSE_HI,
+        this,
+        &MbitMoreDevice::onPinEvent,
+        MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+    uBit.messageBus.listen(
+        componentID,
+        MICROBIT_PIN_EVT_PULSE_LO,
+        this,
+        &MbitMoreDevice::onPinEvent,
+        MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+#if MICROBIT_CODAL
+    // ?? Freeze BLE when onEvent(PULSE) first time. ??
+    uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_NONE); // workaround to prevent to freeze BLE
+    uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
+    // ?? Pull-mode is released and will not be reset in this thread. ??
+    setPullMode(pinIndex, pullMode[pinIndex]); // does not work?
+#else // NOT MICROBIT_CODAL
+    uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
+#endif // NOT MICROBIT_CODAL
+  } else if (eventType == MbitMorePinEventType::NONE) {
     uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_NONE);
-  } else {
-    if (eventType == MbitMorePinEventType::ON_EDGE) {
-      uBit.messageBus.listen(
-          componentID,
-          MICROBIT_EVT_ANY,
-          this,
-          &MbitMoreDevice::onPinEvent,
-          MESSAGE_BUS_LISTENER_DROP_IF_BUSY);
-      uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_EDGE);
-    } else if (eventType == MbitMorePinEventType::ON_PULSE) {
-      uBit.messageBus.listen(
-          componentID,
-          MICROBIT_EVT_ANY,
-          this,
-          &MbitMoreDevice::onPinEvent,
-          MESSAGE_BUS_LISTENER_DROP_IF_BUSY);
-      uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
-    } else if (eventType == MbitMorePinEventType::ON_TOUCH) {
-      uBit.messageBus.listen(
-          componentID,
-          MICROBIT_EVT_ANY,
-          this,
-          &MbitMoreDevice::onButtonChanged,
-          MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
-      uBit.io.pin[pinIndex].eventOn(MICROBIT_PIN_EVENT_ON_TOUCH);
-    }
+#if MICROBIT_CODAL
+    // ?? Pull-mode is released and will not be reset in this thread. ??
+    setPullMode(pinIndex, pullMode[pinIndex]); // does not work?
+#endif // MICROBIT_CODAL
   }
 }
 
@@ -714,8 +741,8 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
     break;
 
   default:
-    // send event whatever for dev.
-    data[1] = evt.value;
+    return;
+    // data[1] = evt.value; // send event whatever for dev.
     break;
   }
 
@@ -973,4 +1000,19 @@ void MbitMoreDevice::displayFriendlyName() {
   ManagedString version(" -M 0.6.0- ");
   uBit.display.scrollAsync(ManagedString(microbit_friendly_name()) + version,
                            120);
+}
+
+/**
+ * @brief Whether the pin is a GPIO of not.
+ * 
+ * @param pinIndex index in edge pins
+ * @return true the pin is a GPIO
+ * @return false the pin is not a GPIO
+ */
+bool MbitMoreDevice::isGpio(int pinIndex) {
+  for (size_t i = 0; i < (sizeof(gpioPin) / sizeof(gpioPin[0])); i++) {
+    if (pinIndex == gpioPin[i])
+      return true;
+  }
+  return false;
 }
