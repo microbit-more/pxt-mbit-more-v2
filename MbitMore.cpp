@@ -5,7 +5,7 @@
 
 #include "MbitMoreCommon.h"
 
-#define UPDATE_PERIOD 11
+#define UPDATE_PERIOD 19
 #define NOTIFY_PERIOD 101
 
 #if MICROBIT_CODAL
