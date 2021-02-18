@@ -247,10 +247,10 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
       memcpy(&angle, &(data[2]), 2);
       // range is read as uint16_t little-endian.
       uint16_t range;
-      memcpy(&range, &(data[5]), 2);
+      memcpy(&range, &(data[4]), 2);
       // center is read as uint16_t little-endian.
       uint16_t center;
-      memcpy(&center, &(data[7]), 2);
+      memcpy(&center, &(data[6]), 2);
       if (range == 0) {
         uBit.io.pin[pinIndex].setServoValue(angle);
       } else if (center == 0) {
@@ -373,18 +373,24 @@ void MbitMoreDevice::updateState(uint8_t *data) {
   }
   digitalLevels = digitalLevels | (uBit.buttonA.isPressed() << MbitMoreButtonID::A);
   digitalLevels = digitalLevels | (uBit.buttonB.isPressed() << MbitMoreButtonID::B);
-  digitalLevels = digitalLevels | ((!uBit.io.pin[0].getDigitalValue()) << MbitMoreButtonID::P0);
-  digitalLevels = digitalLevels | (!(uBit.io.pin[1].getDigitalValue()) << MbitMoreButtonID::P1);
-  digitalLevels = digitalLevels | (!(uBit.io.pin[2].getDigitalValue()) << MbitMoreButtonID::P2);
+  if (uBit.io.pin[0].isInput()) {
+    digitalLevels = digitalLevels | ((!uBit.io.pin[0].getDigitalValue()) << MbitMoreButtonID::P0);
+  }
+  if (uBit.io.pin[1].isInput()) {
+    digitalLevels = digitalLevels | (!(uBit.io.pin[1].getDigitalValue()) << MbitMoreButtonID::P1);
+  }
+  if (uBit.io.pin[2].isInput()) {
+    digitalLevels = digitalLevels | (!(uBit.io.pin[2].getDigitalValue()) << MbitMoreButtonID::P2);
+  }
 #if MICROBIT_CODAL
   digitalLevels = digitalLevels | (uBit.logo.isPressed() << MbitMoreButtonID::LOGO);
-  if (uBit.io.pin[0].touchSensor) {
+  if (uBit.io.pin[0].isInput() && uBit.io.pin[0].touchSensor) {
     digitalLevels = digitalLevels | (uBit.io.pin[0].isTouched() << MbitMoreButtonID::P0);
   }
-  if (uBit.io.pin[1].touchSensor) {
+  if (uBit.io.pin[1].isInput() && uBit.io.pin[1].touchSensor) {
     digitalLevels = digitalLevels | (uBit.io.pin[1].isTouched() << MbitMoreButtonID::P1);
   }
-  if (uBit.io.pin[2].touchSensor) {
+  if (uBit.io.pin[2].isInput() && uBit.io.pin[2].touchSensor) {
     digitalLevels = digitalLevels | (uBit.io.pin[2].isTouched() << MbitMoreButtonID::P2);
   }
 #endif // MICROBIT_CODAL
