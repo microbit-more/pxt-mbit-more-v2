@@ -997,7 +997,7 @@ void MbitMoreDevice::setServoValue(int pinIndex, int angle, int range,
  * 
  */
 void MbitMoreDevice::displayFriendlyName() {
-  ManagedString version(" -M 0.6.0- ");
+  ManagedString version(" -M 0.1.1- ");
   uBit.display.scrollAsync(ManagedString(microbit_friendly_name()) + version,
                            120);
 }
