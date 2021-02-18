@@ -1,6 +1,10 @@
 
 > Open this page at [https://yokobond.github.io/pxt-mbit-more-v2/](https://yokobond.github.io/pxt-mbit-more-v2/)
 
+# Microbit More v2 MakeCode Extension
+
+This is a MakeCode extension for [Microbit More v2](https://github.com/yokobond/mbit-more-v2/).
+
 ## Use as Extension
 
 This repository can be added as an **extension** in MakeCode.
@@ -9,6 +13,8 @@ This repository can be added as an **extension** in MakeCode.
 * click on **New Project**
 * click on **Extensions** under the gearwheel menu
 * search for **https://github.com/yokobond/pxt-mbit-more-v2** and import
+* code on the editor
+* click **Download** (which takes about **3 minutes** to compile at first time)
 
 ## Edit this project ![Build status badge](https://github.com/yokobond/pxt-mbit-more-v2/workflows/MakeCode/badge.svg)
 
