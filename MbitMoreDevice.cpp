@@ -234,6 +234,7 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
     const int pinCommand = data[0] & 0b11111;
     if (pinCommand == MbitMorePinCommand::SET_PULL) {
       setPullMode(data[1], (MbitMorePullMode)data[2]);
+      uBit.io.pin[data[1]].getDigitalValue(); // set the pin to input mode
     } else if (pinCommand == MbitMorePinCommand::SET_OUTPUT) {
       setDigitalValue(data[1], data[2]);
     } else if (pinCommand == MbitMorePinCommand::SET_PWM) {
