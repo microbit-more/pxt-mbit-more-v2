@@ -166,6 +166,7 @@ void MbitMoreDevice::initializeConfig() {
   // P0,P1,P2 are pull-up as standerd extension.
   for (size_t i = 0; i < (sizeof(initialPullUp) / sizeof(initialPullUp[0])); i++) {
     setPullMode(initialPullUp[i], MbitMorePullMode::Up);
+    uBit.io.pin[initialPullUp[i]].getDigitalValue(); // set the pin to input-mode
   }
 }
 
@@ -457,7 +458,6 @@ void MbitMoreDevice::updateAnalogIn(uint8_t *data, size_t pinIndex) {
   if (uBit.io.pin[pinIndex].isInput()) {
 #if MICROBIT_CODAL
     uBit.io.pin[pinIndex].setPull(PullMode::None);
-    // value = (uint16_t)uBit.io.pin[pinIndex].getAnalogValue();
 #else // NOT MICROBIT_CODAL
     uBit.io.pin[pinIndex].setPull(PinMode::PullNone);
 #endif // NOT MICROBIT_CODAL
