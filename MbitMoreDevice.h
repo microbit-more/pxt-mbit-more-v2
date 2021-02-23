@@ -134,6 +134,8 @@ public:
    */
   int initialPullUp[3] = {0, 1, 2};
 
+  bool touchMode[3] = {false};
+
   /**
    * @brief Shadow screen to display on the LED.
    *

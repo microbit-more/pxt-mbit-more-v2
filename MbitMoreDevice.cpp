@@ -232,18 +232,19 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
     }
   } else if (command == MbitMoreCommand::CMD_PIN) {
     const int pinCommand = data[0] & 0b11111;
+    int pinIndex = (int)data[1];
+    touchMode[pinIndex] = false;
     if (pinCommand == MbitMorePinCommand::SET_PULL) {
-      setPullMode(data[1], (MbitMorePullMode)data[2]);
-      uBit.io.pin[data[1]].getDigitalValue(); // set the pin to input mode
+      setPullMode(pinIndex, (MbitMorePullMode)data[2]);
+      uBit.io.pin[pinIndex].getDigitalValue(); // set the pin to input mode
     } else if (pinCommand == MbitMorePinCommand::SET_OUTPUT) {
-      setDigitalValue(data[1], data[2]);
+      setDigitalValue(pinIndex, data[2]);
     } else if (pinCommand == MbitMorePinCommand::SET_PWM) {
       // value is read as uint16_t little-endian.
       uint16_t value;
       memcpy(&value, &(data[2]), 2);
-      setAnalogValue(data[1], value);
+      setAnalogValue(pinIndex, value);
     } else if (pinCommand == MbitMorePinCommand::SET_SERVO) {
-      int pinIndex = (int)data[1];
       // angle is read as uint16_t little-endian.
       uint16_t angle;
       memcpy(&angle, &(data[2]), 2);
@@ -261,7 +262,7 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
         uBit.io.pin[pinIndex].setServoValue(angle, range, center);
       }
     } else if (pinCommand == MbitMorePinCommand::SET_EVENT) {
-      listenPinEventOn((int)data[1], (int)data[2]);
+      listenPinEventOn(pinIndex, (int)data[2]);
     }
   } else if (command == MbitMoreCommand::CMD_AUDIO) {
     int audioCommand = data[0] & 0b11111;
@@ -307,6 +308,7 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
 #else // NOT MICROBIT_CODAL
           uBit.io.pin[pinIndex].isTouched();
 #endif // NOT MICROBIT_CODAL
+          touchMode[pinIndex] = true;
         } else {
           uBit.messageBus.ignore(
               componentID,
@@ -373,28 +375,19 @@ void MbitMoreDevice::updateState(uint8_t *data) {
       }
     }
   }
-  digitalLevels = digitalLevels | (uBit.buttonA.isPressed() << MbitMoreButtonID::A);
-  digitalLevels = digitalLevels | (uBit.buttonB.isPressed() << MbitMoreButtonID::B);
-  if (uBit.io.pin[0].isInput()) {
-    digitalLevels = digitalLevels | ((!uBit.io.pin[0].getDigitalValue()) << MbitMoreButtonID::P0);
-  }
-  if (uBit.io.pin[1].isInput()) {
-    digitalLevels = digitalLevels | (!(uBit.io.pin[1].getDigitalValue()) << MbitMoreButtonID::P1);
-  }
-  if (uBit.io.pin[2].isInput()) {
-    digitalLevels = digitalLevels | (!(uBit.io.pin[2].getDigitalValue()) << MbitMoreButtonID::P2);
-  }
-#if MICROBIT_CODAL
-  digitalLevels = digitalLevels | (uBit.logo.isPressed() << MbitMoreButtonID::LOGO);
-  if (uBit.io.pin[0].isInput() && uBit.io.pin[0].touchSensor) {
+  if (touchMode[0]) {
     digitalLevels = digitalLevels | (uBit.io.pin[0].isTouched() << MbitMoreButtonID::P0);
   }
-  if (uBit.io.pin[1].isInput() && uBit.io.pin[1].touchSensor) {
+  if (touchMode[1]) {
     digitalLevels = digitalLevels | (uBit.io.pin[1].isTouched() << MbitMoreButtonID::P1);
   }
-  if (uBit.io.pin[2].isInput() && uBit.io.pin[2].touchSensor) {
+  if (touchMode[2]) {
     digitalLevels = digitalLevels | (uBit.io.pin[2].isTouched() << MbitMoreButtonID::P2);
   }
+  digitalLevels = digitalLevels | (uBit.buttonA.isPressed() << MbitMoreButtonID::A);
+  digitalLevels = digitalLevels | (uBit.buttonB.isPressed() << MbitMoreButtonID::B);
+#if MICROBIT_CODAL
+  digitalLevels = digitalLevels | (uBit.logo.isPressed() << MbitMoreButtonID::LOGO);
 #endif // MICROBIT_CODAL
   memcpy(data, (uint8_t *)&digitalLevels, 4);
   data[4] = sampleLigthLevel();
