@@ -233,11 +233,16 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
   } else if (command == MbitMoreCommand::CMD_PIN) {
     const int pinCommand = data[0] & 0b11111;
     int pinIndex = (int)data[1];
-    touchMode[pinIndex] = false;
     if (pinCommand == MbitMorePinCommand::SET_PULL) {
-      setPullMode(pinIndex, (MbitMorePullMode)data[2]);
       uBit.io.pin[pinIndex].getDigitalValue(); // set the pin to input mode
+      setPullMode(pinIndex, (MbitMorePullMode)data[2]);
     } else if (pinCommand == MbitMorePinCommand::SET_OUTPUT) {
+#if MICROBIT_CODAL
+      // workaround to set d-out from touch-mode in microbit-codal-v2
+      if (touchMode[pinIndex]) {
+        uBit.io.pin[pinIndex].setAnalogValue(0);
+      }
+#endif // MICROBIT_CODAL
       setDigitalValue(pinIndex, data[2]);
     } else if (pinCommand == MbitMorePinCommand::SET_PWM) {
       // value is read as uint16_t little-endian.
@@ -264,6 +269,7 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
     } else if (pinCommand == MbitMorePinCommand::SET_EVENT) {
       listenPinEventOn(pinIndex, (int)data[2]);
     }
+    touchMode[pinIndex] = false;
   } else if (command == MbitMoreCommand::CMD_AUDIO) {
     int audioCommand = data[0] & 0b11111;
     if (audioCommand == MbitMoreAudioCommand::PLAY_TONE) {
@@ -291,31 +297,30 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
       micInUse = ((data[1] == 1) ? true : false);
 #endif // MICROBIT_CODAL
     } else if (config == MbitMoreConfig::TOUCH) {
-      if ((MbitMoreButtonID)data[1] != MbitMoreButtonID::LOGO) {
-        // edge pin[0,1,2]
-        int pinIndex = (MbitMoreButtonID)data[1] - 24;
-        int componentID = pinIndex + 100;
-        if (data[2] == 1) {
-          uBit.messageBus.listen(
-              componentID,
-              MICROBIT_EVT_ANY,
-              this,
-              &MbitMoreDevice::onButtonChanged,
-              MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+      int pinIndex = data[1];
+      if (pinIndex > 2)
+        return;
+      int componentID = pinIndex + 100;
+      if (data[2] == 1) {
+        uBit.messageBus.listen(
+            componentID,
+            MICROBIT_EVT_ANY,
+            this,
+            &MbitMoreDevice::onButtonChanged,
+            MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
 #if MICROBIT_CODAL
-          uBit.io.pin[pinIndex].isTouched();
-          // uBit.io.pin[pinIndex].isTouched(TouchMode::Capacitative); // does not work?
+        uBit.io.pin[pinIndex].isTouched();
+        // uBit.io.pin[pinIndex].isTouched(TouchMode::Capacitative); // does not work?
 #else // NOT MICROBIT_CODAL
-          uBit.io.pin[pinIndex].isTouched();
+        uBit.io.pin[pinIndex].isTouched();
 #endif // NOT MICROBIT_CODAL
-          touchMode[pinIndex] = true;
-        } else {
-          uBit.messageBus.ignore(
-              componentID,
-              MICROBIT_EVT_ANY,
-              this,
-              &MbitMoreDevice::onButtonChanged);
-        }
+        touchMode[pinIndex] = true;
+      } else {
+        uBit.messageBus.ignore(
+            componentID,
+            MICROBIT_EVT_ANY,
+            this,
+            &MbitMoreDevice::onButtonChanged);
       }
     }
   }
@@ -376,18 +381,18 @@ void MbitMoreDevice::updateState(uint8_t *data) {
     }
   }
   if (touchMode[0]) {
-    digitalLevels = digitalLevels | (uBit.io.pin[0].isTouched() << MbitMoreButtonID::P0);
+    digitalLevels = digitalLevels | (uBit.io.pin[0].isTouched() << MbitMoreButtonStateIndex::P0);
   }
   if (touchMode[1]) {
-    digitalLevels = digitalLevels | (uBit.io.pin[1].isTouched() << MbitMoreButtonID::P1);
+    digitalLevels = digitalLevels | (uBit.io.pin[1].isTouched() << MbitMoreButtonStateIndex::P1);
   }
   if (touchMode[2]) {
-    digitalLevels = digitalLevels | (uBit.io.pin[2].isTouched() << MbitMoreButtonID::P2);
+    digitalLevels = digitalLevels | (uBit.io.pin[2].isTouched() << MbitMoreButtonStateIndex::P2);
   }
-  digitalLevels = digitalLevels | (uBit.buttonA.isPressed() << MbitMoreButtonID::A);
-  digitalLevels = digitalLevels | (uBit.buttonB.isPressed() << MbitMoreButtonID::B);
+  digitalLevels = digitalLevels | (uBit.buttonA.isPressed() << MbitMoreButtonStateIndex::A);
+  digitalLevels = digitalLevels | (uBit.buttonB.isPressed() << MbitMoreButtonStateIndex::B);
 #if MICROBIT_CODAL
-  digitalLevels = digitalLevels | (uBit.logo.isPressed() << MbitMoreButtonID::LOGO);
+  digitalLevels = digitalLevels | (uBit.logo.isPressed() << MbitMoreButtonStateIndex::LOGO);
 #endif // MICROBIT_CODAL
   memcpy(data, (uint8_t *)&digitalLevels, 4);
   data[4] = sampleLigthLevel();
@@ -762,71 +767,14 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
 void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
   uint8_t *data = moreService->actionEventChBuffer;
   data[0] = MbitMoreActionEvent::BUTTON;
-  // Component ID that generated the event.
-  switch (evt.source) {
-  case MICROBIT_ID_BUTTON_A:
-    data[1] = MbitMoreButtonID::A;
-    break;
-
-  case MICROBIT_ID_BUTTON_B:
-    data[1] = MbitMoreButtonID::B;
-    break;
-
-  case MICROBIT_ID_IO_P0:
-    data[1] = MbitMoreButtonID::P0;
-    break;
-
-  case MICROBIT_ID_IO_P1:
-    data[1] = MbitMoreButtonID::P1;
-    break;
-
-  case MICROBIT_ID_IO_P2:
-    data[1] = MbitMoreButtonID::P2;
-    break;
-
-#if MICROBIT_CODAL
-  case MICROBIT_ID_LOGO:
-    data[1] = MbitMoreButtonID::LOGO;
-    break;
-#endif // MICROBIT_CODAL
-
-  default:
-    // send as an edge-pins
-    data[1] = evt.source - 100;
-    break;
-  }
-  // Event ID.
-  switch (evt.value) {
-  case MICROBIT_BUTTON_EVT_DOWN:
-    data[2] = MbitMoreButtonEvent::DOWN;
-    break;
-
-  case MICROBIT_BUTTON_EVT_UP:
-    data[2] = MbitMoreButtonEvent::UP;
-    break;
-
-  case MICROBIT_BUTTON_EVT_CLICK:
-    data[2] = MbitMoreButtonEvent::CLICK;
-    break;
-
-  case MICROBIT_BUTTON_EVT_LONG_CLICK:
-    data[2] = MbitMoreButtonEvent::LONG_CLICK;
-    break;
-
-  case MICROBIT_BUTTON_EVT_HOLD:
-    data[2] = MbitMoreButtonEvent::HOLD;
-    break;
-
-  case MICROBIT_BUTTON_EVT_DOUBLE_CLICK:
-    data[2] = MbitMoreButtonEvent::DOUBLE_CLICK;
-    break;
-
-  default:
-    data[2] = evt.value;
-    break;
-  }
-  // Timestamp of the event.
-  memcpy(&(data[3]), &evt.timestamp, 4);
+  // source is a component ID that generated the event as uint16_t little-endian.
+  // MICROBIT_ID_BUTTON_A, MICROBIT_ID_IO_P0, MICROBIT_ID_LOGO, etc.
+  memcpy(&(data[1]), &evt.source, 2);
+  // Event ID send as uint16_t little-endian.
+  // MICROBIT_BUTTON_EVT_DOWN, MICROBIT_BUTTON_EVT_CLICK, etc.
+  memcpy(&(data[3]), &evt.value, 2);
+  // Timestamp of the event send as uint32_t little-endian.
+  memcpy(&(data[5]), &evt.timestamp, 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
   moreService->notifyActionEvent();
 }

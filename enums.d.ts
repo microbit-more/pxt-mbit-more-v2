@@ -153,7 +153,7 @@
      * This number is used to memory offset in state data.
      */
 
-    declare const enum MbitMoreButtonID
+    declare const enum MbitMoreButtonStateIndex
     {
     // GPIO array using [0..20]
     P0 = 24,

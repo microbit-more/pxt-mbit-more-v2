@@ -36,7 +36,7 @@ using MbitMoreService = MbitMoreServiceDAL;
  * @brief Button ID in MicrobitMore
  * This number is used to memory offset in state data.
  */
-enum MbitMoreButtonID
+enum MbitMoreButtonStateIndex
 {
   // GPIO array using [0..20]
   P0 = 24,
