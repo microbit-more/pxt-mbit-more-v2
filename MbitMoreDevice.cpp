@@ -731,28 +731,10 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
                               // to pin index in v1 and v2.
 
   // event ID is sent as uint8_t.
-  switch (evt.value) {
-  case MICROBIT_PIN_EVT_RISE:
-    data[1] = MbitMorePinEvent::RISE;
-    break;
-  case MICROBIT_PIN_EVT_FALL:
-    data[1] = MbitMorePinEvent::FALL;
-    break;
-  case MICROBIT_PIN_EVT_PULSE_HI:
-    data[1] = MbitMorePinEvent::PULSE_HIGH;
-    break;
-  case MICROBIT_PIN_EVT_PULSE_LO:
-    data[1] = MbitMorePinEvent::PULSE_LOW;
-    break;
-
-  default:
-    return;
-    // data[1] = evt.value; // send event whatever for dev.
-    break;
-  }
+  data[1] = (uint8_t)evt.value;
 
   // event timestamp is sent as uint32_t little-endian
-  // coerced from uint64_t value.
+  // downcast from uint64_t value.
   uint32_t timestamp = (uint32_t)evt.timestamp;
   memcpy(&(data[2]), &timestamp, 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::PIN_EVENT;
@@ -789,57 +771,13 @@ void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
 void MbitMoreDevice::onGestureChanged(MicroBitEvent evt) {
   uint8_t *data = moreService->actionEventChBuffer;
   data[0] = MbitMoreActionEvent::GESTURE;
-  switch (evt.value) {
-  case MICROBIT_ACCELEROMETER_EVT_TILT_UP:
-    data[1] = MbitMoreGestureEvent::TILT_UP;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_TILT_DOWN:
-    data[1] = MbitMoreGestureEvent::TILT_DOWN;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_TILT_LEFT:
-    data[1] = MbitMoreGestureEvent::TILT_LEFT;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_TILT_RIGHT:
-    data[1] = MbitMoreGestureEvent::TILT_RIGHT;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_FACE_UP:
-    data[1] = MbitMoreGestureEvent::FACE_UP;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_FACE_DOWN:
-    data[1] = MbitMoreGestureEvent::FACE_DOWN;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_FREEFALL:
-    data[1] = MbitMoreGestureEvent::FREEFALL;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_3G:
-    data[1] = MbitMoreGestureEvent::G3;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_6G:
-    data[1] = MbitMoreGestureEvent::G6;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_8G:
-    data[1] = MbitMoreGestureEvent::G8;
-    break;
-
-  case MICROBIT_ACCELEROMETER_EVT_SHAKE:
-    data[1] = MbitMoreGestureEvent::SHAKE;
-    break;
-
-  default:
-    data[1] = evt.value;
-    break;
-  }
-  // Timestamp of the event.
-  memcpy(&(data[2]), &evt.timestamp, 4);
+  // Event ID send as uint8_t.
+  // MICROBIT_ACCELEROMETER_EVT_TILT_UP, MICROBIT_ACCELEROMETER_EVT_FACE_UP, etc.
+  data[1] = (uint8_t)evt.value;
+  // Timestamp of the event send as uint32_t little-endian.
+  // downcast from uint64_t value.
+  uint32_t timestamp = (uint32_t)evt.timestamp;
+  memcpy(&(data[2]), &timestamp, 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
   moreService->notifyActionEvent();
 }
