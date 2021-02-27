@@ -772,9 +772,11 @@ void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
   memcpy(&(data[1]), &evt.source, 2);
   // Event ID send as uint16_t little-endian.
   // MICROBIT_BUTTON_EVT_DOWN, MICROBIT_BUTTON_EVT_CLICK, etc.
-  memcpy(&(data[3]), &evt.value, 2);
+  data[3] = (uint8_t)evt.value;
   // Timestamp of the event send as uint32_t little-endian.
-  memcpy(&(data[5]), &evt.timestamp, 4);
+  // downcast from uint64_t value.
+  uint32_t timestamp = (uint32_t)evt.timestamp;
+  memcpy(&(data[4]), &timestamp, 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
   moreService->notifyActionEvent();
 }
