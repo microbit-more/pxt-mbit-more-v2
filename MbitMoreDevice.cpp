@@ -280,14 +280,14 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
       stopTone();
     }
 #if MICROBIT_CODAL
-  } else if (command == MbitMoreCommand::CMD_MESSAGE) {
-    MbitMoreMessageType messageType = (MbitMoreMessageType)(data[0] & 0b11111);
-    int index = findWaitingMessageIndex((char *)(&data[1]), messageType);
-    if (index != MBIT_MORE_WAITING_MESSAGE_NOT_FOUND) {
-      int contentStart = 1 + MBIT_MORE_MESSAGE_LABEL_SIZE;
-      memset(receivedMessages[index].content, 0, MBIT_MORE_MESSAGE_CONTENT_SIZE);
-      memcpy(receivedMessages[index].content, &data[contentStart], length - contentStart);
-      MicroBitEvent evt(MBIT_MORE_MESSAGE, index + 1);
+  } else if (command == MbitMoreCommand::CMD_DATA) {
+    MbitMoreDataContentType dataType = (MbitMoreDataContentType)(data[0] & 0b11111);
+    int index = findWaitingDataLabelIndex((char *)(&data[1]), dataType);
+    if (index != MBIT_MORE_WAITING_DATA_LABEL_NOT_FOUND) {
+      int contentStart = 1 + MBIT_MORE_DATA_LABEL_SIZE;
+      memset(receivedData[index].content, 0, MBIT_MORE_DATA_CONTENT_SIZE);
+      memcpy(receivedData[index].content, &data[contentStart], length - contentStart);
+      MicroBitEvent evt(MBIT_MORE_DATA_RECEIVED, index + 1);
     }
 #endif // MICROBIT_CODAL
   } else if (command == MbitMoreCommand::CMD_CONFIG) {
@@ -523,47 +523,47 @@ void MbitMoreDevice::stopTone() {
 
 #if MICROBIT_CODAL
 /**
- * @brief Return message ID for the label
+ * @brief Return index for the label
  * 
- * @param messageLabelChar message label
- * @param messageType
- * @return int 
+ * @param dataLabel label to find
+ * @param dataType type of the data
+ * @return int index of the label
  */
-int MbitMoreDevice::findWaitingMessageIndex(const char *messageLabelChar, MbitMoreMessageType messageType) {
-  for (int i = 0; i < MBIT_MORE_WAITING_MESSAGE_LENGTH; i++) {
-    if (receivedMessages[i].label[0] == 0)
+int MbitMoreDevice::findWaitingDataLabelIndex(const char *dataLabel, MbitMoreDataContentType dataType) {
+  for (int i = 0; i < MBIT_MORE_WAITING_DATA_LABELS_LENGTH; i++) {
+    if (receivedData[i].label[0] == 0)
       continue;
-    if (receivedMessages[i].type == messageType) {
-      if (0 == strncmp(receivedMessages[i].label,
-                       messageLabelChar,
-                       MBIT_MORE_MESSAGE_LABEL_SIZE)) {
+    if (receivedData[i].type == dataType) {
+      if (0 == strncmp(receivedData[i].label,
+                       dataLabel,
+                       MBIT_MORE_DATA_LABEL_SIZE)) {
         return i;
       }
     }
   }
-  return MBIT_MORE_WAITING_MESSAGE_NOT_FOUND;
+  return MBIT_MORE_WAITING_DATA_LABEL_NOT_FOUND;
 }
 
 /**
- * @brief Register message label retrun message ID.
+ * @brief Register data label and retrun ID for the label.
  *
- * @param messageLabel
- * @param messageType
- * @return int ID for the message label or return 0 if it was not registered.
+ * @param dataLabel label to register
+ * @param dataType type of the data
+ * @return int ID for the label
  */
-int MbitMoreDevice::registerWaitingMessage(ManagedString messageLabel, MbitMoreMessageType messageType) {
-  int index = findWaitingMessageIndex(messageLabel.toCharArray(), messageType);
-  if (index == MBIT_MORE_WAITING_MESSAGE_NOT_FOUND) {
-    // find blank message ID and resister it
-    for (int i = 0; i < MBIT_MORE_WAITING_MESSAGE_LENGTH; i++) {
-      if (receivedMessages[i].label[0] == 0) {
+int MbitMoreDevice::registerWaitingDataLabel(ManagedString dataLabel, MbitMoreDataContentType dataType) {
+  int index = findWaitingDataLabelIndex(dataLabel.toCharArray(), dataType);
+  if (index == MBIT_MORE_WAITING_DATA_LABEL_NOT_FOUND) {
+    // find blank index and resister it
+    for (int i = 0; i < MBIT_MORE_WAITING_DATA_LABELS_LENGTH; i++) {
+      if (receivedData[i].label[0] == 0) {
         index = i;
-        receivedMessages[index].type = messageType;
+        receivedData[index].type = dataType;
         strncpy(
-            receivedMessages[index].label,
-            messageLabel.toCharArray(),
-            MBIT_MORE_MESSAGE_LABEL_SIZE);
-        return index + 1; // It is used for event value and avoid ID is 0 (for accept any events).
+            receivedData[index].label,
+            dataLabel.toCharArray(),
+            MBIT_MORE_DATA_LABEL_SIZE);
+        return index + 1; // It is used for event value and must not be 0 (0 to accept any events).
       }
     }
   }
@@ -571,71 +571,71 @@ int MbitMoreDevice::registerWaitingMessage(ManagedString messageLabel, MbitMoreM
 }
 
 /**
-* @brief Get type of content for the message ID
-*
-* @param messageID
-* @return message type
-*/
-MbitMoreMessageType MbitMoreDevice::messageType(int messageID) {
-  return receivedMessages[messageID - 1].type;
+ * @brief Get type of content for the labeled data
+ *
+ * @param labelID ID of the label in received data
+ * @return content type
+ */
+MbitMoreDataContentType MbitMoreDevice::dataType(int labelID) {
+  return receivedData[labelID - 1].type;
 }
 
 /**
- * @brief Return content of the message as number
+ * @brief Return content of the data as number
  *
- * @param messageID
- * @return content of the message
+ * @param labelID ID of the label in received data
+ * @return content of the data
  */
-float MbitMoreDevice::messageContentAsNumber(int messageID) {
+float MbitMoreDevice::dataContentAsNumber(int labelID) {
   float content;
-  memcpy(&content, receivedMessages[messageID - 1].content, 4);
+  memcpy(&content, receivedData[labelID - 1].content, 4);
   return content;
 }
 
 /**
- * @brief Return content of the message as string
+ * @brief Return content of the data as text
  *
- * @param messageID
- * @return content of the message
+ * @param labelID ID of the label in received data
+ * @return content of the data
  */
-ManagedString MbitMoreDevice::messageContentAsText(int messageID) {
-  return ManagedString((char *)(receivedMessages[messageID - 1].content));
+ManagedString MbitMoreDevice::dataContentAsText(int labelID) {
+  return ManagedString((char *)(receivedData[labelID - 1].content));
 }
 
 /**
- * @brief Send a labeled message with content in float.
+ * @brief Send number with label.
  * 
- * @param messageLabel 
- * @param messageContent 
+ * @param dataLabel 
+ * @param dataContent 
  */
-void MbitMoreDevice::sendMessageWithNumber(ManagedString messageLabel, float messageContent) {
-  uint8_t *data = moreService->messageChBuffer;
+void MbitMoreDevice::sendNumberWithLabel(ManagedString dataLabel, float dataContent) {
+  uint8_t *data = moreService->dataChBuffer;
   memset(data, 0, MM_CH_BUFFER_SIZE_NOTIFY);
-  copyManagedString((char *)(&data[0]), messageLabel, MBIT_MORE_MESSAGE_LABEL_SIZE);
-  memcpy(&data[MBIT_MORE_MESSAGE_LABEL_SIZE], &messageContent, 4);
-  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::MESSAGE_NUMBER;
-  moreService->notifyMessage();
+  copyManagedString((char *)(&data[0]), dataLabel, MBIT_MORE_DATA_LABEL_SIZE);
+  memcpy(&data[MBIT_MORE_DATA_LABEL_SIZE], &dataContent, 4);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::DATA_NUMBER;
+  moreService->notifyData();
 }
 
 /**
- * @brief Send a labeled message with content in string.
+ * @brief Send text with label.
  * 
- * @param messageLabel 
- * @param messageContent 
+ * @param dataLabel 
+ * @param dataContent 
  */
-void MbitMoreDevice::sendMessageWithText(ManagedString messageLabel, ManagedString messageContent) {
-  uint8_t *data = moreService->messageChBuffer;
+void MbitMoreDevice::sendTextWithLabel(ManagedString dataLabel, ManagedString dataContent) {
+  uint8_t *data = moreService->dataChBuffer;
   memset(data, 0, MM_CH_BUFFER_SIZE_NOTIFY);
   copyManagedString(
       (char *)(&data[0]),
-      messageLabel,
-      MBIT_MORE_MESSAGE_LABEL_SIZE);
+      dataLabel,
+      MBIT_MORE_DATA_LABEL_SIZE);
   copyManagedString(
-      (char *)(&data[MBIT_MORE_MESSAGE_LABEL_SIZE]),
-      messageContent,
-      MBIT_MORE_MESSAGE_CONTENT_SIZE);
-  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::MESSAGE_TEXT;
-  moreService->notifyMessage();
+      (char *)(&data[MBIT_MORE_DATA_LABEL_SIZE]),
+      dataContent,
+      MBIT_MORE_DATA_CONTENT_SIZE);
+  data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::DATA_TEXT;
+  moreService->notifyData();
 }
 
 #endif // MICROBIT_CODAL

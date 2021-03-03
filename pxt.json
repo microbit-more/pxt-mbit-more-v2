@@ -21,7 +21,9 @@
         "MbitMoreService.cpp",
         "MbitMoreService.h",
         "MbitMoreServiceDAL.cpp",
-        "MbitMoreServiceDAL.h"
+        "MbitMoreServiceDAL.h",
+        "_locales/en/pxt-mbit-more-v2-strings.json",
+        "_locales/ja/pxt-mbit-more-v2-strings.json"
     ],
     "testFiles": [
         "test.ts"

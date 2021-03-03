@@ -1,0 +1,11 @@
+{
+  "MbitMore.onReceivedNumberWithLabel|block": "ラベル $label の数値 $numberData を受け取ったとき",
+  "MbitMore.onReceivedTextWithLabel|block": "ラベル $label の文字列 $textData を受け取ったとき",
+  "MbitMore.sendNumberWithLabel|block": "数値 $numberData にラベル $label を付けて送る",
+  "MbitMore.sendTextWithLabel|block": "文字列 $textData にラベル $label を付けて送る",
+  "MbitMore.startService|block": "Microbit Moreサービスを開始する",
+  "MbitMoreDataContentType.MM_DATA_NUMBER|block": "数値",
+  "MbitMoreDataContentType.MM_DATA_TEXT|block": "文字列",
+  "MbitMore|block": "Microbit More",
+  "{id:category}MbitMore": "Microbit More"
+}

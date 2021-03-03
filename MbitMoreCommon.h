@@ -1,17 +1,17 @@
 #ifndef MBIT_MORE_COMMON_H
 #define MBIT_MORE_COMMON_H
 
-#define MBIT_MORE_MESSAGE 8000
+#define MBIT_MORE_DATA_RECEIVED 8000
 
 /**
- * Data type of message content.
+ * Data type of content.
  */
-enum MbitMoreMessageType
+enum MbitMoreDataContentType
 {
   //% block="number"
-  MM_MSG_NUMBER = 1,
+  MM_DATA_NUMBER = 1,
   //% block="text"
-  MM_MSG_TEXT = 2,
+  MM_DATA_TEXT = 2,
 };
 
 #define MM_CH_BUFFER_SIZE_MAX 20
@@ -26,7 +26,7 @@ enum MbitMoreCommand // 3 bits (0x00..0x07)
   CMD_PIN = 0x01,
   CMD_DISPLAY = 0x02,
   CMD_AUDIO = 0x03,
-  CMD_MESSAGE = 0x04,
+  CMD_DATA = 0x04,
 };
 
 enum MbitMorePinCommand
@@ -67,8 +67,8 @@ enum MbitMoreDataFormat
   CONFIG = 0x10, // not used at this version
   PIN_EVENT = 0x11,
   ACTION_EVENT = 0x12,
-  MESSAGE_NUMBER = 0x13,
-  MESSAGE_TEXT = 0x14
+  DATA_NUMBER = 0x13,
+  DATA_TEXT = 0x14
 };
 
 enum MbitMoreActionEvent

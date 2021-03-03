@@ -20,7 +20,7 @@ namespace MbitMore {
   MbitMoreService *_pService = NULL;
 #if MICROBIT_CODAL
 #else // NOT MICROBIT_CODAL
-  int dummyMessageID = 0;
+  int dummyDataLabelID = 0;
 #endif // NOT MICROBIT_CODAL
 
   void update() {
@@ -39,7 +39,8 @@ namespace MbitMore {
   }
 
   /**
-   * Starts a Scratch extension service.
+   * @brief Start Microbit More service.
+   * 
    */
   //%
   void startMbitMoreService() {
@@ -53,66 +54,87 @@ namespace MbitMore {
   }
 
   /**
-   * Events can have arguments before the handler
+   * @brief Register a label in waiting data list and return an ID for the label.
+   * This starts Microbit More service if it was not available.
+   * 
+   * @param dataLabel label to register
+   * @param dataType type of the data to be received
+   * @return int ID for the label
    */
   //%
-  int call_registerWaitingMessage(String messageLabel, MbitMoreMessageType messageType) {
+  int call_registerWaitingDataLabel(String dataLabel, MbitMoreDataContentType dataType) {
 #if MICROBIT_CODAL
     if (NULL == _pService)
       startMbitMoreService();
 
-    int messageID = _pService->registerWaitingMessage(MSTR(messageLabel), messageType);
-    return messageID;
+    int labelID = _pService->registerWaitingDataLabel(MSTR(dataLabel), dataType);
+    return labelID;
 #else // NOT MICROBIT_CODAL
-    return ++dummyMessageID; // dummy
+    return ++dummyDataLabelID; // dummy
 #endif // NOT MICROBIT_CODAL
   }
 
+  /**
+   * @brief Get number which was received with the label.
+   * 
+   * @param labelID ID in registered labels
+   * @return float received data with the label
+   */
   //%
-  float call_messageContentAsNumber(int messageID) {
+  float call_dataContentAsNumber(int labelID) {
 #if MICROBIT_CODAL
-    return _pService->messageContentAsNumber(messageID);
+    return _pService->dataContentAsNumber(labelID);
 #else // NOT MICROBIT_CODAL
     return 0.0; // dummy
 #endif // NOT MICROBIT_CODAL
   }
 
+  /**
+   * @brief Get text which was received with the label.
+   * 
+   * @param labelID ID in registered labels
+   * @return String received data with the label
+   */
   //%
-  String call_messageContentAsText(int messageID) {
+  String call_dataContentAsText(int labelID) {
 #if MICROBIT_CODAL
-    return PSTR(_pService->messageContentAsText(messageID));
+    return PSTR(_pService->dataContentAsText(labelID));
 #else // NOT MICROBIT_CODAL
     return String(""); // dummy
 #endif // NOT MICROBIT_CODAL
   }
 
   /**
-   * Send a labeled message with content in float.
-   * @param label - label of the message
-   * @param content - number for content
+   * @brief Send a float with labele to Scratch.
+   * Do nothing if Scratch was not connected.
+   * 
+   * @param dataLabel - label of the data
+   * @param dataContent - content of the data
    */
   //%
-  void call_sendMessageWithNumber(String messageLabel, float messageContent) {
+  void call_sendNumberWithLabel(String dataLabel, float dataContent) {
 #if MICROBIT_CODAL
     if (NULL == _pService)
       return;
 
-    _pService->sendMessageWithNumber(MSTR(messageLabel), messageContent);
+    _pService->sendNumberWithLabel(MSTR(dataLabel), dataContent);
 #endif // MICROBIT_CODAL
   }
 
   /**
-   * Send a labeled message with content in string.
-   * @param label - label of the message
-   * @param content - string for content
+   * @brief Send a text with label to Scratch.
+   * Do nothing if Scratch was not connected.
+   * 
+   * @param dataLabel - label of the data
+   * @param dataContent - content of the data
    */
   //%
-  void call_sendMessageWithText(String messageLabel, String messageContent) {
+  void call_sendTextWithLabel(String dataLabel, String dataContent) {
 #if MICROBIT_CODAL
     if (NULL == _pService)
       return;
 
-    _pService->sendMessageWithText(MSTR(messageLabel), MSTR(messageContent));
+    _pService->sendTextWithLabel(MSTR(dataLabel), MSTR(dataContent));
 #endif // MICROBIT_CODAL
   }
 

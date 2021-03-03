@@ -26,10 +26,10 @@ using MbitMoreService = MbitMoreServiceDAL;
 #endif // NOT MICROBIT_CODAL
 
 #if MICROBIT_CODAL
-#define MBIT_MORE_WAITING_MESSAGE_LENGTH 16
-#define MBIT_MORE_WAITING_MESSAGE_NOT_FOUND 0xff
-#define MBIT_MORE_MESSAGE_LABEL_SIZE 8
-#define MBIT_MORE_MESSAGE_CONTENT_SIZE 11
+#define MBIT_MORE_WAITING_DATA_LABELS_LENGTH 16
+#define MBIT_MORE_WAITING_DATA_LABEL_NOT_FOUND 0xff
+#define MBIT_MORE_DATA_LABEL_SIZE 8
+#define MBIT_MORE_DATA_CONTENT_SIZE 11
 #endif // MICROBIT_CODAL
 
 /**
@@ -155,20 +155,20 @@ public:
 
 #if MICROBIT_CODAL
   /**
-   * @brief Structure of messages in MbitMore.
+   * @brief Structure of received data in MbitMore.
    * 
    */
   typedef struct {
-    char label[MBIT_MORE_MESSAGE_LABEL_SIZE];            /** label of the message */
-    MbitMoreMessageType type;                            /** type of the content */
-    uint8_t content[MBIT_MORE_MESSAGE_CONTENT_SIZE + 1]; /** content of the message */
-  } MbitMoreMessage;
+    char label[MBIT_MORE_DATA_LABEL_SIZE];            /** label of the data */
+    MbitMoreDataContentType type;                     /** type of the content */
+    uint8_t content[MBIT_MORE_DATA_CONTENT_SIZE + 1]; /** content of the data */
+  } MbitMoreLabeledData;
 
   /**
-   * @brief Received message data store from Scratch.
+   * @brief Store of received data from Scratch.
    * 
    */
-  MbitMoreMessage receivedMessages[MBIT_MORE_WAITING_MESSAGE_LENGTH] = {{{0}}};
+  MbitMoreLabeledData receivedData[MBIT_MORE_WAITING_DATA_LABELS_LENGTH] = {{{0}}};
 #endif // MICROBIT_CODAL
 
   /**
@@ -301,62 +301,62 @@ public:
 
 #if MICROBIT_CODAL
   /**
-   * @brief Return message ID for the label
+   * @brief Return index for the label
    * 
-   * @param messageLabelChar message label
-   * @param messageType
-   * @return int 
+   * @param dataLabel label to find
+   * @param dataType type of the data
+   * @return int index of the label
    */
-  int findWaitingMessageIndex(const char *messageLabel, MbitMoreMessageType messageType);
+  int findWaitingDataLabelIndex(const char *dataLabel, MbitMoreDataContentType dataType);
 
   /**
-   * @brief Register message label and retrun message ID.
+   * @brief Register data label and retrun ID for the label.
    *
-   * @param messageLabel
-   * @param messageType
-   * @return int ID for the message label
+   * @param dataLabel label to register
+   * @param dataType type of the data
+   * @return int ID for the label
    */
-  int registerWaitingMessage(ManagedString messageLabel, MbitMoreMessageType messageType);
+  int registerWaitingDataLabel(ManagedString dataLabel, MbitMoreDataContentType dataType);
 
   /**
-   * @brief Get type of content for the message ID
+   * @brief Get type of content for the labeled data
    *
-   * @param messageID
+   * @param labelID ID of the label in received data
    * @return content type
    */
-  MbitMoreMessageType messageType(int messageID);
+  MbitMoreDataContentType dataType(int labelID);
 
   /**
-   * @brief Return content of the message as number
+   * @brief Return content of the data as number
    *
-   * @param messageID
-   * @return content of the message
+   * @param labelID ID of the label in received data
+   * @return content of the data
    */
-  float messageContentAsNumber(int messageID);
+  float dataContentAsNumber(int labelID);
 
   /**
-   * @brief Return content of the message as string
+   * @brief Return content of the data as text
    *
-   * @param messageID
-   * @return content of the message
+   * @param labelID ID of the label in received data
+   * @return content of the data
    */
-  ManagedString messageContentAsText(int messageID);
+  ManagedString dataContentAsText(int labelID);
 
   /**
-   * @brief Send a labeled message with content in float.
+   * @brief Send number with label.
    * 
-   * @param messageLabel 
-   * @param messageContent 
+   * @param dataLabel 
+   * @param dataContent 
    */
-  void sendMessageWithNumber(ManagedString messageLabel, float messageContent);
+  void sendNumberWithLabel(ManagedString dataLabel, float dataContent);
 
   /**
-   * @brief Send a labeled message with content in string.
+   * @brief Send text with label.
    * 
-   * @param messageLabel 
-   * @param messageContent 
+   * @param dataLabel 
+   * @param dataContent 
    */
-  void sendMessageWithText(ManagedString messageLabel, ManagedString messageContent);
+  void sendTextWithLabel(ManagedString dataLabel, ManagedString dataContent);
 
 #endif // MICROBIT_CODAL
 

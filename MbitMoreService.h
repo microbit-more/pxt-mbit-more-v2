@@ -49,8 +49,8 @@ public:
   // Buffer of characteristic for sending analog input values of P2.
   uint8_t analogInP2ChBuffer[MM_CH_BUFFER_SIZE_ANALOG_IN] = {0};
 
-  // Buffer of characteristic for sending message.
-  uint8_t messageChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
+  // Buffer of characteristic for sending data.
+  uint8_t dataChBuffer[MM_CH_BUFFER_SIZE_NOTIFY] = {0};
 
   /**
    * Constructor.
@@ -94,60 +94,64 @@ public:
    */
   void notifyPinEvent();
 
-  void notifyMessage();
+  /**
+   * @brief Notify sending data to Scratch
+   * 
+   */
+  void notifyData();
 
   void notify();
 
   void update();
 
   /**
-   * @brief Register message label and retrun message ID.
+   * @brief Register data label and retrun ID for the label.
    *
-   * @param messageLabel
-   * @param messageType
-   * @return int ID for the message label
+   * @param dataLabel label to register
+   * @param dataType type of the data to be received
+   * @return int ID for the label
    */
-  int registerWaitingMessage(ManagedString messageLabel, MbitMoreMessageType messageType);
+  int registerWaitingDataLabel(ManagedString dataLabel, MbitMoreDataContentType dataType);
 
   /**
-   * @brief Get type of content for the message ID
+   * @brief Get type of content for the label
    *
-   * @param messageID
+   * @param labelID ID for the label
    * @return type of content [number | string]
    */
-  MbitMoreMessageType messageType(int messageID);
+  MbitMoreDataContentType dataType(int labelID);
 
   /**
-   * @brief Return content of the message as number
+   * @brief Return content of the data as number
    *
-   * @param messageID
-   * @return content of the message
+   * @param labelID ID for the label
+   * @return content of the data
    */
-  float messageContentAsNumber(int messageID);
+  float dataContentAsNumber(int labelID);
 
   /**
-   * @brief Return content of the message as string
+   * @brief Return content of the data as string
    *
-   * @param messageID
-   * @return content of the message
+   * @param labelID ID for the label
+   * @return content of the data
    */
-  ManagedString messageContentAsText(int messageID);
+  ManagedString dataContentAsText(int labelID);
 
   /**
-   * @brief Send a labeled message with content in float.
-   * 
-   * @param messageLabel 
-   * @param messageContent 
+   * @brief Send a float with labele to Scratch.
+   *  
+   * @param dataLabel label of the data
+   * @param dataContent content of the data
    */
-  void sendMessageWithNumber(ManagedString messageLabel, float messageContent);
+  void sendNumberWithLabel(ManagedString dataLabel, float dataContent);
 
   /**
-   * @brief Send a labeled message with content in string.
+   * @brief Send a string with labele to Scratch.
    * 
-   * @param messageLabel 
-   * @param messageContent 
+   * @param dataLabel label of the data
+   * @param dataContent content of the data
    */
-  void sendMessageWithText(ManagedString messageLabel, ManagedString messageContent);
+  void sendTextWithLabel(ManagedString dataLabel, ManagedString dataContent);
 
 private:
   /**
@@ -173,7 +177,7 @@ private:
     mbitmore_cIdx_ANALOG_IN_P0,
     mbitmore_cIdx_ANALOG_IN_P1,
     mbitmore_cIdx_ANALOG_IN_P2,
-    mbitmore_cIdx_MESSAGE,
+    mbitmore_cIdx_DATA,
     mbitmore_cIdx_COUNT
   } mbitmore_cIdx;
 

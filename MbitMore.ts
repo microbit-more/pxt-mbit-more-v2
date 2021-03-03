@@ -1,5 +1,5 @@
 namespace MbitMore {
-  const MBIT_MORE_MESSAGE = 8000;
+  const MBIT_MORE_DATA_RECEIVED = 8000;
 
   /**
   * Starts BLE services for Scratch Microbit-More extension.
@@ -11,98 +11,96 @@ namespace MbitMore {
   }
 
   /**
-  * Register message label and return ID
+  * Register a label and return its ID.
   */
-  //% shim=MbitMore::call_registerWaitingMessage
-  export function registerWaitingMessage(label: string, type: MbitMoreMessageType): number {
-    console.log("Microbit-More registered message: " + label);
+  //% shim=MbitMore::call_registerWaitingDataLabel
+  export function registerWaitingDataLabel(label: string, type: MbitMoreDataContentType): number {
+    console.log("Microbit-More registered label: " + label);
     return 1; // dummy for sim
   }
 
   /**
-   * Read message as number
+   * Read received data as a number
    */
-  //% shim=MbitMore::call_messageContentAsNumber
-  export function messageContentAsNumber(messageID: number): number {
-    console.log("Microbit-More read number message");
-    return -0.1; // dummy for sim
+  //% shim=MbitMore::call_dataContentAsNumber
+  export function dataContentAsNumber(labelID: number): number {
+    return 0.0; // dummy for sim
   }
 
   /**
-   * Read message as text
+   * Read received data as a text
    */
-  //% shim=MbitMore::call_messageContentAsText
-  export function messageContentAsText(messageID: number): string {
-    console.log("Microbit-More read test message");
+  //% shim=MbitMore::call_dataContentAsText
+  export function dataContentAsText(labelID: number): string {
     return "text"; // dummy for sim
   }
 
   /**
-   * Run blocks with number content when a message with the label is received.
-   * @param label - label of the message
+   * Run blocks with data when a number data with the label is received.
+   * @param label - label of the data
    * @param handler - blocks to run
    */
-  //% blockId=MbitMore_onMessageWithNumber
-  //% block="on message $label with number $content"
+  //% blockId=MbitMore_onReceivedNumberWithLabel
+  //% block="on number $numberData with label $label"
   //% label.defl="label-01"
   //% draggableParameters
-  export function onMessageWithNumber(label: string, handler: (content: number) => void) {
-    let messageID = MbitMore.registerWaitingMessage(label, MbitMoreMessageType.MM_MSG_NUMBER);
-    if (0 === messageID) {
-      throw "waiting message size exceed";
+  export function onReceivedNumberWithLabel(label: string, handler: (numberData: number) => void) {
+    let labelID = MbitMore.registerWaitingDataLabel(label, MbitMoreDataContentType.MM_DATA_NUMBER);
+    if (0 === labelID) {
+      throw "max waiting label counts exceed";
     }
-    control.onEvent(MBIT_MORE_MESSAGE, messageID, function () {
-      handler(MbitMore.messageContentAsNumber(messageID));
+    control.onEvent(MBIT_MORE_DATA_RECEIVED, labelID, function () {
+      handler(MbitMore.dataContentAsNumber(labelID));
       return;
     });
   }
 
   /**
-   * Run blocks with text content when a message with the label is received.
-   * @param label - label of the message
+   * Run blocks with data when a text data with the label is received.
+   * @param label - label of the data
    * @param handler - blocks to run
    */
-  //% blockId=MbitMore_onMessageWithText
-  //% block="on message $label with text $content"
+  //% blockId=MbitMore_onReceivedTextWithLabel
+  //% block="on text $textData with label $label"
   //% label.defl="label-01"
   //% draggableParameters
-  export function onMessageWithText(label: string, handler: (content: string) => void) {
-    let messageID = MbitMore.registerWaitingMessage(label, MbitMoreMessageType.MM_MSG_TEXT);
-    if (0 === messageID) {
-      throw "waiting message size exceed";
+  export function onReceivedTextWithLabel(label: string, handler: (textData: string) => void) {
+    let labelID = MbitMore.registerWaitingDataLabel(label, MbitMoreDataContentType.MM_DATA_TEXT);
+    if (0 === labelID) {
+      throw "max waiting label counts exceed";
     }
-    control.onEvent(MBIT_MORE_MESSAGE, messageID, function () {
-      handler(MbitMore.messageContentAsText(messageID));
+    control.onEvent(MBIT_MORE_DATA_RECEIVED, labelID, function () {
+      handler(MbitMore.dataContentAsText(labelID));
       return;
     });
   }
 
   /**
-   * Send laveled message with number content
-   * @param label lavel of the message 
-   * @param content content of the message
+   * Send number with label
+   * @param label lavel of the data 
+   * @param data number value to send
    */
-  //% blockId=MbitMore_sendMessageWithNumber
-  //% block="send message $label with number $content"
-  //% shim=MbitMore::call_sendMessageWithNumber
+  //% blockId=MbitMore_sendNumberWithLabel
+  //% block="send number $numberData with label $label"
+  //% shim=MbitMore::call_sendNumberWithLabel
   //% label.defl="label-01"
-  //% content.defl=0.0
-  export function sendMessageWithNumber(label: string, content: number): void {
-    console.log("Microbit-More send a number message: " + label + " = " + content);
+  //% numberData.defl=0.0
+  export function sendNumberWithLabel(label: string, numberData: number): void {
+    console.log("Microbit-More send a number: " + label + " = " + numberData);
   }
 
   /**
-   * Send laveled message with text content
-   * @param label lavel of the message
-   * @param content content of the message
+   * Send text with label
+   * @param label lavel of the data
+   * @param data text to send
    */
-  //% blockId=MbitMore_sendMessageWithText
-  //% block="send message $label with text $content"
-  //% shim=MbitMore::call_sendMessageWithText
+  //% blockId=MbitMore_sendTextWithLabel
+  //% block="send text $textData with label $label"
+  //% shim=MbitMore::call_sendTextWithLabel
   //% label.defl="label-01"
-  //% content.defl="..11 length"
-  export function sendMessageWithText(label: string, content: string): void {
-    console.log("Microbit-More send a text message: " + label + " = " + content);
+  //% textData.defl="text"
+  export function sendTextWithLabel(label: string, textData: string): void {
+    console.log("Microbit-More send a text: " + label + " = " + textData);
   }
 
 } // namespace MbitMore

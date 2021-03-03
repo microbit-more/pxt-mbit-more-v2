@@ -111,9 +111,9 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
       microbit_propREAD | microbit_propREADAUTH);
 
   CreateCharacteristic(
-      mbitmore_cIdx_MESSAGE,
-      charUUID[mbitmore_cIdx_MESSAGE],
-      (uint8_t *)(messageChBuffer),
+      mbitmore_cIdx_DATA,
+      charUUID[mbitmore_cIdx_DATA],
+      (uint8_t *)(dataChBuffer),
       MM_CH_BUFFER_SIZE_NOTIFY,
       MM_CH_BUFFER_SIZE_NOTIFY,
       microbit_propREAD | microbit_propNOTIFY);
@@ -218,10 +218,10 @@ void MbitMoreService::notifyPinEvent() {
 /**
  * Notify message to Scratch3
  */
-void MbitMoreService::notifyMessage() {
+void MbitMoreService::notifyData() {
   if (!getConnected())
     return;
-  notifyChrValue(mbitmore_cIdx_MESSAGE, messageChBuffer, MM_CH_BUFFER_SIZE_NOTIFY);
+  notifyChrValue(mbitmore_cIdx_DATA, dataChBuffer, MM_CH_BUFFER_SIZE_NOTIFY);
 }
 
 /**
@@ -240,64 +240,64 @@ void MbitMoreService::update() {
 }
 
 /**
- * @brief Register message label and retrun message ID.
+ * @brief Register data label and retrun ID for the label.
  *
- * @param messageLabel
- * @param messageType
- * @return int ID for the message label
+ * @param dataLabel label to register
+ * @param dataType type of the data to be received
+ * @return int ID for the label
  */
-int MbitMoreService::registerWaitingMessage(ManagedString messageLabel, MbitMoreMessageType messageType) {
-  return mbitMore->registerWaitingMessage(messageLabel, messageType);
+int MbitMoreService::registerWaitingDataLabel(ManagedString dataLabel, MbitMoreDataContentType dataType) {
+  return mbitMore->registerWaitingDataLabel(dataLabel, dataType);
 }
 
 /**
- * @brief Get type of content for the message ID
+ * @brief Get type of content for the label
  *
- * @param messageID
+ * @param labelID ID for the label
  * @return type of content [number | string]
  */
-MbitMoreMessageType MbitMoreService::messageType(int messageID) {
-  return mbitMore->messageType(messageID);
+MbitMoreDataContentType MbitMoreService::dataType(int labelID) {
+  return mbitMore->dataType(labelID);
 }
 
 /**
- * @brief Return content of the message as number
+ * @brief Return content of the data as number
  *
- * @param messageID
- * @return content of the message
+ * @param labelID ID for the label
+ * @return content of the data
  */
-float MbitMoreService::messageContentAsNumber(int messageID) {
-  return mbitMore->messageContentAsNumber(messageID);
+float MbitMoreService::dataContentAsNumber(int labelID) {
+  return mbitMore->dataContentAsNumber(labelID);
 }
 
 /**
- * @brief Return content of the message as string
+ * @brief Return content of the data as string
  *
- * @param messageID
- * @return content of the message
+ * @param labelID ID for the label
+ * @return content of the data
  */
-ManagedString MbitMoreService::messageContentAsText(int messageID) {
-  return mbitMore->messageContentAsText(messageID);
+ManagedString MbitMoreService::dataContentAsText(int labelID) {
+  return mbitMore->dataContentAsText(labelID);
 }
 
 /**
- * @brief Send a labeled message with content in float.
- * 
- * @param messageLabel 
- * @param messageContent 
+ * @brief Send a float with labele to Scratch.
+ *  
+ * @param dataLabel label of the data
+ * @param dataContent content of the data
  */
-void MbitMoreService::sendMessageWithNumber(ManagedString messageLabel, float messageContent) {
-  mbitMore->sendMessageWithNumber(messageLabel, messageContent);
+void MbitMoreService::sendNumberWithLabel(ManagedString dataLabel, float dataContent) {
+  mbitMore->sendNumberWithLabel(dataLabel, dataContent);
 }
 
 /**
- * @brief Send a labeled message with content in string.
+ * @brief Send a string with labele to Scratch.
  * 
- * @param messageLabel 
- * @param messageContent 
+ * @param dataLabel label of the data
+ * @param dataContent content of the data
  */
-void MbitMoreService::sendMessageWithText(ManagedString messageLabel, ManagedString messageContent) {
-  mbitMore->sendMessageWithText(messageLabel, messageContent);
+void MbitMoreService::sendTextWithLabel(ManagedString dataLabel, ManagedString dataContent) {
+  mbitMore->sendTextWithLabel(dataLabel, dataContent);
 }
 
 #endif // CONFIG_ENABLED(DEVICE_BLE)

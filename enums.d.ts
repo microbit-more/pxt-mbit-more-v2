@@ -2,15 +2,15 @@
 
 
     /**
-     * Data type of message content.
+     * Data type of content.
      */
 
-    declare const enum MbitMoreMessageType
+    declare const enum MbitMoreDataContentType
     {
     //% block="number"
-    MM_MSG_NUMBER = 1,
+    MM_DATA_NUMBER = 1,
     //% block="text"
-    MM_MSG_TEXT = 2,
+    MM_DATA_TEXT = 2,
     }
 
 
@@ -20,7 +20,7 @@
     CMD_PIN = 0x01,
     CMD_DISPLAY = 0x02,
     CMD_AUDIO = 0x03,
-    CMD_MESSAGE = 0x04,
+    CMD_DATA = 0x04,
     }
 
 
@@ -67,8 +67,8 @@
     CONFIG = 0x10,
     PIN_EVENT = 0x11,
     ACTION_EVENT = 0x12,
-    MESSAGE_NUMBER = 0x13,
-    MESSAGE_TEXT = 0x14,
+    DATA_NUMBER = 0x13,
+    DATA_TEXT = 0x14,
     }
 
 
