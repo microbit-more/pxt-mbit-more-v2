@@ -104,6 +104,8 @@ MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
     uBit.compass.calibrate();
   }
 
+  displayVersion();
+
   uBit.messageBus.listen(
       MICROBIT_ID_BUTTON_A, MICROBIT_EVT_ANY,
       this,
@@ -885,9 +887,15 @@ void MbitMoreDevice::setServoValue(int pinIndex, int angle, int range,
  * 
  */
 void MbitMoreDevice::displayFriendlyName() {
-  ManagedString version(" -M 0.2.0- ");
-  uBit.display.scrollAsync(ManagedString(microbit_friendly_name()) + version,
-                           120);
+  uBit.display.scrollAsync(ManagedString(microbit_friendly_name()), 120);
+}
+
+/**
+ * @brief Display software version of Microbit More.
+ * 
+ */
+void MbitMoreDevice::displayVersion() {
+  uBit.display.scroll(ManagedString(" -M 0.2.0- "), 120);
 }
 
 /**

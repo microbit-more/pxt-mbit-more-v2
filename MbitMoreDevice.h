@@ -371,6 +371,12 @@ public:
    */
   void displayFriendlyName();
 
+  /**
+   * @brief Display software version of Microbit More.
+   * 
+   */
+  void displayVersion();
+
 private:
   /**
    * @brief Listen pin events on the pin.
