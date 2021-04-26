@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "name": "mac",
+            "includePath": [
+                "${workspaceFolder}/*",
+                "${workspaceFolder}/pxt_modules/**",
+                "${workspaceFolder}/built/codal/libraries/**",
+                "${workspaceFolder}/built/yt/yotta_modules/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/*",
+                    "${workspaceFolder}/pxt_modules/**",
+                    "${workspaceFolder}/built/codal/libraries/**",
+                    "${workspaceFolder}/built/yt/yotta_modules/**"
+                ]
+            },
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
