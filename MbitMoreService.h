@@ -171,7 +171,7 @@ private:
   {
     mbitmore_cIdx_COMMAND,
     mbitmore_cIdx_STATE,
-    mbitmore_cIdx_DIRECTION,
+    mbitmore_cIdx_MOTION,
     mbitmore_cIdx_PIN_EVENT,
     mbitmore_cIdx_ACTION_EVENT,
     mbitmore_cIdx_ANALOG_IN_P0,

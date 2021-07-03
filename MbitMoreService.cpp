@@ -63,8 +63,8 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
       microbit_propREAD);
 
   CreateCharacteristic(
-      mbitmore_cIdx_DIRECTION,
-      charUUID[mbitmore_cIdx_DIRECTION],
+      mbitmore_cIdx_MOTION,
+      charUUID[mbitmore_cIdx_MOTION],
       (uint8_t *)(motionChBuffer),
       MM_CH_BUFFER_SIZE_MOTION,
       MM_CH_BUFFER_SIZE_MOTION,
