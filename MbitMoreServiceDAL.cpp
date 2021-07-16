@@ -44,7 +44,7 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
   mbitMore->moreService = this;
 
   commandCh = new GattCharacteristic(
-      MBIT_MORE_CH_COMMAND, commandChBuffer, MM_CH_BUFFER_SIZE_MAX, MM_CH_BUFFER_SIZE_MAX,
+      MBIT_MORE_CH_COMMAND, commandChBuffer, MM_CH_BUFFER_SIZE_COMMAND, MM_CH_BUFFER_SIZE_COMMAND,
       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE |
           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
   commandCh->requireSecurity(SecurityManager::MICROBIT_BLE_SECURITY_LEVEL);
@@ -140,7 +140,7 @@ MbitMoreServiceDAL::MbitMoreServiceDAL() : uBit(pxt::uBit) {
 void MbitMoreServiceDAL::onBLEConnected(MicroBitEvent _e) {
   mbitMore->updateVersionData();
   uBit.ble->gattServer().write(commandCh->getValueHandle(), commandChBuffer,
-                               MM_CH_BUFFER_SIZE_MAX);
+                               MM_CH_BUFFER_SIZE_COMMAND);
 }
 
 /**

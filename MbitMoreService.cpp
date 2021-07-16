@@ -50,8 +50,8 @@ MbitMoreService::MbitMoreService() : uBit(pxt::uBit) {
       mbitmore_cIdx_COMMAND,
       charUUID[mbitmore_cIdx_COMMAND],
       (uint8_t *)(commandChBuffer),
-      MM_CH_BUFFER_SIZE_MAX,
-      MM_CH_BUFFER_SIZE_MAX,
+      MM_CH_BUFFER_SIZE_COMMAND,
+      MM_CH_BUFFER_SIZE_COMMAND,
       microbit_propWRITE | microbit_propWRITE_WITHOUT | microbit_propREAD);
 
   CreateCharacteristic(

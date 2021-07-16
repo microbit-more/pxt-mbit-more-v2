@@ -56,7 +56,7 @@ public:
   void update();
 
   // Buffer of characteristic for receiving commands.
-  uint8_t commandChBuffer[MM_CH_BUFFER_SIZE_MAX] = {0};
+  uint8_t commandChBuffer[MM_CH_BUFFER_SIZE_COMMAND] = {0};
 
   // Buffer of characteristic for sending data of GPIO and sensors state.
   uint8_t stateChBuffer[MM_CH_BUFFER_SIZE_STATE] = {0};
