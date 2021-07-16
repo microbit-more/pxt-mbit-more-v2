@@ -23,7 +23,7 @@ const uint16_t MbitMoreService::serviceUUID = 0xf3e4;
 const uint16_t MbitMoreService::charUUID[mbitmore_cIdx_COUNT] = {
     0x0100, // COMMAND
     0x0101, // STATE
-    0x0102, // DIRECTION
+    0x0102, // MOTION
     0x0110, // PIN_EVENT
     0x0111, // ACTION_EVENT
     0x0120, // ANALOG_IN_P0
@@ -281,7 +281,7 @@ ManagedString MbitMoreService::dataContentAsText(int labelID) {
 }
 
 /**
- * @brief Send a float with labele to Scratch.
+ * @brief Send a float with label to Scratch.
  *  
  * @param dataLabel label of the data
  * @param dataContent content of the data
@@ -291,7 +291,7 @@ void MbitMoreService::sendNumberWithLabel(ManagedString dataLabel, float dataCon
 }
 
 /**
- * @brief Send a string with labele to Scratch.
+ * @brief Send a string with label to Scratch.
  * 
  * @param dataLabel label of the data
  * @param dataContent content of the data
