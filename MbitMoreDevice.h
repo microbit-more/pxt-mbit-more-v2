@@ -7,7 +7,8 @@
 #include "MicroBitConfig.h"
 
 #include "MbitMoreCommon.h"
-
+#include "MbitMoreSerial.h"
+class MbitMoreSerial;
 #if MICROBIT_CODAL
 #include "MbitMoreService.h"
 class MbitMoreService;
@@ -120,7 +121,19 @@ public:
    */
   MbitMoreService *moreService;
 
+  /**
+   * @brief Microbit More serial port connector.
+   * 
+   */
+  MbitMoreSerial *serialService;
+
   // ---------------------
+
+  /**
+   * @brief Whether the serial port communication is started. 
+   * 
+   */
+  bool serialConnected = false;
 
   /**
    * @brief Index of controllabel GPIO pins.
@@ -225,6 +238,12 @@ public:
    * @param _e event which has disconnection data
    */
   void onBLEDisconnected(MicroBitEvent _e);
+
+  /**
+   * @brief Invoke when serial port connects.
+   * 
+   */
+  void onSerialConnected();
 
   /**
    * @brief Call when a command was received.

@@ -186,6 +186,29 @@
     {
     MBIT_MORE_V2 = 2,
     }
+
+
+    /**
+     * Class definition for main logics of Micribit More Service except bluetooth connectivity.
+     *
+     */
+
+    declare const enum ChRequest
+    {
+    REQ_READ = 0x01,
+    REQ_WRITE = 0x10,
+    REQ_WRITE_RESPONSE = 0x11,
+    REQ_NOTIFY_STOP = 0x20,
+    REQ_NOTIFY_START = 0x21,
+    }
+
+
+    declare const enum ChResponse
+    {
+    RES_READ = 0x01,
+    RES_WRITE = 0x11,
+    RES_NOTIFY = 0x21,
+    }
 declare namespace MbitMore {
 }
 

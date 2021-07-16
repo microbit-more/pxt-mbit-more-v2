@@ -18,6 +18,8 @@
         "MbitMoreCommon.h",
         "MbitMoreDevice.cpp",
         "MbitMoreDevice.h",
+        "MbitMoreSerial.cpp",
+        "MbitMoreSerial.h",
         "MbitMoreService.cpp",
         "MbitMoreService.h",
         "MbitMoreServiceDAL.cpp",
