@@ -1,6 +1,14 @@
 #ifndef MBIT_MORE_COMMON_H
 #define MBIT_MORE_COMMON_H
 
+#include "pxt.h"
+
+#if MICROBIT_CODAL
+#define MBIT_MORE_USE_SERIAL 1
+#else // MICROBIT_CODAL
+#define MBIT_MORE_USE_SERIAL 0 // v1 has not enough memory space
+#endif // MICROBIT_CODAL
+
 #define MBIT_MORE_DATA_RECEIVED 8000
 
 /**

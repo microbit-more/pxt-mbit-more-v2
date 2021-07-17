@@ -1,3 +1,6 @@
+#include "MbitMoreCommon.h"
+#if MBIT_MORE_USE_SERIAL
+
 #include "MbitMoreSerial.h"
 
 static MbitMoreSerial *serial;
@@ -184,3 +187,5 @@ void MbitMoreSerial::startSerialReceiving() {
     }
   }
 }
+
+#endif // MBIT_MORE_USE_SERIAL

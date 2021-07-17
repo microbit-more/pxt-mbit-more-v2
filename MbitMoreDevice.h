@@ -7,8 +7,12 @@
 #include "MicroBitConfig.h"
 
 #include "MbitMoreCommon.h"
+
+#if MBIT_MORE_USE_SERIAL
 #include "MbitMoreSerial.h"
 class MbitMoreSerial;
+#endif // MBIT_MORE_USE_SERIAL
+
 #if MICROBIT_CODAL
 #include "MbitMoreService.h"
 class MbitMoreService;
@@ -121,11 +125,13 @@ public:
    */
   MbitMoreService *moreService;
 
+#if MBIT_MORE_USE_SERIAL
   /**
    * @brief Microbit More serial port connector.
    * 
    */
   MbitMoreSerial *serialService;
+#endif // MBIT_MORE_USE_SERIAL
 
   // ---------------------
 

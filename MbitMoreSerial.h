@@ -1,9 +1,9 @@
+#include "MbitMoreCommon.h"
+#if MBIT_MORE_USE_SERIAL
+
 #ifndef MBIT_MORE_SERIAL_H
 #define MBIT_MORE_SERIAL_H
 
-// #include "MicroBit.h"
-
-#include "MbitMoreCommon.h"
 #include "MbitMoreDevice.h"
 
 #define MM_SFD 0xff
@@ -75,3 +75,4 @@ public:
   void startSerialUpdating();
 };
 #endif // MBIT_MORE_SERIAL_H
+#endif // MBIT_MORE_USE_SERIAL

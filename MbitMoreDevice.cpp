@@ -146,7 +146,9 @@ MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
       this,
       &MbitMoreDevice::onBLEDisconnected,
       MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+#if MBIT_MORE_USE_SERIAL
   serialService = new MbitMoreSerial(*this);
+#endif // MBIT_MORE_USE_SERIAL
 }
 
 MbitMoreDevice::~MbitMoreDevice() {
@@ -625,10 +627,12 @@ void MbitMoreDevice::sendNumberWithLabel(ManagedString dataLabel, float dataCont
   copyManagedString((char *)(&data[0]), dataLabel, MBIT_MORE_DATA_LABEL_SIZE);
   memcpy(&data[MBIT_MORE_DATA_LABEL_SIZE], &dataContent, 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::DATA_NUMBER;
+#if MBIT_MORE_USE_SERIAL
   if (serialConnected) {
     serialService->notifyOnSerial(0x0130, data, MM_CH_BUFFER_SIZE_NOTIFY);
     return;
   }
+#endif // MBIT_MORE_USE_SERIAL
   moreService->notifyData();
 }
 
@@ -650,10 +654,12 @@ void MbitMoreDevice::sendTextWithLabel(ManagedString dataLabel, ManagedString da
       dataContent,
       MBIT_MORE_DATA_CONTENT_SIZE);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::DATA_TEXT;
+#if MBIT_MORE_USE_SERIAL
   if (serialConnected) {
     serialService->notifyOnSerial(0x0130, data, MM_CH_BUFFER_SIZE_NOTIFY);
     return;
   }
+#endif // MBIT_MORE_USE_SERIAL
   moreService->notifyData();
 }
 
@@ -757,10 +763,12 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
   uint32_t timestamp = (uint32_t)evt.timestamp;
   memcpy(&(data[2]), &timestamp, 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::PIN_EVENT;
+#if MBIT_MORE_USE_SERIAL
   if (serialConnected) {
     serialService->notifyOnSerial(0x0110, data, MM_CH_BUFFER_SIZE_NOTIFY);
     return;
   }
+#endif // MBIT_MORE_USE_SERIAL
   moreService->notifyPinEvent();
 }
 
@@ -783,10 +791,12 @@ void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
   uint32_t timestamp = (uint32_t)evt.timestamp;
   memcpy(&(data[4]), &timestamp, 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
+#if MBIT_MORE_USE_SERIAL
   if (serialConnected) {
     serialService->notifyOnSerial(0x0111, data, MM_CH_BUFFER_SIZE_NOTIFY);
     return;
   }
+#endif // MBIT_MORE_USE_SERIAL
   moreService->notifyActionEvent();
 }
 
@@ -806,10 +816,12 @@ void MbitMoreDevice::onGestureChanged(MicroBitEvent evt) {
   uint32_t timestamp = (uint32_t)evt.timestamp;
   memcpy(&(data[2]), &timestamp, 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
+#if MICROBIT_CODAL
   if (serialConnected) {
     serialService->notifyOnSerial(0x0111, data, MM_CH_BUFFER_SIZE_NOTIFY);
     return;
   }
+#endif // MICROBIT_CODAL
   moreService->notifyActionEvent();
 }
 
