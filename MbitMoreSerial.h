@@ -7,6 +7,8 @@
 #include "MbitMoreDevice.h"
 
 #define MM_SFD 0xff
+#define MM_RX_BUFFER_SIZE 254
+#define MM_TX_BUFFER_SIZE 254
 
 // // Forward declaration
 class MbitMoreDevice;
@@ -17,6 +19,16 @@ class MbitMoreDevice;
  */
 class MbitMoreSerial {
 private:
+  /**
+ * @brief Communication route between Scratch and micro:bit
+ * 
+ */
+  enum MbitMoreCommunicationRoute
+  {
+    BLE = 0,
+    SERIAL = 1,
+  };
+
   enum ChRequest
   {
     REQ_READ = 0x01,

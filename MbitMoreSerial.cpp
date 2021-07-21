@@ -13,65 +13,92 @@ void startMbitMoreSerialUpdating() {
   serial->startSerialUpdating();
 }
 
+uint8_t readSync() {
+  fiber_sleep(1); // Need to prevent from freezing
+  return uBit.serial.read(SYNC_SLEEP);
+}
+
+uint8_t chksum8(const uint8_t *buff, size_t len) {
+  unsigned int sum;
+  for (sum = 0; len != 0; len--) {
+    sum += *(buff++);
+  }
+  return (uint8_t)(sum % 0xFF);
+}
+
 MbitMoreSerial::MbitMoreSerial(MbitMoreDevice &_mbitMore) : mbitMore(_mbitMore) {
   serial = this;
-  // // Change baud rate
-  //   int rate = 57600;
-  // #if MICROBIT_CODAL
-  //   uBit.serial.setBaud(rate);
-  // #else
-  //   uBit.serial.baud((int)rate);
-  // #endif
+  // Baud rate
+  // int rate = 57600;
+  int rate = 115200; // Default for micro:bit
+#if MICROBIT_CODAL
+  uBit.serial.setBaud(rate);
+#else
+  uBit.serial.baud((int)rate);
+#endif
   create_fiber(startMbitMoreSerialReceiving);
 }
 
 void MbitMoreSerial::readResponseOnSerial(uint16_t ch, uint8_t *dataBuffer, size_t len) {
-  uint8_t frame[5 + len] = {0};
+  size_t frameSize = 6 + len;
+  uint8_t frame[frameSize] = {0};
   frame[0] = MM_SFD;
   frame[1] = ChResponse::RES_READ;
   frame[2] = ch >> 8;
   frame[3] = ch & 0x00FF;
   frame[4] = len;
   memcpy(&frame[5], dataBuffer, len);
-  uBit.serial.send(frame, 5 + len, SYNC_SLEEP);
+  frame[frameSize - 1] = chksum8(frame, frameSize - 1);
+  while ((MM_TX_BUFFER_SIZE - uBit.serial.txBufferedSize()) < (int)frameSize) {
+    fiber_sleep(1);
+  }
+  uBit.serial.send(frame, frameSize, ASYNC);
 }
 
 void MbitMoreSerial::writeResponseOnSerial(uint16_t ch, bool response) {
-  uint8_t frame[6] = {0};
+  uint8_t frame[7] = {0};
   frame[0] = MM_SFD;
   frame[1] = ChResponse::RES_WRITE;
   frame[2] = ch >> 8;
   frame[3] = ch & 0x00FF;
   frame[4] = 1;
   frame[5] = 1;
-  uBit.serial.send(frame, 6, SYNC_SLEEP);
+  frame[6] = chksum8(frame, 6);
+  while ((MM_TX_BUFFER_SIZE - uBit.serial.txBufferedSize()) < 7) {
+    fiber_sleep(1);
+  }
+  uBit.serial.send(frame, 7, SYNC_SLEEP);
 }
 
 void MbitMoreSerial::notifyOnSerial(uint16_t ch, uint8_t *dataBuffer, size_t len) {
-  uint8_t frame[5 + len] = {0};
+  size_t frameSize = 6 + len;
+  uint8_t frame[frameSize] = {0};
   frame[0] = MM_SFD;
   frame[1] = ChResponse::RES_NOTIFY;
   frame[2] = ch >> 8;
   frame[3] = ch & 0x00FF;
   frame[4] = len;
   memcpy(&frame[5], dataBuffer, len);
-  uBit.serial.send(frame, 5 + len, SYNC_SLEEP);
+  frame[frameSize - 1] = chksum8(frame, frameSize - 1);
+  while ((MM_TX_BUFFER_SIZE - uBit.serial.txBufferedSize()) < (int)frameSize) {
+    fiber_sleep(1);
+  }
+  uBit.serial.send(frame, frameSize, ASYNC);
 }
 
 void MbitMoreSerial::startSerialUpdating() {
   MbitMoreService *moreService = mbitMore.moreService;
   uint16_t stateCh = 0x0101;
   uint16_t motionCh = 0x0102;
-  uint8_t *responseBuffer;
   while (true) {
-    responseBuffer = moreService->stateChBuffer;
-    mbitMore.updateState(responseBuffer);
-    readResponseOnSerial(stateCh, responseBuffer, MM_CH_BUFFER_SIZE_STATE);
-    fiber_sleep(50);
-    responseBuffer = moreService->motionChBuffer;
-    mbitMore.updateMotion(responseBuffer);
-    readResponseOnSerial(motionCh, responseBuffer, MM_CH_BUFFER_SIZE_MOTION);
-    fiber_sleep(50);
+    if (uBit.serial.txBufferedSize() < 100) {
+      mbitMore.updateState(moreService->stateChBuffer);
+      readResponseOnSerial(stateCh, moreService->stateChBuffer, MM_CH_BUFFER_SIZE_STATE);
+      fiber_sleep(20);
+      mbitMore.updateMotion(moreService->motionChBuffer);
+      readResponseOnSerial(motionCh, moreService->motionChBuffer, MM_CH_BUFFER_SIZE_MOTION);
+      fiber_sleep(20);
+    }
   }
 }
 
@@ -92,99 +119,149 @@ bool MbitMoreSerial::waitRxBufferedSize(size_t length) {
 
 void MbitMoreSerial::startSerialReceiving() {
   MbitMoreService *moreService = mbitMore.moreService;
-  int receivedChar;
   int requestType;
   uint16_t ch;
   uint8_t *responseBuffer;
 
-  uBit.serial.setTxBufferSize(254);
+  uBit.serial.setTxBufferSize(MM_TX_BUFFER_SIZE);
   uBit.serial.clearTxBuffer();
-  uBit.serial.setRxBufferSize(254);
+  uBit.serial.setRxBufferSize(MM_RX_BUFFER_SIZE);
   uBit.serial.clearRxBuffer();
 
+  uint8_t frame[26] = {0};
+  size_t frameReceived = 0;
+
   while (true) {
-    receivedChar = uBit.serial.read(SYNC_SLEEP);
-    if (receivedChar < 0) {
-      continue; // MICROBIT_SERIAL_IN_USE or MICROBIT_NO_RESOURCES
+    while ((frameReceived > 0) && (MM_SFD != frame[0])) {
+      frameReceived--;
+      memmove(frame, frame + 1, frameReceived);
     }
-    if (MM_SFD == receivedChar) {
-      if (!waitRxBufferedSize(1)) {
+    if (frameReceived == 0) {
+      frame[0] = readSync();
+      if (MM_SFD != frame[0]) {
         continue;
       }
-      requestType = uBit.serial.read(SYNC_SLEEP);
-      if (requestType < 0 || requestType > ChRequest::REQ_NOTIFY_START) {
-        continue;
-      }
-      if (!waitRxBufferedSize(1)) {
-        continue;
-      }
-      ch = uBit.serial.read(SYNC_SLEEP) << 8;
-      if (!waitRxBufferedSize(1)) {
-        continue;
-      }
-      ch |= uBit.serial.read(SYNC_SLEEP);
-      // uBit.display.scroll((int)ch); // debug
-
-      // COMMAND
-      if (0x0100 == ch) {
-        if (ChRequest::REQ_READ == requestType) {
-          // Start connection
-          mbitMore.updateVersionData();
-          responseBuffer = moreService->commandChBuffer;
-          readResponseOnSerial(ch, responseBuffer, MM_CH_BUFFER_SIZE_COMMAND);
-          if (!mbitMore.serialConnected) {
-            mbitMore.onSerialConnected();
-            create_fiber(startMbitMoreSerialUpdating);
-          }
-          continue;
-        }
-        if (ChRequest::REQ_WRITE == requestType || ChRequest::REQ_WRITE_RESPONSE == requestType) {
-          if (!waitRxBufferedSize(1)) {
-            continue;
-          }
-          uint8_t length = uBit.serial.read(SYNC_SLEEP);
-          if (!waitRxBufferedSize(length)) {
-            continue;
-          }
-          uBit.serial.read(moreService->commandChBuffer, length, SYNC_SLEEP);
-          mbitMore.onCommandReceived(moreService->commandChBuffer, length);
-          if (ChRequest::REQ_WRITE_RESPONSE == requestType) {
-            writeResponseOnSerial(ch, true);
-          }
-          continue;
-        }
-      }
-
-      // ANALOG_IN_P0
-      if (0x0120 == ch) {
-        if (ChRequest::REQ_READ == requestType) {
-          mbitMore.updateAnalogIn(moreService->analogInP0ChBuffer, 0);
-          readResponseOnSerial(ch, moreService->analogInP0ChBuffer, MM_CH_BUFFER_SIZE_ANALOG_IN);
-          continue;
-        }
-      }
-
-      // ANALOG_IN_P1
-      if (0x0121 == ch) {
-        if (ChRequest::REQ_READ == requestType) {
-          mbitMore.updateAnalogIn(moreService->analogInP1ChBuffer, 1);
-          readResponseOnSerial(ch, moreService->analogInP1ChBuffer, MM_CH_BUFFER_SIZE_ANALOG_IN);
-          continue;
-        }
-      }
-
-      // ANALOG_IN_P2
-      if (0x0122 == ch) {
-        if (ChRequest::REQ_READ == requestType) {
-          mbitMore.updateAnalogIn(moreService->analogInP2ChBuffer, 2);
-          readResponseOnSerial(ch, moreService->analogInP2ChBuffer, MM_CH_BUFFER_SIZE_ANALOG_IN);
-          continue;
-        }
-      }
-
-      uBit.display.print("E"); // debug
-      continue;
+      frameReceived = 1;
     }
+    if (frameReceived == 1) {
+      frame[1] = readSync();
+      frameReceived = 2;
+    }
+    requestType = frame[1];
+    if (requestType < 0 || requestType > ChRequest::REQ_NOTIFY_START) {
+      frameReceived--;
+      memmove(frame, frame + 1, frameReceived);
+      continue; // reset frame reading
+    }
+    if (frameReceived == 2) {
+      frame[2] = readSync();
+      frameReceived = 3;
+    }
+    if (frameReceived == 3) {
+      frame[3] = readSync();
+      frameReceived = 4;
+    }
+    ch = frame[2] << 8;
+    ch |= frame[3];
+    // COMMAND
+    if (0x0100 == ch) {
+      if (ChRequest::REQ_READ == requestType) {
+        // Start connection
+        mbitMore.updateVersionData();
+        responseBuffer = moreService->commandChBuffer;
+        responseBuffer[2] = MbitMoreCommunicationRoute::SERIAL;
+        readResponseOnSerial(ch, responseBuffer, MM_CH_BUFFER_SIZE_COMMAND);
+        if (!mbitMore.serialConnected) {
+          mbitMore.onSerialConnected();
+          create_fiber(startMbitMoreSerialUpdating);
+        }
+        frameReceived = 0; // reset frame reading
+        continue;
+      }
+      if (ChRequest::REQ_WRITE == requestType || ChRequest::REQ_WRITE_RESPONSE == requestType) {
+        if (frameReceived == 4) {
+          frame[4] = readSync();
+          frameReceived = 5;
+        }
+        uint8_t commandLength = frame[4];
+        if (commandLength > 20) {
+          frameReceived--;
+          memmove(frame, frame + 1, frameReceived);
+          continue;
+        }
+        size_t frameSize = 5 + commandLength + 1;
+        for (size_t i = frameReceived; i < frameSize; i++) {
+          frame[i] = readSync();
+          frameReceived = i + 1;
+        }
+        if (chksum8(frame, 5 + commandLength) != frame[frameSize - 1]) {
+          frameReceived--;
+          memmove(frame, frame + 1, frameReceived);
+          continue;
+        }
+        memcpy(moreService->commandChBuffer, &frame[5], commandLength);
+        mbitMore.onCommandReceived(moreService->commandChBuffer, commandLength);
+        if (ChRequest::REQ_WRITE_RESPONSE == requestType) {
+          writeResponseOnSerial(ch, true);
+        }
+        frameReceived = 0; // reset frame reading
+        continue;
+      }
+    }
+
+    // State
+    if (0x0101 == ch) {
+      if (ChRequest::REQ_READ == requestType) {
+        mbitMore.updateState(moreService->stateChBuffer);
+        readResponseOnSerial(0x0101, moreService->stateChBuffer, MM_CH_BUFFER_SIZE_STATE);
+        frameReceived = 0; // reset frame reading
+        continue;
+      }
+    }
+
+    // Motion
+    if (0x0102 == ch) {
+      if (ChRequest::REQ_READ == requestType) {
+        mbitMore.updateMotion(moreService->motionChBuffer);
+        readResponseOnSerial(0x0102, moreService->motionChBuffer, MM_CH_BUFFER_SIZE_MOTION);
+        frameReceived = 0; // reset frame reading
+        continue;
+      }
+    }
+
+    // ANALOG_IN_P0
+    if (0x0120 == ch) {
+      if (ChRequest::REQ_READ == requestType) {
+        mbitMore.updateAnalogIn(moreService->analogInP0ChBuffer, 0);
+        readResponseOnSerial(ch, moreService->analogInP0ChBuffer, MM_CH_BUFFER_SIZE_ANALOG_IN);
+        frameReceived = 0; // reset frame reading
+        continue;
+      }
+    }
+
+    // ANALOG_IN_P1
+    if (0x0121 == ch) {
+      if (ChRequest::REQ_READ == requestType) {
+        mbitMore.updateAnalogIn(moreService->analogInP1ChBuffer, 1);
+        readResponseOnSerial(ch, moreService->analogInP1ChBuffer, MM_CH_BUFFER_SIZE_ANALOG_IN);
+        frameReceived = 0; // reset frame reading
+        continue;
+      }
+    }
+
+    // ANALOG_IN_P2
+    if (0x0122 == ch) {
+      if (ChRequest::REQ_READ == requestType) {
+        mbitMore.updateAnalogIn(moreService->analogInP2ChBuffer, 2);
+        readResponseOnSerial(ch, moreService->analogInP2ChBuffer, MM_CH_BUFFER_SIZE_ANALOG_IN);
+        frameReceived = 0; // reset frame reading
+        continue;
+      }
+    }
+
+    // Not matched
+    frameReceived--;
+    memmove(frame, frame + 1, frameReceived);
   }
 }
 

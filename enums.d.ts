@@ -189,9 +189,16 @@
 
 
     /**
-     * Class definition for main logics of Micribit More Service except bluetooth connectivity.
-     *
+     * @brief Communication route between Scratch and micro:bit
+     * 
      */
+
+    declare const enum MbitMoreCommunicationRoute
+    {
+    BLE = 0,
+    SERIAL = 1,
+    }
+
 
     declare const enum ChRequest
     {
