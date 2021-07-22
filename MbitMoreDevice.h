@@ -308,7 +308,7 @@ public:
    *
    * @return int Filtered light level.
    */
-  int sampleLigthLevel();
+  int sampleLightLevel();
 
   /**
    * @brief Set PMW signal to the speaker pin for play tone.

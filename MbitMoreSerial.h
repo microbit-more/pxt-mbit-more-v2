@@ -14,21 +14,25 @@
 class MbitMoreDevice;
 
 /**
- * Class definition for main logics of Micribit More Service except bluetooth connectivity.
+ * Class definition for main logics of Microbit More Service except bluetooth connectivity.
  *
  */
 class MbitMoreSerial {
 private:
   /**
- * @brief Communication route between Scratch and micro:bit
- * 
- */
+   * @brief Communication route between Scratch and micro:bit
+   * 
+   */
   enum MbitMoreCommunicationRoute
   {
     BLE = 0,
     SERIAL = 1,
   };
 
+  /**
+   * @brief Request type from Scratch
+   * 
+   */
   enum ChRequest
   {
     REQ_READ = 0x01,
@@ -38,21 +42,16 @@ private:
     REQ_NOTIFY_START = 0x21,
   };
 
+  /**
+   * @brief Response type to Scratch
+   * 
+   */
   enum ChResponse
   {
     RES_READ = 0x01,
     RES_WRITE = 0x11,
     RES_NOTIFY = 0x21,
   };
-
-  /**
-   * @brief Wait until rxBufferedSize is over the length
-   * 
-   * @param length size to be exceed
-   * @return true the length is exceeded
-   * @return false timeout before the length exceeded
-   */
-  bool waitRxBufferedSize(size_t length);
 
 public:
   /**
@@ -68,10 +67,30 @@ public:
    */
   MbitMoreSerial(MbitMoreDevice &_mbitMore);
 
+  /**
+   * @brief Send a response for read request.
+   * 
+   * @param ch Characteristeic of the request
+   * @param dataBuffer Buffer to send
+   * @param len Length of the buffer to send
+   */
   void readResponseOnSerial(uint16_t ch, uint8_t *dataBuffer, size_t len);
 
+  /**
+   * @brief Send a response for write request.
+   * 
+   * @param ch Characteristic of the request
+   * @param response Response for the request
+   */
   void writeResponseOnSerial(uint16_t ch, bool response);
 
+  /**
+   * @brief Notify data of the characteristic
+   * 
+   * @param ch Characteristic to notify
+   * @param dataBuffer Buffer to notify
+   * @param len Length of the buffer to notify
+   */
   void notifyOnSerial(uint16_t ch, uint8_t *dataBuffer, size_t len);
 
   /**

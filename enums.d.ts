@@ -200,6 +200,11 @@
     }
 
 
+    /**
+     * @brief Request type from Scratch
+     * 
+     */
+
     declare const enum ChRequest
     {
     REQ_READ = 0x01,
@@ -209,6 +214,11 @@
     REQ_NOTIFY_START = 0x21,
     }
 
+
+    /**
+     * @brief Response type to Scratch
+     * 
+     */
 
     declare const enum ChResponse
     {

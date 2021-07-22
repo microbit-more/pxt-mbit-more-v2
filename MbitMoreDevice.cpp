@@ -168,7 +168,7 @@ MbitMoreDevice::~MbitMoreDevice() {
  *
  */
 void MbitMoreDevice::initializeConfig() {
-  // P0,P1,P2 are pull-up as standerd extension.
+  // P0,P1,P2 are pull-up as standard extension.
   for (size_t i = 0; i < (sizeof(initialPullUp) / sizeof(initialPullUp[0])); i++) {
     setPullMode(initialPullUp[i], MbitMorePullMode::Up);
     uBit.io.pin[initialPullUp[i]].getDigitalValue(); // set the pin to input-mode
@@ -176,7 +176,7 @@ void MbitMoreDevice::initializeConfig() {
 }
 
 /**
- * @brief Update version data on the charactaristic.
+ * @brief Update version data on the characteristic.
  * 
  */
 void MbitMoreDevice::updateVersionData() {
@@ -408,7 +408,7 @@ void MbitMoreDevice::updateState(uint8_t *data) {
   digitalLevels = digitalLevels | (uBit.logo.isPressed() << MbitMoreButtonStateIndex::LOGO);
 #endif // MICROBIT_CODAL
   memcpy(data, (uint8_t *)&digitalLevels, 4);
-  data[4] = sampleLigthLevel();
+  data[4] = sampleLightLevel();
   data[5] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
 #if MICROBIT_CODAL
   if (micInUse) {
@@ -491,7 +491,7 @@ void MbitMoreDevice::updateAnalogIn(uint8_t *data, size_t pinIndex) {
  *
  * @return int Filtered light level.
  */
-int MbitMoreDevice::sampleLigthLevel() {
+int MbitMoreDevice::sampleLightLevel() {
   lightLevelSamplesLast++;
   if (lightLevelSamplesLast == LIGHT_LEVEL_SAMPLES_SIZE) {
     lightLevelSamplesLast = 0;

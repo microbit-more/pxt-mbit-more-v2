@@ -3,21 +3,41 @@
 
 #include "MbitMoreSerial.h"
 
-static MbitMoreSerial *serial;
+static MbitMoreSerial *serial; // Hold it as a static pointer to be called by create_fiber().
 
+/**
+ * @brief Start a process to receive data.
+ * 
+ */
 void startMbitMoreSerialReceiving() {
   serial->startSerialReceiving();
 }
 
+/**
+ * @brief Start a process to update sensor data.
+ * 
+ */
 void startMbitMoreSerialUpdating() {
   serial->startSerialUpdating();
 }
 
+/**
+ * @brief Read one byte from RX. Current fiber sleeps until when received a data.
+ * 
+ * @return uint8_t Data read from RX
+ */
 uint8_t readSync() {
   fiber_sleep(1); // Need to prevent from freezing
   return uBit.serial.read(SYNC_SLEEP);
 }
 
+/**
+ * @brief Calculate checksum of the data. Sum of the buffer and return the remainder which deviced by 0xFF. 
+ * 
+ * @param buff Buffer to be calculate
+ * @param len Length of buffer
+ * @return uint8_t Number of checksum
+ */
 uint8_t chksum8(const uint8_t *buff, size_t len) {
   unsigned int sum;
   for (sum = 0; len != 0; len--) {
@@ -100,21 +120,6 @@ void MbitMoreSerial::startSerialUpdating() {
       fiber_sleep(20);
     }
   }
-}
-
-bool MbitMoreSerial::waitRxBufferedSize(size_t length) {
-  int retry = 0;
-  while (uBit.serial.rxBufferedSize() < (int)length) {
-    if (retry > (10 * (int)length)) {
-      return false;
-    }
-    retry++;
-    fiber_sleep(1);
-  }
-  while (uBit.serial.rxInUse()) {
-    fiber_sleep(1);
-  }
-  return true;
 }
 
 void MbitMoreSerial::startSerialReceiving() {
