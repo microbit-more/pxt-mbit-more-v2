@@ -322,8 +322,7 @@ void MbitMoreDevice::onCommandReceived(uint8_t *data, size_t length) {
             &MbitMoreDevice::onButtonChanged,
             MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
 #if MICROBIT_CODAL
-        uBit.io.pin[pinIndex].isTouched();
-        // uBit.io.pin[pinIndex].isTouched(TouchMode::Capacitative); // does not work?
+        uBit.io.pin[pinIndex].isTouched(codal::TouchMode::Capacitative);
 #else // NOT MICROBIT_CODAL
         uBit.io.pin[pinIndex].isTouched();
 #endif // NOT MICROBIT_CODAL
