@@ -677,8 +677,8 @@ void MbitMoreDevice::listenPinEventOn(int pinIndex, int eventType) {
   if (!isGpio(pinIndex)) {
     return;
   }
-  int componentID = pinIndex + 100; // conventional scheme to convert from pin
-                                    // index to componentID in v1 and v2.
+  // conventional scheme to convert from pin index to componentID in v1 and v2.
+  int componentID = pinIndex + 100;
   uBit.messageBus.ignore(
       componentID,
       MICROBIT_PIN_EVT_RISE,
@@ -752,9 +752,8 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
   uint8_t *data = moreService->pinEventChBuffer;
 
   // pinIndex is sent as uint8_t.
-  data[0] = evt.source - 100; // conventional scheme to convert from componentID
-                              // to pin index in v1 and v2.
-
+  // conventional scheme to convert from componentID to pin index in v1 and v2.
+  data[0] = evt.source - 100;
   // event ID is sent as uint8_t.
   data[1] = (uint8_t)evt.value;
 
