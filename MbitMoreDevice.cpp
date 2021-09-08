@@ -814,12 +814,12 @@ void MbitMoreDevice::onGestureChanged(MicroBitEvent evt) {
   uint32_t timestamp = (uint32_t)evt.timestamp;
   memcpy(&(data[2]), &timestamp, 4);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
-#if MICROBIT_CODAL
+#if MBIT_MORE_USE_SERIAL
   if (serialConnected) {
     serialService->notifyOnSerial(0x0111, data, MM_CH_BUFFER_SIZE_NOTIFY);
     return;
   }
-#endif // MICROBIT_CODAL
+#endif // MBIT_MORE_USE_SERIAL
   moreService->notifyActionEvent();
 }
 
