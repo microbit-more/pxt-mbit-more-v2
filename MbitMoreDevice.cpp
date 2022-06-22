@@ -92,7 +92,7 @@ void copyManagedString(char *dst, ManagedString mstr, size_t maxLength) {
 MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
   // Reset compass
 #if MICROBIT_CODAL
-  // On microbit-v2, re-calibration destract compass heading.
+  // On microbit-v2, re-calibration destruct compass heading.
 #else // NOT MICROBIT_CODAL
   if (uBit.buttonA.isPressed()) {
     uBit.compass.clearCalibration();
