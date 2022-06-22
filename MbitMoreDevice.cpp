@@ -104,6 +104,9 @@ MbitMoreDevice::MbitMoreDevice(MicroBit &_uBit) : uBit(_uBit) {
     uBit.compass.calibrate();
   }
 
+  // to detect 8G gesture event
+  uBit.accelerometer.setRange(8);
+
   displayVersion();
 
   uBit.messageBus.listen(
