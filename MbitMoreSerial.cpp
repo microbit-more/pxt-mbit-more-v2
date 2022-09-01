@@ -47,6 +47,7 @@ uint8_t chksum8(const uint8_t *buff, size_t len) {
 }
 
 MbitMoreSerial::MbitMoreSerial(MbitMoreDevice &_mbitMore) : mbitMore(_mbitMore) {
+  uBit.log.setSerialMirroring(false); // stop log using serial
   serial = this;
   // Baud rate
   // int rate = 57600;
