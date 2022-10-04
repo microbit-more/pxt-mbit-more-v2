@@ -374,8 +374,14 @@ void MbitMoreDevice::displayShadowPixels() {
  */
 void MbitMoreDevice::displayText(char *text, int delay) {
   ManagedString mstr(text);
+  if (mstr.length() < 1) {
+    return;
+  }
   uBit.display.stopAnimation();
-  // Interval=120 is corresponding with the standard extension.
+  if (delay <= 0) {
+    uBit.display.printCharAsync(mstr.charAt(0), delay);
+    return;
+  }
   uBit.display.scrollAsync(mstr, delay);
 }
 
