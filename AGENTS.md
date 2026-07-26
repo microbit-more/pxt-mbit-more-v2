@@ -48,8 +48,31 @@ pxt-mbit-more-v2/
 └────────────────────────────────────────────────────────┘
 ```
 
+## Development & Testing Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Run TypeScript Jest unit tests
+npm test            # or `make test`
+
+# Run Jest unit tests directly
+npm run test:unit   # or `make test-unit`
+
+# Regenerate shims.d.ts and enums.d.ts from C++ definitions
+npm run build:shims # or `make test-shims`
+
+# Run PXT tests
+npm run test:pxt    # or `make test-pxt`
+
+# Build (outputs to built/)
+npm run build       # or `make build`
+```
+
 ## Usage & Build
 
 1. Open [MakeCode for micro:bit](https://makecode.microbit.org/)
 2. Search and import `https://github.com/microbit-more/pxt-mbit-more-v2` via the **Extensions** menu
 3. Download (flash) the program to your micro:bit
+
