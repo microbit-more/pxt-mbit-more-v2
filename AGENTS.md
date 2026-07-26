@@ -82,3 +82,4 @@ For C++ development targeting the micro:bit v2, the following resources are usef
 - [CODAL Documentation](https://lancaster-university.github.io/codal-documentation/index.html)
 - [codal-microbit-v2 Repository](https://github.com/lancaster-university/codal-microbit-v2)
 - [microbit-v2-samples Repository](https://github.com/lancaster-university/microbit-v2-samples)
+- [Microbit v2 Unofficial Documentation (c272)](https://microbit.c272.org/)
