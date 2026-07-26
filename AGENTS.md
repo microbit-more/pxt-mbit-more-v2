@@ -76,3 +76,9 @@ npm run build       # or `make build`
 2. Search and import `https://github.com/microbit-more/pxt-mbit-more-v2` via the **Extensions** menu
 3. Download (flash) the program to your micro:bit
 
+## CODAL Resources
+
+For C++ development targeting the micro:bit v2, the following resources are useful:
+- [CODAL Documentation](https://lancaster-university.github.io/codal-documentation/index.html)
+- [codal-microbit-v2 Repository](https://github.com/lancaster-university/codal-microbit-v2)
+- [microbit-v2-samples Repository](https://github.com/lancaster-university/microbit-v2-samples)
