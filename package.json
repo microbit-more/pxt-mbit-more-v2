@@ -1,0 +1,33 @@
+{
+  "name": "pxt-mbit-more-v2",
+  "version": "0.2.6",
+  "description": "micro:bit extension and firmware for Microbit More v2",
+  "scripts": {
+    "postinstall": "node -e \"require('fs').writeFileSync('node_modules/pxtcli.json',JSON.stringify({targetdir:'pxt-microbit'},null,4))\"",
+    "build": "pxt build",
+    "build:shims": "pxt buildshims",
+    "deploy": "pxt deploy",
+    "test": "npm run test:unit",
+    "test:unit": "jest",
+    "test:shims": "pxt buildshims",
+    "test:pxt": "pxt test"
+  },
+  "keywords": [
+    "microbit",
+    "pxt",
+    "makecode",
+    "scratch",
+    "mbit-more"
+  ],
+  "author": "Koji Yokokawa (@yokobond)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.0",
+    "jest": "^29.7.0",
+    "pxt": "^0.5.1",
+    "pxt-microbit": "9.1.1",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
+  }
+}
