@@ -8,6 +8,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Needed only by the tag-gated release steps at the end of this job.
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -48,3 +52,27 @@ jobs:
             built/mbdal-binary.hex
             built/mbcodal-binary.hex
           if-no-files-found: error
+
+      # On a version tag push (0.2.6 or v0.2.6), publish the combined hex to the
+      # release page. The name follows the convention of the manual releases up to
+      # 0.2.5: dots replaced by underscores, e.g. microbit-mbit-more-v2-0_2_6.hex
+      - name: Prepare release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        id: asset
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          name="microbit-mbit-more-v2-${version//./_}.hex"
+          cp built/binary.hex "$name"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      # Usually the release already exists (MakeCode creates it when publishing the
+      # extension), but create it if only the tag was pushed. --clobber lets a tag be
+      # re-cut without failing on the existing asset.
+      - name: Publish release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes ""
+          gh release upload "$GITHUB_REF_NAME" "${{ steps.asset.outputs.name }}" --clobber

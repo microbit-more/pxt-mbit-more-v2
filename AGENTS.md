@@ -134,6 +134,22 @@ real hardware:
 cp built/binary.hex dist/binary.hex
 ```
 
+### Releasing
+
+Pushing a version tag (`0.2.6` or `v0.2.6`) makes the `MakeCode` workflow build the
+firmware and attach `built/binary.hex` to that tag's release page as
+`microbit-mbit-more-v2-<version>.hex`, with dots replaced by underscores — e.g.
+`microbit-mbit-more-v2-0_2_6.hex`. This matches the naming of the manual releases up to
+0.2.5. The release is created if it does not already exist (MakeCode normally creates it
+when the extension is published), and re-cutting a tag overwrites the existing asset.
+
+Release checklist:
+
+1. Bump `version` in both `pxt.json` and `package.json` to match the tag.
+2. Smoke-test the build on real hardware, then `cp built/binary.hex dist/binary.hex`
+   and commit it.
+3. Tag and push — CI attaches the hex to the release.
+
 ## CODAL Resources
 
 For C++ development targeting the micro:bit v2, the following resources are useful:
