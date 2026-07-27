@@ -8,7 +8,7 @@ This document is a guide for AI agents (Antigravity, GitHub Copilot, etc.) to un
 It includes MakeCode (PXT) TypeScript block definitions and C++ (CODAL / microbit-dal) custom BLE GATT service implementations.
 
 - **Name**: pxt-mbit-more-v2
-- **Version**: 0.2.5
+- **Version**: 0.2.6
 - **Target**: micro:bit (v1 / v2)
 - **Author**: Koji Yokokawa (@yokobond)
 

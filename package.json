@@ -1,6 +1,6 @@
 {
   "name": "pxt-mbit-more-v2",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "micro:bit extension and firmware for Microbit More v2",
   "scripts": {
     "postinstall": "node -e \"require('fs').writeFileSync('node_modules/pxtcli.json',JSON.stringify({targetdir:'pxt-microbit'},null,4))\"",
