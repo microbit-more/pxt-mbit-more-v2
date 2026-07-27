@@ -1,29 +1,50 @@
 name: MakeCode
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [8.x]
-
     steps:
-      - uses: actions/checkout@v1
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: npm install
+          node-version: 20
+          cache: npm
+
+      # Install the toolchain pinned in package.json / package-lock.json.
+      # Do NOT `npm install -g pxt` + `pxt target microbit` here: that resolves
+      # pxt-core / pxt-common-packages independently of the pinned pxt-microbit
+      # and reintroduces the version skew that causes
+      # "INTERNAL ERROR: Non-thumb addr for pxt::decr".
+      # See .agents/skills/pxt-build-troubleshooting/SKILL.md
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
+      # Builds both variants (mbdal / mbcodal) via the MakeCode cloud compile
+      # service, producing built/mbdal-binary.hex, built/mbcodal-binary.hex
+      # and the combined built/binary.hex.
+      - name: Build firmware
         run: |
-          npm install -g pxt
-          pxt target microbit
-      - name: build
-        run: |
-          pxt install
-          pxt build --cloud
+          npx pxt install
+          npx pxt build
         env:
           CI: true
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: mbit-more-firmware
+          path: |
+            built/binary.hex
+            built/mbdal-binary.hex
+            built/mbcodal-binary.hex
+          if-no-files-found: error
