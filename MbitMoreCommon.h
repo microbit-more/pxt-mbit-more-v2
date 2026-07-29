@@ -14,7 +14,7 @@
 
 // Kept in sync with the version in package.json by scripts/sync-version.js.
 // Do not edit by hand -- `npm version <level>` updates it, `npm test` verifies it.
-#define MBIT_MORE_VERSION_STRING "0.2.6"
+#define MBIT_MORE_VERSION_STRING "0.3.0"
 
 /**
  * Data type of content.

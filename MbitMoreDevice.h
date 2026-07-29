@@ -145,13 +145,13 @@ public:
    * @brief Index of controllabel GPIO pins.
    * 
    */
-  int gpioPin[9] = {0, 1, 2, 8, 12, 13, 14, 15, 16};
+  uint8_t gpioPin[9] = {0, 1, 2, 8, 12, 13, 14, 15, 16};
 
   /**
    * @brief Pins which is pull-up at connected.
    * 
    */
-  int initialPullUp[3] = {0, 1, 2};
+  uint8_t initialPullUp[3] = {0, 1, 2};
 
   bool touchMode[3] = {false};
 
@@ -164,7 +164,8 @@ public:
   /**
    * Samples of Light Level.
    */
-  int lightLevelSamples[LIGHT_LEVEL_SAMPLES_SIZE] = {0};
+  uint8_t lightLevelSamples[LIGHT_LEVEL_SAMPLES_SIZE] = {0};
+  int lightLevelSum = 0;
 
   /**
    * @brief Last index of the Light Level Samples.
@@ -179,8 +180,8 @@ public:
    */
   typedef struct {
     char label[MBIT_MORE_DATA_LABEL_SIZE];            /** label of the data */
-    MbitMoreDataContentType type;                     /** type of the content */
     uint8_t content[MBIT_MORE_DATA_CONTENT_SIZE + 1]; /** content of the data */
+    MbitMoreDataContentType type;                     /** type of the content */
   } MbitMoreLabeledData;
 
   /**
@@ -191,9 +192,9 @@ public:
 #endif // MICROBIT_CODAL
 
   /**
-   * Samples of Light Level.
+   * Samples of Analog In.
    */
-  int analogInSamples[3][ANALOG_IN_SAMPLES_SIZE] = {{0}};
+  uint16_t analogInSamples[3][ANALOG_IN_SAMPLES_SIZE] = {{0}};
 
 #if MICROBIT_CODAL
   /**
@@ -341,7 +342,7 @@ public:
    * @param dataType type of the data
    * @return int ID for the label
    */
-  int registerWaitingDataLabel(ManagedString dataLabel, MbitMoreDataContentType dataType);
+  int registerWaitingDataLabel(const ManagedString &dataLabel, MbitMoreDataContentType dataType);
 
   /**
    * @brief Get type of content for the labeled data
@@ -373,7 +374,7 @@ public:
    * @param dataLabel 
    * @param dataContent 
    */
-  void sendNumberWithLabel(ManagedString dataLabel, float dataContent);
+  void sendNumberWithLabel(const ManagedString &dataLabel, float dataContent);
 
   /**
    * @brief Send text with label.
@@ -381,7 +382,7 @@ public:
    * @param dataLabel 
    * @param dataContent 
    */
-  void sendTextWithLabel(ManagedString dataLabel, ManagedString dataContent);
+  void sendTextWithLabel(const ManagedString &dataLabel, const ManagedString &dataContent);
 
 #endif // MICROBIT_CODAL
 
