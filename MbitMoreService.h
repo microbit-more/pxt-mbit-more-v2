@@ -111,7 +111,7 @@ public:
    * @param dataType type of the data to be received
    * @return int ID for the label
    */
-  int registerWaitingDataLabel(ManagedString dataLabel, MbitMoreDataContentType dataType);
+  int registerWaitingDataLabel(const ManagedString &dataLabel, MbitMoreDataContentType dataType);
 
   /**
    * @brief Get type of content for the label
@@ -143,7 +143,7 @@ public:
    * @param dataLabel label of the data
    * @param dataContent content of the data
    */
-  void sendNumberWithLabel(ManagedString dataLabel, float dataContent);
+  void sendNumberWithLabel(const ManagedString &dataLabel, float dataContent);
 
   /**
    * @brief Send a string with labele to Scratch.
@@ -151,7 +151,7 @@ public:
    * @param dataLabel label of the data
    * @param dataContent content of the data
    */
-  void sendTextWithLabel(ManagedString dataLabel, ManagedString dataContent);
+  void sendTextWithLabel(const ManagedString &dataLabel, const ManagedString &dataContent);
 
 private:
   /**

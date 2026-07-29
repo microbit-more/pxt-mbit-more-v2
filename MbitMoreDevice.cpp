@@ -27,43 +27,61 @@ int getMicLevel() {
 #endif // MICROBIT_CODAL
 
 /**
- * @brief Compute average value for the int array.
+ * Position of data format in a value holder.
+ */
+#define MBIT_MORE_DATA_FORMAT_INDEX 19
+
+#include "MbitMoreDevice.h"
+
+static inline void write16LE(uint8_t *dst, int16_t val) {
+  dst[0] = (uint8_t)(val & 0xFF);
+  dst[1] = (uint8_t)((val >> 8) & 0xFF);
+}
+
+static inline void write32LE(uint8_t *dst, uint32_t val) {
+  dst[0] = (uint8_t)(val & 0xFF);
+  dst[1] = (uint8_t)((val >> 8) & 0xFF);
+  dst[2] = (uint8_t)((val >> 16) & 0xFF);
+  dst[3] = (uint8_t)((val >> 24) & 0xFF);
+}
+
+/**
+ * @brief Compute average value for the uint8_t array.
  *
  * @param data Array to compute average.
  * @param dataSize Length of the array.
  * @return average value.
  */
-int average(int *data, int dataSize) {
+int average(const uint8_t *data, int dataSize) {
   int sum = 0;
-  int i;
-  for (i = 0; i < dataSize - 1; i++) {
+  for (int i = 0; i < dataSize; i++) {
     sum += data[i];
   }
   return sum / dataSize;
 }
 
 /**
- * @brief Compute median value for the array.
+ * @brief Compute median value for the uint16_t array (non-destructive insertion sort).
  *
  * @param data Array to compute median.
  * @param dataSize Length of the array.
  * @return Median value.
  */
-int median(int *data, int dataSize) {
-  int temp;
-  int i, j;
-  // the following two loops sort the array x in ascending order
-  for (i = 0; i < dataSize - 1; i++) {
-    for (j = i + 1; j < dataSize; j++) {
-      if (data[j] < data[i]) {
-        // swap elements
-        temp = data[i];
-        data[i] = data[j];
-        data[j] = temp;
-      }
-    }
+uint16_t median(const uint16_t *data, size_t dataSize) {
+  uint16_t temp[ANALOG_IN_SAMPLES_SIZE];
+  for (size_t i = 0; i < dataSize; i++) {
+    temp[i] = data[i];
   }
-  return data[dataSize / 2];
+  for (size_t i = 1; i < dataSize; i++) {
+    uint16_t key = temp[i];
+    int j = (int)i - 1;
+    while (j >= 0 && temp[j] > key) {
+      temp[j + 1] = temp[j];
+      j--;
+    }
+    temp[j + 1] = key;
+  }
+  return temp[dataSize / 2];
 }
 
 /**
@@ -73,16 +91,10 @@ int median(int *data, int dataSize) {
  * @param mstr string as source
  * @param maxLength max size to copy
  */
-void copyManagedString(char *dst, ManagedString mstr, size_t maxLength) {
-  memcpy(dst, mstr.toCharArray(), ((size_t)mstr.length() < maxLength ? mstr.length() : maxLength));
+void copyManagedString(char *dst, const ManagedString &mstr, size_t maxLength) {
+  size_t len = (size_t)mstr.length();
+  memcpy(dst, mstr.toCharArray(), (len < maxLength ? len : maxLength));
 }
-
-/**
- * Position of data format in a value holder.
- */
-#define MBIT_MORE_DATA_FORMAT_INDEX 19
-
-#include "MbitMoreDevice.h"
 
 /**
  * Constructor.
@@ -415,7 +427,7 @@ void MbitMoreDevice::updateState(uint8_t *data) {
 #if MICROBIT_CODAL
   digitalLevels = digitalLevels | (uBit.logo.isPressed() << MbitMoreButtonStateIndex::LOGO);
 #endif // MICROBIT_CODAL
-  memcpy(data, (uint8_t *)&digitalLevels, 4);
+  write32LE(data, digitalLevels);
   data[4] = sampleLightLevel();
   data[5] = (uint8_t)(uBit.thermometer.getTemperature() + 128);
 #if MICROBIT_CODAL
@@ -432,40 +444,28 @@ void MbitMoreDevice::updateState(uint8_t *data) {
  */
 void MbitMoreDevice::updateMotion(uint8_t *data) {
   // Accelerometer
-  int16_t rot;
   // Pitch (radians / 1000) is sent as int16_t little-endian [0..1].
-  rot = (int16_t)(uBit.accelerometer.getPitchRadians() * 1000);
-  memcpy(&(data[0]), &rot, 2);
+  write16LE(&data[0], (int16_t)(uBit.accelerometer.getPitchRadians() * 1000));
   // Roll (radians / 1000) is sent as int16_t little-endian [2..3].
-  rot = (int16_t)(uBit.accelerometer.getRollRadians() * 1000);
-  memcpy(&(data[2]), &rot, 2);
+  write16LE(&data[2], (int16_t)(uBit.accelerometer.getRollRadians() * 1000));
 
-  int16_t acc;
   // Acceleration X [milli-g] is sent as int16_t little-endian [4..5].
-  acc = (int16_t)-uBit.accelerometer.getX(); // Face side is positive in Z-axis.
-  memcpy(&(data[4]), &acc, 2);
+  write16LE(&data[4], (int16_t)-uBit.accelerometer.getX()); // Face side is positive in Z-axis.
   // Acceleration Y [milli-g] is sent as int16_t little-endian [6..7].
-  acc = (int16_t)uBit.accelerometer.getY();
-  memcpy(&(data[6]), &acc, 2);
+  write16LE(&data[6], (int16_t)uBit.accelerometer.getY());
   // Acceleration Z [milli-g] is sent as int16_t little-endian [8..9].
-  acc = (int16_t)-uBit.accelerometer.getZ(); // Face side is positive in Z-axis.
-  memcpy(&(data[8]), &acc, 2);
+  write16LE(&data[8], (int16_t)-uBit.accelerometer.getZ()); // Face side is positive in Z-axis.
 
   // Magnetometer
   // Compass Heading is sent as uint16_t little-endian [10..11]
-  uint16_t heading = (uint16_t)normalizeCompassHeading(uBit.compass.heading());
-  memcpy(&(data[10]), &heading, 2);
+  write16LE(&data[10], (int16_t)normalizeCompassHeading(uBit.compass.heading()));
 
-  int16_t force;
   // Magnetic force X (micro-teslas) is sent as int16_t little-endian[12..13].
-  force = (int16_t)(uBit.compass.getX() / 1000);
-  memcpy(&(data[12]), &force, 2);
+  write16LE(&data[12], (int16_t)(uBit.compass.getX() / 1000));
   // Magnetic force Y (micro-teslas) is sent as int16_t little-endian[14..15].
-  force = (int16_t)(uBit.compass.getY() / 1000);
-  memcpy(&(data[14]), &force, 2);
+  write16LE(&data[14], (int16_t)(uBit.compass.getY() / 1000));
   // Magnetic force Z (micro-teslas) is sent as int16_t little-endian[16..17].
-  force = (int16_t)(uBit.compass.getZ() / 1000);
-  memcpy(&(data[16]), &force, 2);
+  write16LE(&data[16], (int16_t)(uBit.compass.getZ() / 1000));
 }
 
 /**
@@ -484,12 +484,12 @@ void MbitMoreDevice::updateAnalogIn(uint8_t *data, size_t pinIndex) {
 
     // filter
     for (size_t i = 0; i < ANALOG_IN_SAMPLES_SIZE; i++) {
-      analogInSamples[pinIndex][i] = uBit.io.pin[pinIndex].getAnalogValue();
+      analogInSamples[pinIndex][i] = (uint16_t)uBit.io.pin[pinIndex].getAnalogValue();
     }
     uint16_t value = median(analogInSamples[pinIndex], ANALOG_IN_SAMPLES_SIZE);
 
     // analog value (0 to 1023) is sent as uint16_t little-endian.
-    memcpy(&(data[0]), &value, 2);
+    write16LE(&data[0], (int16_t)value);
     setPullMode(pinIndex, pullMode[pinIndex]);
   }
 }
@@ -501,11 +501,13 @@ void MbitMoreDevice::updateAnalogIn(uint8_t *data, size_t pinIndex) {
  */
 int MbitMoreDevice::sampleLightLevel() {
   lightLevelSamplesLast++;
-  if (lightLevelSamplesLast == LIGHT_LEVEL_SAMPLES_SIZE) {
+  if (lightLevelSamplesLast >= LIGHT_LEVEL_SAMPLES_SIZE) {
     lightLevelSamplesLast = 0;
   }
-  lightLevelSamples[lightLevelSamplesLast] = uBit.display.readLightLevel();
-  return average(lightLevelSamples, LIGHT_LEVEL_SAMPLES_SIZE);
+  uint8_t newSample = (uint8_t)uBit.display.readLightLevel();
+  lightLevelSum = lightLevelSum - lightLevelSamples[lightLevelSamplesLast] + newSample;
+  lightLevelSamples[lightLevelSamplesLast] = newSample;
+  return lightLevelSum / LIGHT_LEVEL_SAMPLES_SIZE;
 }
 
 /**
@@ -551,13 +553,16 @@ void MbitMoreDevice::stopTone() {
  * @return int index of the label
  */
 int MbitMoreDevice::findWaitingDataLabelIndex(const char *dataLabel, MbitMoreDataContentType dataType) {
+  uint64_t targetKey = 0;
+  memcpy(&targetKey, dataLabel, sizeof(uint64_t));
+
   for (int i = 0; i < MBIT_MORE_WAITING_DATA_LABELS_LENGTH; i++) {
     if (receivedData[i].label[0] == 0)
       continue;
     if (receivedData[i].type == dataType) {
-      if (0 == strncmp(receivedData[i].label,
-                       dataLabel,
-                       MBIT_MORE_DATA_LABEL_SIZE)) {
+      uint64_t labelKey = 0;
+      memcpy(&labelKey, receivedData[i].label, sizeof(uint64_t));
+      if (labelKey == targetKey) {
         return i;
       }
     }
@@ -572,7 +577,7 @@ int MbitMoreDevice::findWaitingDataLabelIndex(const char *dataLabel, MbitMoreDat
  * @param dataType type of the data
  * @return int ID for the label
  */
-int MbitMoreDevice::registerWaitingDataLabel(ManagedString dataLabel, MbitMoreDataContentType dataType) {
+int MbitMoreDevice::registerWaitingDataLabel(const ManagedString &dataLabel, MbitMoreDataContentType dataType) {
   int index = findWaitingDataLabelIndex(dataLabel.toCharArray(), dataType);
   if (index == MBIT_MORE_WAITING_DATA_LABEL_NOT_FOUND) {
     // find blank index and resister it
@@ -629,7 +634,7 @@ ManagedString MbitMoreDevice::dataContentAsText(int labelID) {
  * @param dataLabel 
  * @param dataContent 
  */
-void MbitMoreDevice::sendNumberWithLabel(ManagedString dataLabel, float dataContent) {
+void MbitMoreDevice::sendNumberWithLabel(const ManagedString &dataLabel, float dataContent) {
   uint8_t *data = moreService->dataChBuffer;
   memset(data, 0, MM_CH_BUFFER_SIZE_NOTIFY);
   copyManagedString((char *)(&data[0]), dataLabel, MBIT_MORE_DATA_LABEL_SIZE);
@@ -650,7 +655,7 @@ void MbitMoreDevice::sendNumberWithLabel(ManagedString dataLabel, float dataCont
  * @param dataLabel 
  * @param dataContent 
  */
-void MbitMoreDevice::sendTextWithLabel(ManagedString dataLabel, ManagedString dataContent) {
+void MbitMoreDevice::sendTextWithLabel(const ManagedString &dataLabel, const ManagedString &dataContent) {
   uint8_t *data = moreService->dataChBuffer;
   memset(data, 0, MM_CH_BUFFER_SIZE_NOTIFY);
   copyManagedString(
@@ -767,8 +772,7 @@ void MbitMoreDevice::onPinEvent(MicroBitEvent evt) {
 
   // event timestamp is sent as uint32_t little-endian
   // downcast from uint64_t value.
-  uint32_t timestamp = (uint32_t)evt.timestamp;
-  memcpy(&(data[2]), &timestamp, 4);
+  write32LE(&(data[2]), (uint32_t)evt.timestamp);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::PIN_EVENT;
 #if MBIT_MORE_USE_SERIAL
   if (serialConnected) {
@@ -789,14 +793,13 @@ void MbitMoreDevice::onButtonChanged(MicroBitEvent evt) {
   data[0] = MbitMoreActionEvent::BUTTON;
   // source is a component ID that generated the event as uint16_t little-endian.
   // MICROBIT_ID_BUTTON_A, MICROBIT_ID_IO_P0, MICROBIT_ID_LOGO, etc.
-  memcpy(&(data[1]), &evt.source, 2);
+  write16LE(&(data[1]), (int16_t)evt.source);
   // Event ID send as uint16_t little-endian.
   // MICROBIT_BUTTON_EVT_DOWN, MICROBIT_BUTTON_EVT_CLICK, etc.
   data[3] = (uint8_t)evt.value;
   // Timestamp of the event send as uint32_t little-endian.
   // downcast from uint64_t value.
-  uint32_t timestamp = (uint32_t)evt.timestamp;
-  memcpy(&(data[4]), &timestamp, 4);
+  write32LE(&(data[4]), (uint32_t)evt.timestamp);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
 #if MBIT_MORE_USE_SERIAL
   if (serialConnected) {
@@ -820,8 +823,7 @@ void MbitMoreDevice::onGestureChanged(MicroBitEvent evt) {
   data[1] = (uint8_t)evt.value;
   // Timestamp of the event send as uint32_t little-endian.
   // downcast from uint64_t value.
-  uint32_t timestamp = (uint32_t)evt.timestamp;
-  memcpy(&(data[2]), &timestamp, 4);
+  write32LE(&(data[2]), (uint32_t)evt.timestamp);
   data[MBIT_MORE_DATA_FORMAT_INDEX] = MbitMoreDataFormat::ACTION_EVENT;
 #if MBIT_MORE_USE_SERIAL
   if (serialConnected) {
@@ -945,7 +947,7 @@ void MbitMoreDevice::displayFriendlyName() {
  * 
  */
 void MbitMoreDevice::displayVersion() {
-  uBit.display.scrollAsync(ManagedString(" -M 0.2.6- "), 120);
+  uBit.display.scrollAsync(ManagedString(" -M " MBIT_MORE_VERSION_STRING "- "), 120);
 }
 
 /**
@@ -956,9 +958,8 @@ void MbitMoreDevice::displayVersion() {
  * @return false the pin is not a GPIO
  */
 bool MbitMoreDevice::isGpio(int pinIndex) {
-  for (size_t i = 0; i < (sizeof(gpioPin) / sizeof(gpioPin[0])); i++) {
-    if (pinIndex == gpioPin[i])
-      return true;
-  }
-  return false;
+  if (pinIndex < 0 || pinIndex > 16) return false;
+  static const uint32_t gpioMask = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 8) |
+                                   (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15) | (1 << 16);
+  return (gpioMask & (1 << pinIndex)) != 0;
 }

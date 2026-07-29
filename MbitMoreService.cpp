@@ -246,7 +246,7 @@ void MbitMoreService::update() {
  * @param dataType type of the data to be received
  * @return int ID for the label
  */
-int MbitMoreService::registerWaitingDataLabel(ManagedString dataLabel, MbitMoreDataContentType dataType) {
+int MbitMoreService::registerWaitingDataLabel(const ManagedString &dataLabel, MbitMoreDataContentType dataType) {
   return mbitMore->registerWaitingDataLabel(dataLabel, dataType);
 }
 
@@ -286,7 +286,7 @@ ManagedString MbitMoreService::dataContentAsText(int labelID) {
  * @param dataLabel label of the data
  * @param dataContent content of the data
  */
-void MbitMoreService::sendNumberWithLabel(ManagedString dataLabel, float dataContent) {
+void MbitMoreService::sendNumberWithLabel(const ManagedString &dataLabel, float dataContent) {
   mbitMore->sendNumberWithLabel(dataLabel, dataContent);
 }
 
@@ -296,7 +296,7 @@ void MbitMoreService::sendNumberWithLabel(ManagedString dataLabel, float dataCon
  * @param dataLabel label of the data
  * @param dataContent content of the data
  */
-void MbitMoreService::sendTextWithLabel(ManagedString dataLabel, ManagedString dataContent) {
+void MbitMoreService::sendTextWithLabel(const ManagedString &dataLabel, const ManagedString &dataContent) {
   mbitMore->sendTextWithLabel(dataLabel, dataContent);
 }
 

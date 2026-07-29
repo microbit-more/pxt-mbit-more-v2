@@ -8,7 +8,7 @@ This document is a guide for AI agents (Antigravity, GitHub Copilot, etc.) to un
 It includes MakeCode (PXT) TypeScript block definitions and C++ (CODAL / microbit-dal) custom BLE GATT service implementations.
 
 - **Name**: pxt-mbit-more-v2
-- **Version**: 0.2.6
+- **Version**: 0.3.0
 - **Target**: micro:bit (v1 / v2)
 - **Author**: Koji Yokokawa (@yokobond)
 
@@ -145,10 +145,33 @@ when the extension is published), and re-cutting a tag overwrites the existing a
 
 Release checklist:
 
-1. Bump `version` in both `pxt.json` and `package.json` to match the tag.
-2. Smoke-test the build on real hardware, then `cp built/binary.hex dist/binary.hex`
-   and commit it.
-3. Tag and push — CI attaches the hex to the release.
+1. Bump the version — `package.json` is the single source of truth:
+
+   ```bash
+   npm version patch --no-git-tag-version   # or minor / major
+   ```
+
+   The `version` lifecycle hook runs `scripts/sync-version.js`, which propagates the new
+   number to `pxt.json`, to `MBIT_MORE_VERSION_STRING` in `MbitMoreCommon.h` (the string
+   scrolled on the LED matrix at startup) and to the **Version** line above. Never edit
+   those three by hand — `npm test` runs the same script with `--check` and fails CI on
+   drift.
+
+   `--no-git-tag-version` is deliberate: it skips npm's own commit and tag, because the
+   release tag is cut on `master` after the merge (step 4) and npm would otherwise tag
+   the current branch with a `v` prefix this repo does not use.
+
+2. Rebuild and smoke-test on real hardware, then commit the distributed firmware:
+
+   ```bash
+   npm run build
+   cp built/binary.hex dist/binary.hex
+   ```
+
+3. Commit on `develop`, then merge into `master` with `--no-ff`.
+4. Tag `master` with the bare version (e.g. `0.2.6`, no `v`) and push the tag — CI builds
+   and attaches the hex to the release.
+5. Write the release notes (CI creates the release with an empty body).
 
 ## CODAL Resources
 
