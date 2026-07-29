@@ -945,7 +945,7 @@ void MbitMoreDevice::displayFriendlyName() {
  * 
  */
 void MbitMoreDevice::displayVersion() {
-  uBit.display.scrollAsync(ManagedString(" -M 0.2.6- "), 120);
+  uBit.display.scrollAsync(ManagedString(" -M " MBIT_MORE_VERSION_STRING "- "), 120);
 }
 
 /**

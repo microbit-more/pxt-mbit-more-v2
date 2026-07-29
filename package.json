@@ -7,7 +7,10 @@
     "build": "pxt build",
     "build:shims": "pxt buildshims",
     "deploy": "pxt deploy",
-    "test": "npm run test:unit",
+    "version": "node scripts/sync-version.js && git add pxt.json MbitMoreCommon.h AGENTS.md",
+    "sync-version": "node scripts/sync-version.js",
+    "test": "npm run test:version && npm run test:unit",
+    "test:version": "node scripts/sync-version.js --check",
     "test:unit": "jest",
     "test:shims": "pxt buildshims",
     "test:pxt": "pxt test"
